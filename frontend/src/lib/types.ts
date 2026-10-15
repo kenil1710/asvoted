@@ -107,6 +107,7 @@ export interface Check {
   safe: string;
   tx: string;
   block: number;
+  exec_time: number;
   exec_id: number;
   vote_id: number;
   cid: string;
@@ -157,6 +158,7 @@ export interface Dao {
   pledge: string;
   withdraw_amount: string;
   withdraw_at: number;
+  withdraw_requested: number;
   open_checks: number;
   n_checks: number;
   as_voted: number;

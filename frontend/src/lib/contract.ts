@@ -42,9 +42,25 @@ export function plain(v: unknown): unknown {
   return v;
 }
 
+/** Reads go through the site's cached /api/view in the browser (one Studio read
+ *  per 20 s per view, shared by every visitor), and straight to Studio elsewhere. */
+let freshReads = 0;
+
+async function readRaw(address: string, functionName: string, args: CalldataEncodable[]): Promise<unknown> {
+  if (typeof window !== "undefined") {
+    const q = new URLSearchParams({ a: address, f: functionName, args: JSON.stringify(args, (_k, v) => (typeof v === "bigint" ? v.toString() : v)) });
+    // after a write, re-read the contract itself, never a cached copy
+    if (freshReads > 0) q.set("fresh", String(Date.now()));
+    const r = await fetch(`/api/view?${q}`);
+    const j = await r.json();
+    if (!r.ok || j.error) throw new Error(j.error ?? `view ${functionName} failed`);
+    return j.value;
+  }
+  return getReadClient().readContract({ address: address as `0x${string}`, functionName, args });
+}
+
 export async function viewOf<T>(address: string, functionName: string, args: CalldataEncodable[] = []): Promise<T> {
-  const raw = await withTimeout(
-    getReadClient().readContract({ address: address as `0x${string}`, functionName, args }) as Promise<unknown>, functionName);
+  const raw = await withTimeout(readRaw(address, functionName, args), functionName);
   if (typeof raw === "string") {
     try { return JSON.parse(raw) as T; } catch { return raw as T; }
   }
@@ -248,7 +264,8 @@ export async function send<T>(account: `0x${string}`, address: string, functionN
     report({ phase: "accepted", hash, message: "Accepted. Re-reading the contract to confirm." });
     let ok = false;
     for (let i = 0; i < 6 && !ok; i++) {
-      try { ok = await opts.confirm(r.body as T | null); } catch { ok = false; }
+      freshReads++;
+      try { ok = await opts.confirm(r.body as T | null); } catch { ok = false; } finally { freshReads--; }
       if (!ok) await new Promise((res) => setTimeout(res, 4000));
     }
     if (!ok) {

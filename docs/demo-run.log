@@ -1,6 +1,43 @@
-23:02:44 → filer list_dao ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
-23:02:59   OK ACCEPTED 15s 0x96c11c20257a35d181653243b6ce69081db769df16ad21439762b60703fec3e8 {"dao_id":1,"ok":true}
-GenLayer RPC error (gen_call): Rate limit exceeded: 500 requests per hour
-  … get_dao_id hit the HOURLY RPC limit (1), waiting 90s
-GenLayer RPC error (gen_call): Rate limit exceeded: 500 requests per hour
-  … get_dao_id hit the HOURLY RPC limit (2), waiting 90s
+23:06:21 → filer read_space ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+23:06:35   OK ACCEPTED 14s 0xe89bbb97efe057e4e165c544496d43938427993bba7403a5ab64f8f53701888a {"bind_id":2,"listed":true}
+23:06:35 → filer list_dao ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+23:06:50   OK ACCEPTED 15s 0xdb92e04194d3c206290e62d4b095c979ecded15ef26046831e4b565d36e16cd4 {"dao_id":2,"ok":true}
+23:06:51 → filer read_space ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+23:07:07   OK ACCEPTED 16s 0x8540cd55681a124b5625062d3cfad1c7ecc8b10adb74e5e26d7cf8912d0ec8d3 {"bind_id":3,"listed":false}
+23:07:07 → filer list_dao ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for list_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:07:19   REVERTED ACCEPTED 12s 0xfd3260790f5443a0767a31979f91aa5aa8ee278990d3cbcf0ecec9becdf7f09b REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+23:07:19 PASS  listing a Safe the space does not list is refused  REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+23:07:22 → filer claim_dao [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for claim_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:07:35   REVERTED ACCEPTED 13s 0x9a7206479f482e94fb1f15c0db2beca3f56e326ccb862e8991b3ddc77f4f6703 REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+23:07:35 PASS  claim by a non-admin is refused  REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+23:07:37 → dao claim_dao [1]
+23:07:51   OK ACCEPTED 14s 0xed918c98ac900a6ac6f06fdcd23f966bb4aa61bf0c9cf6df055590d58e4cd4dd {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":1,"ok":true}
+23:07:54 → dao claim_dao [2]
+23:08:09   OK ACCEPTED 16s 0x07134200df32aacde373be1145a3938549b87fb7f3ee5ec594ec563c47da5c8f {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":2,"ok":true}
+23:08:12 PASS  demo controller claims both listings  
+23:08:15 → dao pledge [1] +5000000000000000000
+23:08:27   OK ACCEPTED 12s 0x069ec99d7703c8e354cf5db1fcf3cccfc5d8083cdb9ff2687bee564f11b645b7 {"dao_id":1,"ok":true,"pledge":"5000000000000000000"}
+23:08:28 → dao pledge [2] +2000000000000000000
+23:08:40   OK ACCEPTED 12s 0xe308101e88470ee4e0fa3ee8d7280efede28f88d67dbdd5a9d1da3deac54aad8 {"dao_id":2,"ok":true,"pledge":"2000000000000000000"}
+23:08:40 → filer pledge [1] +1000000000000000000
+23:08:52   OK ACCEPTED 12s 0x5a77710bca1300d3891014291ac7415d70c269301c84c5d3d4b20573ca738657 {"ok":false,"reason":"ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE","refunded_to_claimable":"1000000000000000000"}
+23:08:52 PASS  pledge by a non-controller is credited back, ok:false  ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE
+23:08:52 → demo request_grant [1,"release tranche 1"]
+23:09:09   OK ACCEPTED 17s 0xd18356a97d3178051dbce9a9d3fd79fdb33db47a1718e9700096e3cce1196428 {"carried_out":true,"reasons":[],"request_id":1}
+23:09:09 PASS  GrantGate carries out a request while the DAO is in good standing  []
+23:09:17 → filer file_check [1,1,1,"demo: as voted"] +100000000000000000
+23:09:30   OK ACCEPTED 13s 0xdc3274502bfe6159bfae82079cee0796a04898f70e595f80bc71619bbbd859d2 {"check_id":1,"judge_deadline":1792106362,"ok":true}
+23:09:35 → filer read_execution ["ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662","0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632
+23:09:58   OK ACCEPTED 23s 0x0ff817a70215a486f5afb5a4af90db9a969d7d2b7467b00b02789a928bf85c9f {"actions":4,"block":17974015,"exec_id":4,"safe_tx_hash":"0xdf657f2c95f41dd3013349dd905a99a447b896b5aaed4fcab82c78565ef0e0f1"}
+23:10:00 → filer read_proposal ["bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+23:10:29   OK ACCEPTED 29s 0xd1f3befcebe913474975e4efad8d0b0af0bed43df42b07ef1e2ccf4cca852b65 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":4}

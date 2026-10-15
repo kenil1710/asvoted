@@ -33,8 +33,9 @@ export function DaoView({ id }: { id: number }) {
   const demoSeam = cfg.data?.mode === "DEMO" && (cfg.data?.demo_controllers ?? []).includes(me);
   const refresh = () => { void dao.mutate(); void mine.mutate(); void stand.mutate(); void gateLog.mutate(); };
   const wei = parseGen(amount);
-  const withdrawWhy = !isController ? "ONLY_THE_DAOS_CONTROLLER" : d.open_checks > 0 ? `CHECKS_OPEN_${d.open_checks}` : wei === null || wei <= 0n || wei > BigInt(d.pledge) ? "AMOUNT_OUT_OF_RANGE" : "";
-  const execWhy = BigInt(d.withdraw_amount) === 0n ? "NO_WITHDRAWAL_PENDING" : now() < d.withdraw_at ? `WITHDRAWAL_LOCKED_UNTIL_${d.withdraw_at}` : d.open_checks > 0 ? `CHECKS_OPEN_${d.open_checks}` : "";
+  const withdrawWhy = !isController ? "ONLY_THE_DAOS_CONTROLLER" : wei === null || wei <= 0n || wei > BigInt(d.pledge) ? "AMOUNT_OUT_OF_RANGE" : "";
+  const blocking = (checks.data?.checks ?? []).filter((c) => c.status !== "FINAL" && c.exec_time <= d.withdraw_at).length;
+  const execWhy = BigInt(d.withdraw_amount) === 0n ? "NO_WITHDRAWAL_PENDING" : now() < d.withdraw_at ? `WITHDRAWAL_LOCKED_UNTIL_${d.withdraw_at}` : blocking > 0 ? `CHECKS_OPEN_${blocking}` : "";
 
   async function claimDao() {
     await tx.run(async (onProgress) => {
@@ -74,7 +75,7 @@ export function DaoView({ id }: { id: number }) {
       </Section>
       <Section title="The pledge">
         <p className="max-w-3xl text-sm text-ink-2">
-          A pledge says &quot;we execute only what passed&quot;. A final DEVIATES ruling slashes it by the frozen severity table and pays the slash
+          A pledge says &quot;we execute only what passed&quot;. A withdrawal waits out a delay and cannot complete while a check of an execution made before it unlocks is open. A final DEVIATES ruling slashes the pledge by the frozen severity table and pays the slash
           to whoever proved the deviation; a final AS_VOTED ruling adds the challenger&apos;s stake to it. Only the listing&apos;s controller, an
           admin or moderator of {d.space} on Snapshot, can pledge or withdraw. {d.controller ? <>Controller: <Addr value={d.controller} />.</> : "This listing is unclaimed."}
           {cfg.data?.mode === "DEMO" && " On the demo registry the test addresses fixed at deployment may also claim, so every path can be tried."}

@@ -1,4 +1,42 @@
 
 === seed 1/15: cow.eth CIP-48 solver rewards budget renewal
-GenLayer RPC error (gen_call): Rate limit exceeded: 500 requests per hour
-GenLayer RPC error (gen_call): Rate limit exceeded: 500 requests per hour
+23:06:02 → read_proposal
+23:06:24   OK ACCEPTED 22s 0x26e57afbddd6deefd29c37a85fa4f6672ea449698d21ca4c58eac938ffe734f0 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":1}
+23:06:25 → file_check
+23:06:40   OK ACCEPTED 15s 0x8316fb4f955605a98e79ea5b50c747bff46529b8abd50815ef78508e0b748aa4 {"check_id":1,"judge_deadline":1792191992,"ok":true}
+23:06:41 check #1
+23:06:44 → judge
+23:06:58   OK ACCEPTED 14s 0xead2b83f009fdb2c91c42f848a3e881c0c2e0401b2002f9ad8b4105bacf3c2c8 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24."}
+23:06:59 → rule
+23:07:13   OK ACCEPTED 14s 0xc600352ae79b788e24d1f0489bf2b6f5057dc8a692643541586cda29df4f05ef {"check_id":1,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:07:14 check #1 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24.
+
+=== seed 2/15: cow.eth CIP-37 COW liquidity via programmatic orders
+23:07:16 → read_execution
+23:07:32   OK ACCEPTED 15s 0x50c4c4ae98ee9830ed4e2f4965079655c25dc185038f0bb8d03d50fc6d5f220d {"actions":1,"block":19226339,"exec_id":2,"safe_tx_hash":"0x4af0d6ce86b844265c09192b6896d31bfb72991e6112193e8d3ab87f7b3a26a9"}
+23:07:34 → read_proposal
+23:07:48   OK ACCEPTED 14s 0xd4ed6f158fa3b2af0c2206c02d231662d1919a7f902ca66cd9fea53463b64033 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":2}
+23:07:49 → file_check
+23:08:06   OK ACCEPTED 17s 0x55cdb6fd436aa3f742a64eaa917dad86e1f272c3d0428d382d35286992ab97c2 {"check_id":2,"judge_deadline":1792192078,"ok":true}
+23:08:07 check #2
+23:08:09 → judge
+23:08:32   OK ACCEPTED 23s 0x9eae1b534ba5b79073566bf5eadf7c31cbfb52118ad2b538a74f4cc7cc36758f {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xbcdb6b99… on 2024-02-14 is named in the proposal of 2024-02-14."}
+23:08:33 → rule
+23:08:48   OK ACCEPTED 15s 0x8f3fd0578567d8923d072a25797bffd98541341dbb6c9558a59306deabf052c5 {"check_id":2,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:08:49 check #2 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xbcdb6b99… on 2024-02-14 is named in the proposal of 2024-02-14.
+
+=== seed 3/15: cow.eth CIP-29 solver rewards renewal
+23:08:51 → read_execution
+23:09:08   OK ACCEPTED 17s 0xec764989eb4b03f5bebb80e44202b3db76666b9a0a51831fb07c0edaff9b6f7c {"actions":1,"block":17942594,"exec_id":3,"safe_tx_hash":"0x72e665076d6096a3d9c04956dec1453ae665a2d9bf3b59a16730f8d3eda2e94b"}
+23:09:11 → read_proposal
+23:09:26   OK ACCEPTED 15s 0xa34b46e05b5c9a7f2ed39a12846026c8985221086fc38c92b2d9bb19f353a534 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":3}
+23:09:27 → file_check
+23:09:42   OK ACCEPTED 14s 0x8a92aa69907d2b08a8877a177596a7e9d1f31c4d7d53b06b1347c9154b88be06 {"check_id":3,"judge_deadline":1792192174,"ok":true}
+23:09:43 check #3
+23:09:45 → judge
+23:09:59   OK ACCEPTED 14s 0x85573abcfaabd280ea08004dd49e3db43a91be0c51b91914391e26f82de68ed4 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17."}
+23:10:00 → rule
+23:10:19   OK ACCEPTED 19s 0x770c84beab2e9dc94326c6f24e4c4379d7782b15aed1b3682c8673f8eb56e58f {"check_id":3,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:10:20 check #3 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17.
+
+=== seed 4/15: cow.eth CIP-28 send profits to the treasury (67 WETH)
