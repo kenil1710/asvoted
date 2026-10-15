@@ -10,8 +10,8 @@
  *   3. skip executions that already have a check (precedent: one check per
  *      (Safe, tx), never re-filed) or that are not finalized yet;
  *   4. match each new one to the most recent PASSED proposal of the DAO's
- *      space that ended before it, preferring one whose text names an address
- *      the execution touches;
+ *      space that ended before it and whose text names an address the
+ *      execution touches (no such proposal: not filed, noted in the report);
  *   5. file it: ExecReader.read_execution -> VoteReader.read_proposal ->
  *      file_check (+0.1 GEN) -> judge -> rule, one step per write, resuming
  *      next run where it stopped.
@@ -188,5 +188,7 @@ async function matchProposal(d: { space: string; chain: string; safe: string }, 
   if (passed.length === 0) return { error: "no passed proposal of the space ended before it" };
   const naming = passed.find((p) => [...touched].some((a) => p.body.toLowerCase().includes(a)));
   if (naming) return { cid: naming.ipfs, nonce: n.nonce, why: "most recent passed proposal naming an address the execution touches" };
-  return { cid: passed[0].ipfs, nonce: n.nonce, why: "most recent passed proposal before the execution (none names its addresses)" };
+  // No passed proposal names anything this execution touches: filing against
+  // the latest one would mostly measure the bot's guess, not the signers.
+  return { error: "no passed proposal of the space names an address this execution touches; not filed" };
 }

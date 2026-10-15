@@ -40,3 +40,17 @@
 23:10:20 check #3 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17.
 
 === seed 4/15: cow.eth CIP-28 send profits to the treasury (67 WETH)
+23:10:22 → read_execution
+23:10:47   OK ACCEPTED 24s 0xf715be42b675ea4f4bfe3aefe2aa55f27cf06e21fe38992b82e961990bffee27 {"actions":1,"block":19948199,"exec_id":5,"safe_tx_hash":"0xe433a1f48f5428a19e8b67a82634d2546295ea0998b12810e06e0bc64e5b65bd"}
+23:10:54 → read_proposal
+23:11:17   OK ACCEPTED 23s 0x262aeb3860c5835f31082fea6cab1c2125d048226a3ef49e6970620da1436ecb {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":5}
+23:11:18 → file_check
+23:11:35   OK ACCEPTED 16s 0xb03a92f698c6e03831dfaec988fd1ac9d8bde6d8bb834093b04411f2b57f4f9f {"check_id":4,"judge_deadline":1792192285,"ok":true}
+23:11:39 check #4
+23:11:41 → judge
+23:11:58   OK ACCEPTED 17s 0x31d85cd1107cb3bb7f2687ced522f89a4f6ac61c1d9996098bb6bb707c2846d8 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0x2d3d227c… on 2024-05-25 is named in the proposal of 2023-08-02."}
+23:12:02 → rule
+23:12:21   OK ACCEPTED 20s 0x1a31b5dd22a294c9918aadaf5cb7e95e02dcf0a1ddb1de96dd79f816712d009f {"check_id":4,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:12:23 check #4 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0x2d3d227c… on 2024-05-25 is named in the proposal of 2023-08-02.
+
+=== seed 5/15: cow.eth CIP-24 continued funding for development services

@@ -25,7 +25,7 @@ export default function PatrolPage() {
       <h1 className="mt-10 font-serif text-4xl font-semibold">Patrol</h1>
       <p className="mt-2 max-w-2xl text-ink-2">
         A bot watches every Safe listed on the canonical registry. Every 15 minutes it reads their ExecutionSuccess events,
-        matches each new execution to the most recent passed proposal of the DAO&apos;s space, files a check, and later judges,
+        matches each new execution to the most recent passed proposal of the DAO&apos;s space that names an address it touches, files a check, and later judges,
         rules on and closes its own filings. It never files the same Safe transaction twice. It signs as <Addr value={PATROL_ADDRESS} />.
       </p>
       <Section title="Its filings, read from the canonical registry">

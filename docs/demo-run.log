@@ -49,3 +49,11 @@ Details: exec)
 23:11:48   OK ACCEPTED 24s 0x000eb35059ebc7f61fd73fe6ecfacf885e6766d9878822f48d99e4836ffcfbe6 {"check_id":3,"judge_deadline":1792106500,"ok":true}
 23:11:55 → filer read_execution ["ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669","0x5b453427e61374b5d023a9920943fcbe05a54b7d06b9fc557d
 23:12:11   OK ACCEPTED 16s 0x7605f4724b6497b60de6cba2e97758b2e8fb718071e74a74be1174f4cc5c48bb {"actions":1,"block":25881591,"exec_id":6,"safe_tx_hash":"0x8a620608cc456607bc1b11580646bf6f004917b3605297f5207ebaf8d30a11ec"}
+23:12:15 → filer read_proposal ["bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6F
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:12:28   OK ACCEPTED 13s 0x0ccc97f5ddfefc5462c7c9b94aea7fb850444d172e7b9927cefeb80ccfe6fcb0 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":7}
+23:12:33 → filer2 file_check [2,6,7,"demo: appeal lost"] +100000000000000000

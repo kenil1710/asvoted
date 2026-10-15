@@ -21,7 +21,7 @@ Five pieces, six contracts, each doing one job:
 | `AsVotedRegistry` | DAO listings, pledge bonds, checks, the PROVISIONAL → CONTESTABLE → FINAL lifecycle, one appeal, deadlines, pull payouts, the ledger. Canonical (1 h contest window) and demo (90 s) instances, same code. |
 | `DaoStanding` + `GrantGate` | `is_executing_as_voted(dao, at_time)`: no FINAL DEVIATES ruling in the last 30 days. `GrantGate` is a tiny consumer that refuses to act for a DAO without that standing, and logs every request. |
 
-A **patrol bot** (`frontend/src/lib/patrol.ts`, a Vercel function called by cron-job.org every 15 minutes with a secret header) watches every listed Safe's `ExecutionSuccess` events, matches each new execution to the most recent passed proposal of the space that ended before it (preferring one whose text names an address the execution touches), files the check on the canonical registry, and judges, rules on and closes its own filings after their deadlines. It never re-files a (Safe, tx). Every write estimates its fee by simulating the call first.
+A **patrol bot** (`frontend/src/lib/patrol.ts`, a Vercel function called by cron-job.org every 15 minutes with a secret header) watches every listed Safe's `ExecutionSuccess` events, matches each new execution to the most recent passed proposal of the space that ended before it and names an address the execution touches (if none does, it does not file), files the check on the canonical registry, and judges, rules on and closes its own filings after their deadlines. It never re-files a (Safe, tx). Every write estimates its fee by simulating the call first.
 
 ## How each action is decided
 
