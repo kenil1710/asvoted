@@ -13,3 +13,4 @@ research_cache/
 .vercel/
 *.tsbuildinfo
 docs/demo/raw/
+scratch/
