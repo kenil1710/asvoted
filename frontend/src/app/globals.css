@@ -92,6 +92,7 @@
   --font-mono: var(--font-martian), ui-monospace, monospace;
 }
 
+@layer base {
 html {
   background: var(--paper);
   color: var(--ink);
@@ -109,6 +110,7 @@ body {
 
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--booth); outline-offset: 2px; border-radius: 3px; }
+}
 
 .prose-ballot { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.7; color: var(--ink); }
 .prose-ballot p { margin: 0 0 0.85em; }
@@ -116,7 +118,7 @@ a { color: inherit; }
 .prose-ballot h1 { font-size: 1.25rem; }
 .prose-ballot h2 { font-size: 1.12rem; }
 .prose-ballot h3 { font-size: 1.02rem; }
-.prose-ballot code, .prose-ballot pre { font-family: var(--font-mono); font-size: 0.78rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.prose-ballot code, .prose-ballot pre, .prose-ballot .code { font-family: var(--font-mono); font-size: 0.78rem; overflow-wrap: anywhere; white-space: pre-wrap; }
 .prose-ballot mark { background: var(--mark); color: inherit; padding: 0 2px; border-radius: 2px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent); }
 .prose-ballot .addr { font-family: var(--font-mono); font-size: 0.82em; overflow-wrap: anywhere; }
 
@@ -162,3 +164,6 @@ a { color: inherit; }
 
 .tabular { font-variant-numeric: tabular-nums; }
 .break-anywhere { overflow-wrap: anywhere; word-break: break-word; }
+
+.prose-ballot .h { font-weight: 650; display: block; margin-top: 0.9em; font-size: 1.06rem; }
+.prose-ballot .code { display: block; background: var(--paper); border-radius: 4px; padding: 0 6px; color: var(--ink-2); }

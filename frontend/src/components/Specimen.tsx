@@ -19,12 +19,12 @@ export function Specimen({ checks }: { checks: Check[] | undefined }) {
   const tok = ex.data.tokens[a?.token ?? ""] ?? ex.data.tokens[""];
   const line = a && a.amount ? `${a.kind === "erc20_approve" ? "approve" : "transfer"} ${formatUnits(a.amount, tok?.decimals ?? 18)} ${tok?.symbol ?? ""}` : (a?.fn || a?.selector || "call");
   return (
-    <Link href={`/check/${pick.check_id}`} className="group relative hidden h-72 lg:block" aria-label={`Check #${pick.check_id}: ${pick.ruling_summary}`}>
-      <div className="absolute left-0 top-0 w-[60%] -rotate-2 rounded-md border border-rule bg-sheet p-5 shadow-sm transition-transform group-hover:-rotate-3">
+    <Link href={`/check/${pick.check_id}`} className="group relative hidden h-80 lg:block" aria-label={`Check #${pick.check_id}: ${pick.ruling_summary}`}>
+      <div className="absolute left-0 top-0 w-[62%] -rotate-2 rounded-md border border-rule bg-sheet p-5 shadow-sm transition-transform group-hover:-rotate-3">
         <p className="text-xs text-ink-3">The ballot, {vote.data.space}, closed {isoDate(vote.data.end)}</p>
         <p className="mt-2 line-clamp-4 font-serif text-[15px] font-semibold leading-snug">{vote.data.title}</p>
       </div>
-      <div className="receipt absolute right-0 top-14 w-[52%] rotate-2 rounded-t-md border border-b-0 border-rule p-4 text-[12px] text-ink-2 shadow-sm transition-transform group-hover:rotate-3">
+      <div className="receipt absolute right-0 top-32 w-[50%] rotate-2 rounded-t-md border border-b-0 border-rule p-4 text-[12px] text-ink-2 shadow-sm transition-transform group-hover:rotate-3">
         <p className="text-ink">Executed {isoDate(ex.data.block_time)}</p>
         <p className="mt-2 break-anywhere">{line}</p>
         {a?.recipient && <p>to {shortAddress(a.recipient)}</p>}

@@ -337,6 +337,28 @@ class TestJudge(Base):
         cid, j, c = self.judged("Send 50,000 USDC to " + ALICE, txs=txs)
         self.assertEqual(self.outcomes(c), ["OVER_AMOUNT", "OVER_AMOUNT"])
 
+    def test_cap_is_shared_across_executions_of_one_proposal(self):
+        D = self.D
+        body = "Send 50,000 USDC to " + ALICE
+        cid = F.proposal(body)
+        vid = D.read_vote(cid)
+        tx1, n1 = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(50_000)), nonce=7)
+        tx2, n2 = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(50_000)), nonce=8)
+        c1 = D.file(self.dao, D.read_exec(tx1, n1), vid)["check_id"]
+        c2 = D.file(self.dao, D.read_exec(tx2, n2), vid, sender=FILER2)["check_id"]
+        D.judge_rule(c1)
+        D.judge_rule(c2)
+        self.assertEqual(D.view(D.rg, "get_check", c1)["ruling"], "AS_VOTED")
+        k2 = D.view(D.rg, "get_check", c2)
+        self.assertEqual((k2["ruling"], k2["prior_exec_ids"]), ("DEVIATES", [1]))
+        self.assertIn("earlier executions", k2["ruling_detail"]["actions"][0]["reason"])
+
+    def test_stablecoins_of_different_decimals_add_up(self):
+        txs = [(0, USDC, 0, F.transfer(ALICE, U(30_000))), (0, F.addr(0xda1), 0, F.transfer(ALICE, 30_000 * GEN))]
+        F.tokens(self.D.mc, {F.addr(0xda1): ("DAI", 18)})
+        cid, j, c = self.judged("Grant of $50,000 to " + ALICE, txs=txs)
+        self.assertEqual(self.outcomes(c), ["OVER_AMOUNT", "OVER_AMOUNT"])
+
     def test_other_token_for_the_recipient(self):
         body = "Send 100 USDC to " + ALICE + "\n\nSend 100 COW to " + BOB
         cid, j, c = self.judged(body, txs=[(0, COW, 0, F.transfer(ALICE, 100 * GEN)), (0, USDC, 0, F.transfer(BOB, U(100)))])

@@ -760,6 +760,23 @@ def code_rules(inp: dict) -> list:
         t = toks.get(token)
         return int(t.get("decimals", -1)) if isinstance(t, dict) else -1
 
+    # transfers already made under this proposal by this DAO's Safe in executions
+    # checked earlier (snapshotted by the registry at filing): [recipient, family, amount at 18 decimals]
+    prior_legs = []
+    for pe in inp.get("prior") or []:
+        ptoks = pe.get("tokens") or {}
+        for a in pe.get("actions") or []:
+            k = a.get("kind")
+            if k in ("erc20_transfer", "erc20_transfer_from", "gas_refund", "native") or int(a.get("value", "0")) > 0:
+                tok = a.get("token", "") if k != "native" and k in ("erc20_transfer", "erc20_transfer_from", "gas_refund") else ""
+                info = ptoks.get(tok) if isinstance(ptoks.get(tok), dict) else {}
+                sy = str(info.get("symbol", "")) if tok != "" else str((ptoks.get("") or {}).get("symbol", "ETH"))
+                dc = int(info.get("decimals", -1)) if tok != "" else 18
+                amt = int(a.get("amount") or 0) if k != "call" and k != "delegatecall" and k != "empty" else int(a.get("value", "0"))
+                to = a.get("recipient") if a.get("recipient") else a.get("target")
+                if sy != "" and 0 <= dc <= 18:
+                    prior_legs.append([str(to), family(sy), amt * (10 ** (18 - dc))])
+
     # value legs: (action index, recipient, token ("" native), raw amount, is_approval)
     legs = []
     for a in acts:
@@ -818,13 +835,20 @@ def code_rules(inp: dict) -> list:
                      ", an address the proposal does not mention")
             continue
         decs = [dec_of(x[2]) if x[2] != "" else 18 for x in g]
-        if fam == "" or min(decs) < 0 or len([d for d in decs if d != decs[0]]) > 0:
+        if fam == "" or min(decs) < 0 or max(decs) > 18:
             for i in idx:
                 setr(i, A_UNCLEAR, "the token's symbol or decimals could not be read")
             continue
+        # amounts in one scale (18 decimals), so USDC and DAI to one recipient add up
         total = 0
-        for x in g:
-            total += x[3]
+        for k in range(len(g)):
+            total += g[k][3] * (10 ** (18 - decs[k]))
+        n_prior = 0
+        if not approval:
+            for pl in prior_legs:
+                if pl[0] == r and pl[1] == fam:
+                    total += pl[2]
+                    n_prior += 1
         ms = mentions_of(text, low, addrs, ens, r)
         if approval and total == 0:
             for i in idx:
@@ -860,9 +884,10 @@ def code_rules(inp: dict) -> list:
                 setr(i, A_OVER, "the proposal states amounts near " + r + " only in " + ", ".join(c["others"]) +
                      ", not in " + sym, "", 10 ** 6, c["level"])
             continue
-        within, over = _cmp_cap(total, decs[0], c["cap"])
-        sent = fmt_units(total, decs[0]) + " " + sym
-        joined = "" if len(idx) == 1 else " (" + str(len(idx)) + " transfers summed)"
+        within, over = _cmp_cap(total, 18, c["cap"])
+        sent = fmt_units(total, 18) + " " + sym
+        joined = "" if len(idx) == 1 and n_prior == 0 else " (" + str(len(idx) + n_prior) + " transfers summed" + \
+            (", " + str(n_prior) + " of them in earlier executions checked against this proposal" if n_prior > 0 else "") + ")"
         if within:
             for i in idx:
                 setr(i, A_AUTH, sent + joined + " to a recipient the proposal names, within the stated " +
@@ -1131,7 +1156,7 @@ class AsVotedJudge(gl.contract.Contract):
         key = reg + "|" + str(cid) + "|" + str(rnd)
         if self.judgments.get(key) is not None:
             raise gl.vm.UserError("REFUSED: ALREADY_JUDGED")
-        in_sha = _sha(_canon({"exec": inp["exec"], "vote": inp["vote"],
+        in_sha = _sha(_canon({"exec": inp["exec"], "vote": inp["vote"], "prior": inp.get("prior") or [],
                               "counter_evidence": inp.get("counter_evidence", ""), "round": rnd}))
         if in_sha != inp.get("input_sha256"):
             raise gl.vm.UserError("REFUSED: EVIDENCE_HASH_MISMATCH")

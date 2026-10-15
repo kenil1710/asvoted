@@ -491,6 +491,8 @@ class Check:
     slash: u256
     bounty_to: str
     settlement_json: str
+    prior_json: str
+    appeal_prior_json: str
 
 
 class AsVotedRegistry(gl.contract.Contract):
@@ -511,6 +513,7 @@ class AsVotedRegistry(gl.contract.Contract):
     checks: gl.storage.TreeMap[u64, Check]
     check_by_tx: gl.storage.TreeMap[str, u64]
     pair_seen: gl.storage.TreeMap[str, u64]
+    cid_checks: gl.storage.TreeMap[str, str]       # "dao_id|cid" -> comma-separated check ids filed under that proposal
     dao_check_n: gl.storage.TreeMap[u64, u64]
     dao_check_at: gl.storage.TreeMap[str, u64]
     counts: gl.storage.TreeMap[str, u64]
@@ -644,6 +647,23 @@ class AsVotedRegistry(gl.contract.Contract):
         if int(ex["block_time"]) <= int(vote["end"]):
             return "EXECUTED_BEFORE_THE_VOTE_ENDED"
         return ""
+
+    def _prior(self, dao_id: int, cid: str, exec_id: int) -> list:
+        """Execution ids of earlier checks of this DAO under this proposal that
+        were not ruled UNCLEAR: their transfers count against the same caps."""
+        out = []
+        raw = str(self.cid_checks.get(str(dao_id) + "|" + cid) or "")
+        for part in raw.split(","):
+            if part == "":
+                continue
+            pc = self.checks.get(u64(int(part)))
+            if pc is None or int(pc.exec_id) == exec_id:
+                continue
+            if pc.status == ST_FINAL and pc.final_verdict == V_UNCLEAR:
+                continue
+            if int(pc.exec_id) not in out:
+                out.append(int(pc.exec_id))
+        return out[:8]
 
     # --- DAOs -----------------------------------------------------------------
 
@@ -829,6 +849,7 @@ class AsVotedRegistry(gl.contract.Contract):
                 problem = "THIS_EXECUTION_AND_PROPOSAL_WERE_ALREADY_CHECKED"
         if problem != "":
             return self._refuse(me, value, problem)
+        prior = self._prior(int(d.dao_id), vote["cid"], int(ex["exec_id"]))
         # --- writes (nothing below can refuse)
         cid = int(self.n_checks) + 1
         self.received_total = u256(int(self.received_total) + value)
@@ -842,7 +863,10 @@ class AsVotedRegistry(gl.contract.Contract):
             contest_deadline=u64(0), appellant="", appeal_bond=u256(0), appeal_text="", appeal_vote_id=u64(0),
             appeal_cid="", appeal_vote_sha="", appeal_deadline=u64(0), appeal_ruling="", appeal_summary="",
             appeal_json="", final_verdict="", final_how="", final_at=u64(0), severity="", severity_bps=u64(0),
-            pledge_at_filing=d.pledge, slash=u256(0), bounty_to="", settlement_json="")
+            pledge_at_filing=d.pledge, slash=u256(0), bounty_to="", settlement_json="", prior_json=_canon(prior),
+            appeal_prior_json="[]")
+        ck = str(int(d.dao_id)) + "|" + vote["cid"]
+        self.cid_checks[ck] = str(self.cid_checks.get(ck) or "") + str(cid) + ","
         self.check_by_tx[txk] = u64(cid)
         self.pair_seen[txk + "|" + vote["cid"]] = u64(cid)
         n = int(self.dao_check_n.get(d.dao_id) or 0)
@@ -867,8 +891,15 @@ class AsVotedRegistry(gl.contract.Contract):
         if ex["evidence_sha256"] != c.exec_sha or vote["evidence_sha256"] != want_vsha:
             return {"error": "SNAPSHOT_MISMATCH"}
         counter = c.appeal_text if rnd == 1 else ""
-        sha = _sha(_canon({"exec": ex, "vote": vote, "counter_evidence": counter, "round": rnd}))
-        return {"exec": ex, "vote": vote, "counter_evidence": counter, "round": rnd, "input_sha256": sha}
+        prior_ids = json.loads(c.appeal_prior_json if rnd == 1 and int(c.appeal_vote_id) > 0 else c.prior_json)
+        prior = []
+        for pid in prior_ids:
+            pe = self._ext(self.exec_reader, "get_execution", [int(pid)])
+            if not isinstance(pe, dict) or not pe.get("found"):
+                return {"error": "READER_UNREADABLE"}
+            prior.append({"exec_id": int(pid), "tx": pe["tx"], "actions": pe["actions"], "tokens": pe["tokens"]})
+        sha = _sha(_canon({"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd}))
+        return {"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd, "input_sha256": sha}
 
     @gl.public.view
     def get_judge_input(self, check_id: int) -> typing.Any:
@@ -1001,10 +1032,12 @@ class AsVotedRegistry(gl.contract.Contract):
             problem = "BAD_ALT_VOTE_ID"
         if problem != "":
             return self._refuse(me, value, problem)
+        aprior = self._prior(int(d.dao_id), vote["cid"], int(c.exec_id)) if alt > 0 else []
         # --- writes
         self.received_total = u256(int(self.received_total) + value)
         self.open_total = u256(int(self.open_total) + value)
         c.appellant = me
+        c.appeal_prior_json = _canon(aprior)
         c.appeal_bond = u256(value)
         c.appeal_text = text
         if alt > 0:
@@ -1184,7 +1217,8 @@ class AsVotedRegistry(gl.contract.Contract):
                "final_at": int(c.final_at), "severity": c.severity, "severity_bps": int(c.severity_bps),
                "pledge_at_filing": str(int(c.pledge_at_filing)), "slash": str(int(c.slash)),
                "bounty_to": c.bounty_to,
-               "settlement": json.loads(c.settlement_json) if c.settlement_json != "" else []}
+               "settlement": json.loads(c.settlement_json) if c.settlement_json != "" else [],
+               "prior_exec_ids": json.loads(c.prior_json) if c.prior_json != "" else []}
         if full:
             out["ruling_detail"] = json.loads(c.ruling_json) if c.ruling_json != "" else None
             out["appeal_detail"] = json.loads(c.appeal_json) if c.appeal_json != "" else None

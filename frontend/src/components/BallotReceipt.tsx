@@ -42,15 +42,51 @@ function markText(text: string, quotes: string[]): Seg[] {
   return out;
 }
 
+type Line = { kind: "h" | "p" | "code"; text: string };
+
+/** Markdown, lightly: headings, fenced blocks, links and emphasis become plain styled lines. */
+function toLines(src: string): Line[] {
+  const out: Line[] = [];
+  let fence = false;
+  for (const raw of src.split("\n")) {
+    if (/^\s*```/.test(raw)) { fence = !fence; continue; }
+    if (fence) { out.push({ kind: "code", text: raw }); continue; }
+    let s = raw.replace(/\[([^\]]*)\]\((https?:[^)]*)\)/g, "$1").replace(/\*\*|__/g, "");
+    const h = /^\s*#{1,6}\s+/.exec(s);
+    if (h) { s = s.slice(h[0].length); out.push({ kind: "h", text: s }); continue; }
+    out.push({ kind: "p", text: s });
+  }
+  return out;
+}
+
 function BallotText({ text, quotes }: { text: string; quotes: string[] }) {
   const [full, setFull] = useState(false);
-  const segs = useMemo(() => markText(text, quotes), [text, quotes]);
-  const firstMark = segs.findIndex((s) => s.mark);
+  const { lines, segs } = useMemo(() => {
+    const ls = toLines(text);
+    const joined = ls.map((l) => l.text).join("\n");
+    const qs = quotes.map((q) => q.replace(/\[([^\]]*)\]\((https?:[^)]*)\)/g, "$1").replace(/\*\*|__/g, "").replace(/^#+\s+/, ""));
+    return { lines: ls, segs: markText(joined, qs) };
+  }, [text, quotes]);
+  // split the marked segments back into lines
+  const rows: Seg[][] = [[]];
+  for (const s of segs) {
+    const parts = s.t.split("\n");
+    parts.forEach((p, k) => {
+      if (k > 0) rows.push([]);
+      if (p) rows[rows.length - 1].push({ t: p, mark: s.mark });
+    });
+  }
   const long = text.length > 2400;
   return (
     <div className="relative">
-      <div className={`prose-ballot whitespace-pre-wrap break-anywhere ${long && !full ? "max-h-[34rem] overflow-hidden" : ""}`}>
-        {segs.map((s, i) => (s.mark ? <mark key={i} id={i === firstMark ? "first-quote" : undefined}>{s.t}</mark> : <span key={i}>{s.t}</span>))}
+      <div className={`prose-ballot break-anywhere ${long && !full ? "max-h-[34rem] overflow-hidden" : ""}`}>
+        {rows.map((r, i) => {
+          const kind = lines[i]?.kind ?? "p";
+          const body = r.map((s, j) => (s.mark ? <mark key={j}>{s.t}</mark> : <span key={j}>{s.t}</span>));
+          if (kind === "h") return <span key={i} className="h">{body}</span>;
+          if (kind === "code") return <span key={i} className="code">{body.length ? body : "\u00a0"}</span>;
+          return r.length === 0 ? <span key={i} className="block h-3" /> : <span key={i} className="block">{body}</span>;
+        })}
       </div>
       {long && (
         <div className={full ? "mt-3" : "absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-sheet pt-16"}>
