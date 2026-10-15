@@ -25,7 +25,8 @@ BOND = RG.APPEAL_BOND
 
 
 def addr(n):
-    return "0x" + ("%040x" % n)
+    """A full-width test address (as real ones are), derived from n."""
+    return "0x" + hashlib.sha256(b"addr%d" % n).hexdigest()[:40]
 
 
 SAFE = addr(0x5afe)
