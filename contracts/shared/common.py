@@ -8,12 +8,12 @@
 CHAINS = {
     "ethereum": (1, ("https://eth-pokt.nodies.app", "https://rpc.mevblocker.io"), "ETH"),
     "arbitrum": (42161, ("https://arb1.arbitrum.io/rpc", "https://arb-pokt.nodies.app"), "ETH"),
-    "optimism": (10, ("https://mainnet.optimism.io", "https://op-pokt.nodies.app"), "ETH"),
+    "optimism": (10, ("https://mainnet.optimism.io", "https://optimism.drpc.org"), "ETH"),
     "base": (8453, ("https://mainnet.base.org", "https://base-pokt.nodies.app"), "ETH"),
     "polygon": (137, ("https://polygon-bor-rpc.publicnode.com", "https://polygon.drpc.org"), "POL"),
 }
 # Largest JSON-RPC batch each endpoint accepts (measured).
-RPC_BATCH = {"https://polygon.drpc.org": 3}
+RPC_BATCH = {"https://polygon.drpc.org": 3, "https://optimism.drpc.org": 3}
 NETWORK_OF = {"1": "ethereum", "42161": "arbitrum", "10": "optimism", "8453": "base", "137": "polygon"}
 LEADER_LAG_S = 1800           # a leader-named block may be this much older than a validator's own finalized block
 RPC_TRIES = 3

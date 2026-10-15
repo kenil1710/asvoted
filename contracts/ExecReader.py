@@ -99,7 +99,8 @@ MAX_ACTIONS = 64
 MAX_ARG_WORDS = 48
 MAX_TOKENS = 16
 MAX_CALLDATA = 131072
-ADDR_LIKE_MIN = 1 << 120      # an argument word whose top 12 bytes are zero and that is at least this is reported as address-like
+ADDR_LIKE_MIN = 1 << 120      # an argument word whose top 12 bytes are zero, that is at least this and is not 2**k - 1, is reported as address-like
+MAX_ARG_ADDRS = 24
 
 # ==== shared helpers: generated from contracts/shared/common.py by tools/inline_shared.py; edit there ====
 # The runner rejects the str replace method; slice around find() instead.
@@ -111,12 +112,12 @@ ADDR_LIKE_MIN = 1 << 120      # an argument word whose top 12 bytes are zero and
 CHAINS = {
     "ethereum": (1, ("https://eth-pokt.nodies.app", "https://rpc.mevblocker.io"), "ETH"),
     "arbitrum": (42161, ("https://arb1.arbitrum.io/rpc", "https://arb-pokt.nodies.app"), "ETH"),
-    "optimism": (10, ("https://mainnet.optimism.io", "https://op-pokt.nodies.app"), "ETH"),
+    "optimism": (10, ("https://mainnet.optimism.io", "https://optimism.drpc.org"), "ETH"),
     "base": (8453, ("https://mainnet.base.org", "https://base-pokt.nodies.app"), "ETH"),
     "polygon": (137, ("https://polygon-bor-rpc.publicnode.com", "https://polygon.drpc.org"), "POL"),
 }
 # Largest JSON-RPC batch each endpoint accepts (measured).
-RPC_BATCH = {"https://polygon.drpc.org": 3}
+RPC_BATCH = {"https://polygon.drpc.org": 3, "https://optimism.drpc.org": 3}
 NETWORK_OF = {"1": "ethereum", "42161": "arbitrum", "10": "optimism", "8453": "base", "137": "polygon"}
 LEADER_LAG_S = 1800           # a leader-named block may be this much older than a validator's own finalized block
 RPC_TRIES = 3
@@ -581,7 +582,7 @@ def addr_like_words(args: bytes) -> list:
     out = []
     for k in range(len(args) // 32):
         v = int.from_bytes(args[32 * k:32 * k + 32], "big")
-        if v >> 160 == 0 and v >= ADDR_LIKE_MIN:
+        if v >> 160 == 0 and v >= ADDR_LIKE_MIN and (v + 1) & v != 0:
             a = "0x" + ("0" * 40 + hex(v)[2:])[-40:]
             if a not in out:
                 out.append(a)
@@ -858,12 +859,21 @@ def read_execution(p: dict, block: int) -> dict:
             toks.append(t)
     if len(toks) > MAX_TOKENS:
         return {"refused": "TOO_MANY_TOKENS", "pinned": out_block}
+    others = []
+    for a in actions:
+        for x in [a["target"]] + a["addr_args"]:
+            if x not in toks and x not in others and x != p["safe"] and x not in MULTISEND:
+                others.append(x)
+    others = others[:MAX_ARG_ADDRS]
     calls = []
     bh = hex(blk["number"])
     for t in toks:
         calls.append(["eth_call", [{"to": t, "data": "0x95d89b41"}, bh]])
         calls.append(["eth_call", [{"to": t, "data": "0x313ce567"}, bh]])
+    for t in others:
+        calls.append(["eth_call", [{"to": t, "data": "0x95d89b41"}, bh]])
     tokens = {}
+    symbols = {}
     if len(calls) > 0:
         try:
             res = dual_read(ch, calls, _proj_call)
@@ -873,6 +883,10 @@ def read_execution(p: dict, block: int) -> dict:
             return {"refused": "RPC_DISAGREE", "pinned": out_block}
         for k in range(len(toks)):
             tokens[toks[k]] = {"symbol": dec_symbol(res[2 * k]), "decimals": dec_uint_small(res[2 * k + 1], 77)}
+        for k in range(len(others)):
+            s = dec_symbol(res[2 * len(toks) + k])
+            if s != "":
+                symbols[others[k]] = s
     native = CHAINS[ch][2]
     tokens[""] = {"symbol": native, "decimals": 18}
     return {
@@ -883,7 +897,7 @@ def read_execution(p: dict, block: int) -> dict:
                   "safeTxGas": str(e["safeTxGas"]), "baseGas": str(e["baseGas"]), "gasPrice": str(e["gasPrice"]),
                   "gasToken": e["gasToken"], "refundReceiver": e["refundReceiver"], "payment": str(payment),
                   "data_len": len(e["data"]), "signatures_len": len(e["signatures"])},
-        "actions": actions, "tokens": tokens, "rpcs": list(CHAINS[ch][1]),
+        "actions": actions, "tokens": tokens, "symbols": symbols, "rpcs": list(CHAINS[ch][1]),
     }
 
 
@@ -930,6 +944,7 @@ class Execution:
     has_delegatecall: bool
     actions_json: str
     tokens_json: str
+    symbols_json: str
     outer_json: str
     rpcs_json: str
     evidence_sha256: str
@@ -1001,6 +1016,7 @@ class ExecReader(gl.contract.Contract):
             pinned_hash=ev["pinned"]["hash"], pinned_time=u64(int(ev["pinned"]["timestamp"])),
             read_at=u64(now), reader=gl.message.sender_address, n_actions=u64(len(ev["actions"])),
             has_delegatecall=has_dc, actions_json=_canon(ev["actions"]), tokens_json=_canon(ev["tokens"]),
+            symbols_json=_canon(ev["symbols"]),
             outer_json=_canon(ev["outer"]), rpcs_json=_canon(ev["rpcs"]), evidence_sha256=_sha(_canon(ev)))
         self.by_key[key] = u64(eid)
         self.n = u64(eid)
@@ -1017,7 +1033,7 @@ class ExecReader(gl.contract.Contract):
                 "pinned_time": int(x.pinned_time), "read_at": int(x.read_at),
                 "reader": x.reader.as_hex.lower(), "n_actions": int(x.n_actions),
                 "has_delegatecall": bool(x.has_delegatecall), "actions": json.loads(x.actions_json),
-                "tokens": json.loads(x.tokens_json), "outer": json.loads(x.outer_json),
+                "tokens": json.loads(x.tokens_json), "symbols": json.loads(x.symbols_json), "outer": json.loads(x.outer_json),
                 "rpcs": json.loads(x.rpcs_json), "evidence_sha256": x.evidence_sha256}
 
     @gl.public.view

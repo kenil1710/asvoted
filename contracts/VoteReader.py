@@ -65,12 +65,12 @@ REJECT_WORDS = ("against", "no", "nay", "reject", "abstain", "do not", "don't", 
 CHAINS = {
     "ethereum": (1, ("https://eth-pokt.nodies.app", "https://rpc.mevblocker.io"), "ETH"),
     "arbitrum": (42161, ("https://arb1.arbitrum.io/rpc", "https://arb-pokt.nodies.app"), "ETH"),
-    "optimism": (10, ("https://mainnet.optimism.io", "https://op-pokt.nodies.app"), "ETH"),
+    "optimism": (10, ("https://mainnet.optimism.io", "https://optimism.drpc.org"), "ETH"),
     "base": (8453, ("https://mainnet.base.org", "https://base-pokt.nodies.app"), "ETH"),
     "polygon": (137, ("https://polygon-bor-rpc.publicnode.com", "https://polygon.drpc.org"), "POL"),
 }
 # Largest JSON-RPC batch each endpoint accepts (measured).
-RPC_BATCH = {"https://polygon.drpc.org": 3}
+RPC_BATCH = {"https://polygon.drpc.org": 3, "https://optimism.drpc.org": 3}
 NETWORK_OF = {"1": "ethereum", "42161": "arbitrum", "10": "optimism", "8453": "base", "137": "polygon"}
 LEADER_LAG_S = 1800           # a leader-named block may be this much older than a validator's own finalized block
 RPC_TRIES = 3
@@ -697,7 +697,7 @@ def _gql_str(s: str) -> str:
 def hub_query_proposal(cid: str, space: str) -> str:
     q = ("{proposals(where:{ipfs:" + _gql_str(cid) + "}){id ipfs author space{id} type title body choices "
          "start end snapshot state scores scores_total scores_state quorum quorumType network}"
-         " space(id:" + _gql_str(space) + "){id network treasuries{address network} admins moderators}}")
+         " space(id:" + _gql_str(space) + "){id network voting{type} treasuries{address network} admins moderators}}")
     return SNAPSHOT_HUB + "?query=" + _qs(q)
 
 
@@ -982,7 +982,14 @@ def read_proposal(p: dict, now: int, block: int) -> dict:
         return {"refused": "HUB_RECORD_DIFFERS_FROM_IPFS"}
     vtype = ip["type"] if isinstance(ip["type"], str) else str(h.get("type", ""))
     if isinstance(ip["type"], str) and h.get("type") != ip["type"]:
-        return {"refused": "HUB_RECORD_DIFFERS_FROM_IPFS"}
+        # A space that enforces one voting type overrides the type in the
+        # signed message; the hub then reports the enforced one. Accepted only
+        # when the space's own settings say so.
+        sv = hd.get("space")
+        enforced = sv.get("voting") if isinstance(sv, dict) else None
+        if not isinstance(enforced, dict) or enforced.get("type") != h.get("type") or not isinstance(h.get("type"), str):
+            return {"refused": "HUB_RECORD_DIFFERS_FROM_IPFS"}
+        vtype = h["type"]
     start = _as_int(h.get("start"), -1)
     end = _as_int(h.get("end"), -1)
     snap = _as_int(h.get("snapshot"), -1)

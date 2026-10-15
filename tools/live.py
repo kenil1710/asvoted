@@ -83,3 +83,28 @@ if __name__ == "__main__":
             out["body"] = out["body"][:300] + "..."
         print(json.dumps(out, indent=1)[:20000])
         print("requests", len(LOG), "seconds", round(time.time() - t, 1), file=sys.stderr)
+
+
+def judge_pair(chain, safe, tx, nonce, cid):
+    E = load("ExecReader")
+    ex = E["read_execution"]({"chain": chain, "safe": safe.lower(), "tx": tx.lower(), "nonce": int(nonce)}, -1)
+    V = load("VoteReader")
+    vt = V["read_proposal"]({"cid": V["parse_cid"](cid), "chain": chain, "safe": safe.lower()}, int(time.time()), -1)
+    if "refused" in ex or "refused" in vt:
+        return {"exec_refused": ex.get("refused"), "vote_refused": vt.get("refused")}
+    J = load("AsVotedJudge")
+    exv = {"safe": ex["safe"], "tx": ex["tx"], "tokens": ex["tokens"], "symbols": ex.get("symbols", {}), "actions": ex["actions"],
+           "block_time": ex["block"]["timestamp"]}
+    inp = {"exec": exv, "vote": vt, "counter_evidence": ""}
+    base = J["code_rules"](inp)
+    fin = J["finish"](inp, base, {i["i"]: ["UNCLEAR", ""] for i in base if i["outcome"] == "MODEL"})
+    return {"vote": {k: vt[k] for k in ("title", "outcome", "outcome_why", "listed", "ens", "end")},
+            "after_end": ex["block"]["timestamp"] > vt["end"],
+            "actions": [{"i": a["i"], "kind": a["kind"], "op": a["op"], "target": a["target"], "fn": a["fn"],
+                         "recipient": a["recipient"], "amount": a["amount"],
+                         "sym": ex["tokens"].get(a["token"], {}).get("symbol")} for a in ex["actions"]],
+            "code": base, "overall_if_model_unclear": fin["overall"], "summary": fin["summary"]}
+
+
+if __name__ == "__main__" and sys.argv[1] == "pair":
+    print(json.dumps(judge_pair(*sys.argv[2:7]), indent=1)[:int(sys.argv[7]) if len(sys.argv) > 7 else 30000])
