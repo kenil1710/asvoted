@@ -1,0 +1,69 @@
+...F.........EE...............F.......
+======================================================================
+ERROR: test_a57_open_checks_of_later_executions_do_not_lock_a_withdrawal (test_attacks.Appeals.test_a57_open_checks_of_later_executions_do_not_lock_a_withdrawal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/world.py", line 101, in call
+    out = fn(inst, *args)
+  File "/Users/kenilvakariya/dev/asvoted/contracts/AsVotedRegistry.py", line 801, in execute_withdrawal
+    raise gl.vm.UserError("REFUSED: CHECKS_OPEN_" + str(int(d.open_checks)))
+stub._UserError: REFUSED: CHECKS_OPEN_1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks.py", line 251, in test_a57_open_checks_of_later_executions_do_not_lock_a_withdrawal
+    D.call(D.rg, "execute_withdrawal", self.dao, sender=STRANGER)
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kenilvakariya/dev/asvoted/test/fixtures.py", line 272, in call
+    return self.w.call(which, method, *args, sender=sender, value=value)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kenilvakariya/dev/asvoted/test/world.py", line 105, in call
+    raise Reverted(e.message)
+world.Reverted: REFUSED: CHECKS_OPEN_1
+
+======================================================================
+ERROR: test_a58_an_open_check_does_not_stop_a_request (test_attacks.Appeals.test_a58_an_open_check_does_not_stop_a_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/world.py", line 101, in call
+    out = fn(inst, *args)
+  File "/Users/kenilvakariya/dev/asvoted/contracts/AsVotedRegistry.py", line 766, in request_withdrawal
+    raise gl.vm.UserError("REFUSED: CHECKS_OPEN_" + str(int(d.open_checks)))
+stub._UserError: REFUSED: CHECKS_OPEN_1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks.py", line 258, in test_a58_an_open_check_does_not_stop_a_request
+    self.assertTrue(D.call(D.rg, "request_withdrawal", self.dao, str(GEN), sender=CONTROLLER)["ok"])
+                    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kenilvakariya/dev/asvoted/test/fixtures.py", line 272, in call
+    return self.w.call(which, method, *args, sender=sender, value=value)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kenilvakariya/dev/asvoted/test/world.py", line 105, in call
+    raise Reverted(e.message)
+world.Reverted: REFUSED: CHECKS_OPEN_1
+
+======================================================================
+FAIL: test_a13_amount_for_someone_else_is_not_borrowed (test_attacks.Amounts.test_a13_amount_for_someone_else_is_not_borrowed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks.py", line 77, in test_a13_amount_for_someone_else_is_not_borrowed
+    self.assertNotEqual(c["ruling"], "AS_VOTED")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' == 'AS_VOTED'
+
+======================================================================
+FAIL: test_a63_choice_labels_never_reach_the_verdict_sentence (test_attacks.Model.test_a63_choice_labels_never_reach_the_verdict_sentence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks.py", line 295, in test_a63_choice_labels_never_reach_the_verdict_sentence
+    self.assertNotIn(w, c["ruling_summary"].lower())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'fraud' unexpectedly found in "execution 0xab199cfe… on 2026-10-07 could not be matched: whether the proposal of 2026-09-27 passed is unclear (winning choice 'the signers committed fraud' is not a yes/no label)."
+
+----------------------------------------------------------------------
+Ran 38 tests in 0.396s
+
+FAILED (failures=2, errors=2)

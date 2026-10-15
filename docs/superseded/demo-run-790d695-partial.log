@@ -1,0 +1,136 @@
+22:43:36 → filer list_dao ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
+22:43:58   OK ACCEPTED 22s 0xd3d5320a7c89a5281fecdc06715280951f7bfe41a424e2c4e912f0aa47f61d64 {"dao_id":1,"ok":true}
+22:44:02 → filer read_space ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+22:44:14   OK ACCEPTED 12s 0xa61cdadc5b60f39d290001b471f7d1e4329c22c04352280405c3cd9f7b8cb4c8 {"bind_id":2,"listed":true}
+22:44:14 → filer list_dao ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+22:44:35   OK ACCEPTED 21s 0x5dd9425c7fe3dbf81ff92c5789b53d18d1be810f8e109e7dbc391ffa3d12fecb {"dao_id":2,"ok":true}
+22:44:37 → filer read_space ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+22:44:53   OK ACCEPTED 16s 0xd7273b0857ac0a89d415c8d0a0e0070a18fb9ce9d38a06885720dd3654962bd9 {"bind_id":3,"listed":false}
+22:44:53 → filer list_dao ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for list_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+22:45:07   REVERTED ACCEPTED 14s 0x658386bd45df664d24c1e340ab4a36e8270edabb075fb3bd02724ffb662b2089 REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+22:45:07 PASS  listing a Safe the space does not list is refused  REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+22:45:09 → filer claim_dao [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for claim_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+22:45:23   REVERTED ACCEPTED 13s 0x48f0f680d68835b590870d5fa4b1cfc92de2180570802114ead73814da3a17ea REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+22:45:23 PASS  claim by a non-admin is refused  REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+22:45:24 → dao claim_dao [1]
+22:45:39   OK ACCEPTED 15s 0x3f668a6bd51b2f51a619ec67a3b6851dd7a0cd15f4d66ce73d68c1d9c84289f9 {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":1,"ok":true}
+22:45:40 → dao claim_dao [2]
+22:45:54   OK ACCEPTED 14s 0xd4da4fc852c40ff9d9f573e7c99256282d4dd46ac2f6f2bf8123c43719352f0f {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":2,"ok":true}
+22:45:57 PASS  demo controller claims both listings  
+22:45:58 → dao pledge [1] +5000000000000000000
+22:46:10   OK ACCEPTED 12s 0xd642ac1ab46dc1dd975ea66f432230c46d2381b43713fd3139dc28b00a6acac6 {"dao_id":1,"ok":true,"pledge":"5000000000000000000"}
+22:46:11 → dao pledge [2] +2000000000000000000
+22:46:24   OK ACCEPTED 13s 0x72ffeaf8861cda18d88a114af5cb7968722eb77408f7cc931e295caaec79b554 {"dao_id":2,"ok":true,"pledge":"2000000000000000000"}
+22:46:24 → filer pledge [1] +1000000000000000000
+22:46:38   OK ACCEPTED 13s 0xd0b2232797a61ef6d63884f2431333a7a9a55fa1a1c0f0a81eea1539f4ec900f {"ok":false,"reason":"ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE","refunded_to_claimable":"1000000000000000000"}
+22:46:38 PASS  pledge by a non-controller is credited back, ok:false  ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE
+22:46:38 → demo request_grant [1,"release tranche 1"]
+22:46:51   OK ACCEPTED 14s 0xd4278a1cc1f95fc4698e67494eb45602db90703b86b5677c7fd95e6ff1b3b48f {"carried_out":true,"reasons":[],"request_id":1}
+22:46:51 PASS  GrantGate carries out a request while the DAO is in good standing  []
+22:47:00 → filer file_check [1,1,1,"demo: as voted"] +100000000000000000
+22:47:14   OK ACCEPTED 14s 0xbaf17d6546087e27dd3cf58f3ec757f1acc5179b4cdfd4231b0934635ec814d7 {"check_id":1,"judge_deadline":1792105025,"ok":true}
+22:47:19 → filer read_execution ["ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662","0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632
+22:47:57   OK ACCEPTED 39s 0x37998f1408fa79ea1b9d16634b08d89696f0e11c37c398d98801f32b107d6ce7 {"actions":4,"block":17974015,"exec_id":5,"safe_tx_hash":"0xdf657f2c95f41dd3013349dd905a99a447b896b5aaed4fcab82c78565ef0e0f1"}
+22:47:59 → filer read_proposal ["bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+22:48:24   OK ACCEPTED 24s 0x3be9c40bc023be1e868b6d198df5012bf1305837f9370db73f114f418de4ed8e {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":5}
+22:48:25 → filer file_check [1,5,5,"demo: deviates"] +100000000000000000
+22:48:43   OK ACCEPTED 19s 0xe0f0fc794b6a6f32a651e7b41a18b29258c219b9a76cc58469c217da4dbda682 {"check_id":2,"judge_deadline":1792105114,"ok":true}
+22:48:52 → filer read_proposal ["bafkreigqmaollb3qnv7tjrrqp2huwnds6dyxeh33lybvovdpowza6ms6sq","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+22:49:08   OK ACCEPTED 16s 0x89a21227b6622405501a420573aaf8b14d1814e20bf587e3052fd9f81cef37e4 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":6}
+22:49:10 → filer2 file_check [1,4,6,"demo: filed against the wrong proposal"] +100000000000000000
+22:49:26   OK ACCEPTED 16s 0x84b283c318fdb45c5187424c70ae0c1efa666feb0c4b9ef43f7d4a3f316071f2 {"check_id":3,"judge_deadline":1792105156,"ok":true}
+22:49:30 → filer read_execution ["ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669","0x5b453427e61374b5d023a9920943fcbe05a54b7d06b9fc557d
+22:49:48   OK ACCEPTED 18s 0x9619c4d5af4220d2e917e54814ec85db17b659151d6e93831dfd89cc6062e6c2 {"actions":1,"block":25881591,"exec_id":7,"safe_tx_hash":"0x8a620608cc456607bc1b11580646bf6f004917b3605297f5207ebaf8d30a11ec"}
+22:49:50 → filer read_proposal ["bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6F
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+22:50:11   OK ACCEPTED 22s 0x39042512ddffb2a4e3480622169fdf31ec5e69861183dc8f802f250ab062be52 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":8}
+22:50:13 → filer2 file_check [2,7,8,"demo: appeal lost"] +100000000000000000
+22:50:29   OK ACCEPTED 16s 0x482a4aa20baddc7cd6acb70e44c354e375e930e9ae9cad15b8537012d360eeff {"check_id":4,"judge_deadline":1792105220,"ok":true}
+22:50:33 → filer read_execution ["ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662","0x1fd579d7bbb8e7e8b8a6e2816f679ca55dddf36728615420d5
+22:50:51   OK ACCEPTED 19s 0xfc412950a7c223d279ffe363a579c0f833cc042abe06e677add30b9e8747037e {"actions":3,"block":16554166,"exec_id":8,"safe_tx_hash":"0x9a2ba659eb039bbbfab0120c3e0213e9d58fb0eb022c075e5f99d82cdd2ed167"}
+22:50:53 → filer read_proposal ["bafkreigeksmh3n7sxmon5y7vhow2vieuxoyhyq3u42ent6cbwq7sfenwpq","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+22:51:16   OK ACCEPTED 22s 0x766436b1bdfe7f0c1495bfb40244bf9040ff19dac5b578fbbdbb07886a447db5 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":9}
+22:51:17 → filer file_check [1,8,9,"demo: unclear"] +100000000000000000
+22:51:37   OK ACCEPTED 21s 0x2735b4f93e6afb9bdefac5aa0184b72ecf85c2a56091dff4f475be89dbcd5720 {"check_id":5,"judge_deadline":1792105282,"ok":true}
+22:51:48 → filer file_check [1,2,2,"demo: never judged, expires"] +100000000000000000
+22:52:07   OK ACCEPTED 19s 0x5d917b358da11d808b2f9c7cbd828354a03059e2227384f9a4329d853cbb0cbe {"check_id":6,"judge_deadline":1792105318,"ok":true}
+22:52:16 → filer2 file_check [1,3,3,"demo: appeal never judged"] +100000000000000000
+22:52:31   OK ACCEPTED 14s 0x60f5d637f4adde39bea36e87d5e89c50327a88fea4d5d725da3c43bc71a6996e {"check_id":7,"judge_deadline":1792105343,"ok":true}
+22:52:32 checks {"asv":1,"dev":2,"won":3,"lost":4,"unc":5,"exp":6,"aexp":7}
+GenLayer RPC error (gen_call): Rate limit exceeded: 30 requests per minute
+  … get_execution_id attempt 1 hit the RPC rate limit, waiting 12s
+22:52:50 → appellant file_check [1,1,1,"duplicate"] +100000000000000000
+22:53:04   OK ACCEPTED 15s 0x3028a6a0088ddee8250dcb13f1d928957c4fcc7e63bc357b3e6b36a49b24660c {"ok":false,"reason":"DUPLICATE_OF_CHECK_1","refunded_to_claimable":"100000000000000000"}
+22:53:04 PASS  duplicate filing is refused (stake credited back)  DUPLICATE_OF_CHECK_1
+22:53:04 → appellant file_check [1,1,1,"wrong stake"] +100000000000000001
+22:53:20   OK ACCEPTED 15s 0xeb3b50d460a4052e8dae9ff3d78af71de8d9a19621f8e95a8b1f8bd09adbd316 {"ok":false,"reason":"STAKE_MUST_BE_EXACTLY_100000000000000000","refunded_to_claimable":"100000000000000001"}
+22:53:20 PASS  wrong stake is refused (credited back)  STAKE_MUST_BE_EXACTLY_100000000000000000
+22:53:29 → filer judge ["0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",1]
+22:53:43   OK ACCEPTED 14s 0xcb538829c1de81dfaf93be903beba2371d88a59155b8a5a80bb9e812c681bbf5 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24."}
+22:53:43 → filer rule [1]
+22:53:59   OK ACCEPTED 16s 0xa6bb1be818d0e9d63e7887e816e3454df2f22a0021cd0a02323a6a741a91bb4e {"check_id":1,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+22:54:03 → filer judge ["0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",2]
+22:54:27   OK ACCEPTED 24s 0xd3f5e8ff105d38642c8828785d8a3da4fe9eec8093f2e48a44d561966dfe7ae9 {"overall":"DEVIATES","round":0,"summary":"Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention."}
+22:54:27 → filer rule [2]
+22:54:44   OK ACCEPTED 17s 0x66a098cc467fcdbc0083d22f34602b75d1ea69898b8ad7260762948cf879653e {"check_id":2,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+22:54:49 → filer judge ["0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",3]
+22:55:06   OK ACCEPTED 17s 0x4723bb36b02e4d2392bbb110f9c56cfb836ffb82e78b9e48154874a0edc55338 {"overall":"DEVIATES","round":0,"summary":"Execution 0x2d3d227c… on 2024-05-25 sends more than the proposal of 2024-05-24 states."}
+22:55:06 → filer rule [3]
+22:55:22   OK ACCEPTED 17s 0xd031fd5615b777abd1e25c85669f9ab46ec22c0823b83f0a3a3a4491ea2bb668 {"check_id":3,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+22:55:29 → filer judge ["0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",4]
+22:55:47   OK ACCEPTED 17s 0x45d8344a667ba297c9ab74c35dddf9b0f495ecd0105e206b7461ad8777e5f9a7 {"overall":"DEVIATES","round":0,"summary":"Execution 0x5b453427… on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention."}
+22:55:47 → filer rule [4]
+22:56:03   OK ACCEPTED 16s 0xe8d1cdbf2865c0bc8f0fe434c96bf40056324c6d2beae79f5d1a87cda2d6b551 {"check_id":4,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+22:56:06 → filer judge ["0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",5]
+22:56:22   OK ACCEPTED 15s 0xa850473f67df2fca7dfd1ba22b4727f3927912303588d36a18c6615c6aedb317 {"overall":"UNCLEAR","round":0,"summary":"Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled."}
+22:56:22 → filer rule [5]
+22:56:39   OK ACCEPTED 17s 0x448a58708257585c0421ce3f0e068fce5175164b3efa657dfef8d5f666669b52 {"check_id":5,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+22:56:43 → filer judge ["0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",7]
+22:57:05   OK ACCEPTED 22s 0xdb98f8e08bd0d591b0e16a5516d3cd8549fa40764492637dc17c78d6e90901fc {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17."}
+22:57:05 → filer rule [7]
+22:57:28   OK ACCEPTED 23s 0xb23bf20e4d2492056a1ffb7e3bd7ca08d86cb99d5c46fafcb25741f60e1a874b {"check_id":7,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+22:58:37 PASS  CIP-48 is AS_VOTED  Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24.
+22:58:37 PASS  CIP-16 batch is DEVIATES  Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention.
+22:58:37 PASS  67 WETH against CIP-43 is DEVIATES (over amount)  Execution 0x2d3d227c… on 2024-05-25 sends more than the proposal of 2024-05-24 states.
+22:58:37 PASS  CIP-69 Treasury call is DEVIATES  Execution 0x5b453427… on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention.
+22:58:37 PASS  CIP-19 is UNCLEAR and FINAL at once  Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled.
+22:58:37 PASS  CIP-29 is AS_VOTED  Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17.
+22:58:40 → dao appeal [3,"This transfer of 67.0123 WETH to the Treasury Safe implements CIP-28, the standing mandate to send profits +100000000000000000
+22:59:08   OK ACCEPTED 29s 0x4a4ff3f494aba422898a0844beb64e9fb5425b236ba62abd025d020ff2be29e9 {"ok":false,"reason":"CONTEST_WINDOW_CLOSED","refunded_to_claimable":"100000000000000000"}
+22:59:08 → dao appeal [4,"The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Sa +100000000000000000
+22:59:21   OK ACCEPTED 13s 0x5522d6f63fbcb733c270d6cbff5c705f8e9683a43d1b4e5f3ab9e7d0c63ae9cd {"ok":false,"reason":"CONTEST_WINDOW_CLOSED","refunded_to_claimable":"100000000000000000"}
+22:59:21 → appellant appeal [7,"The solver rewards renewal should have required a fresh budget report before the transfer; please have a n +100000000000000000
+22:59:35   OK ACCEPTED 14s 0x19153b7c43b5223e2d661fd483cc61b2db8fb59f9d5c4a8ecb49e79bc3ae71b8 {"ok":false,"reason":"CONTEST_WINDOW_CLOSED","refunded_to_claimable":"100000000000000000"}
+22:59:44 FAIL  appeal naming CIP-28 wins: AS_VOTED, bond refunded  
+22:59:44 FAIL  appeal with words only loses: DEVIATES stands, bond to the filer  []
+22:59:45 → filer finalize [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for finalize (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+22:59:56   OK ACCEPTED 12s 0xb288b3f0e32ef1d62d499de2b794b1e24379f47538b4a311e5211dafd61cf99b {"check_id":1,"final":"AS_VOTED","ok":true}
+22:59:57 → filer finalize [2]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for finalize (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:00:12   OK ACCEPTED 14s 0x1d5ddc5f054e9058424483a1fef13160396667eb4108e91803cbb5938cf76397 {"check_id":2,"final":"DEVIATES","ok":true}
+23:00:16 PASS  AS_VOTED final: stake to the DAO pledge  [["stake to the DAO pledge","dao#1","100000000000000000"]]
+23:00:16 PASS  DEVIATES final: pledge slashed, bounty to the filer  slash 500000000000000000 severity MINOR
+23:00:16 → demo request_grant [1,"release tranche 2"]

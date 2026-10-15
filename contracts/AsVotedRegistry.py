@@ -20,7 +20,8 @@ import typing
 #       visible in get_config; CANONICAL refuses any).
 #   pledge / request_withdrawal / execute_withdrawal / cancel_withdrawal
 #       the pledge bond ("we execute only what passed"). A withdrawal waits
-#       WITHDRAW_DELAY and is refused while any check of the DAO is open.
+#       WITHDRAW_DELAY and cannot execute while a check is open for an
+#       execution made before the unlock time.
 #
 # CHECKS
 #   file_check(dao_id, exec_id, vote_id, note) + CHECK_STAKE. Evidence is
@@ -436,6 +437,7 @@ class Dao:
     pledge: u256
     withdraw_amount: u256
     withdraw_at: u64
+    withdraw_requested: u64
     open_checks: u64
     n_checks: u64
     as_voted: u64
@@ -455,6 +457,7 @@ class Check:
     safe: str
     tx: str
     block: u64
+    exec_time: u64
     exec_id: u64
     vote_id: u64
     cid: str
@@ -648,6 +651,25 @@ class AsVotedRegistry(gl.contract.Contract):
             return "EXECUTED_BEFORE_THE_VOTE_ENDED"
         return ""
 
+    def _blocking(self, d: Dao) -> int:
+        """Open checks of executions made before the withdrawal unlocks
+        (including during the delay): the pledge is what they are about, so it
+        stays until they close. A check of an execution made after the unlock
+        time does not hold it, so a pledge cannot be griefed into never
+        leaving by filing checks of new executions."""
+        n = int(self.dao_check_n.get(d.dao_id) or 0)
+        k = n - 1
+        seen = 0
+        out = 0
+        while k >= 0 and seen < SCAN_CAP:
+            cid = int(self.dao_check_at.get(str(int(d.dao_id)) + "#" + str(k)) or 0)
+            c = self.checks.get(u64(cid)) if cid > 0 else None
+            if c is not None and c.status in OPEN and int(c.exec_time) <= int(d.withdraw_at):
+                out += 1
+            k -= 1
+            seen += 1
+        return out
+
     def _prior(self, dao_id: int, cid: str, exec_id: int) -> list:
         """Execution ids of earlier checks of this DAO under this proposal that
         were not ruled UNCLEAR: their transfers count against the same caps."""
@@ -696,7 +718,7 @@ class AsVotedRegistry(gl.contract.Contract):
         self.daos[u64(did)] = Dao(
             dao_id=u64(did), space=sp, chain=ch, safe=sf, listed_at=u64(now), bind_id=u64(int(b["bind_id"])),
             lister=self._sender(), controller="", pledge=u256(0), withdraw_amount=u256(0), withdraw_at=u64(0),
-            open_checks=u64(0), n_checks=u64(0), as_voted=u64(0), deviates=u64(0), unclear=u64(0),
+            withdraw_requested=u64(0), open_checks=u64(0), n_checks=u64(0), as_voted=u64(0), deviates=u64(0), unclear=u64(0),
             last_deviates_at=u64(0), last_deviates_check=u64(0), slashed_total=u256(0))
         self.dao_by_key[key] = u64(did)
         self.n_daos = u64(did)
@@ -762,11 +784,10 @@ class AsVotedRegistry(gl.contract.Contract):
         amt = _as_int(amount, -1)
         if amt <= 0 or amt > int(d.pledge):
             raise gl.vm.UserError("REFUSED: AMOUNT_OUT_OF_RANGE")
-        if int(d.open_checks) > 0:
-            raise gl.vm.UserError("REFUSED: CHECKS_OPEN_" + str(int(d.open_checks)))
         # --- writes
         d.withdraw_amount = u256(amt)
         d.withdraw_at = u64(now + int(self.withdraw_s))
+        d.withdraw_requested = u64(now)
         return {"ok": True, "unlocks_at": now + int(self.withdraw_s)}
 
     @gl.public.write
@@ -780,6 +801,7 @@ class AsVotedRegistry(gl.contract.Contract):
             raise gl.vm.UserError("REFUSED: NO_WITHDRAWAL_PENDING")
         d.withdraw_amount = u256(0)
         d.withdraw_at = u64(0)
+        d.withdraw_requested = u64(0)
         return {"ok": True}
 
     @gl.public.write
@@ -797,14 +819,16 @@ class AsVotedRegistry(gl.contract.Contract):
             raise gl.vm.UserError("REFUSED: NO_WITHDRAWAL_PENDING")
         if now < int(d.withdraw_at):
             raise gl.vm.UserError("REFUSED: WITHDRAWAL_LOCKED_UNTIL_" + str(int(d.withdraw_at)))
-        if int(d.open_checks) > 0:
-            raise gl.vm.UserError("REFUSED: CHECKS_OPEN_" + str(int(d.open_checks)))
+        blocking = self._blocking(d)
+        if blocking > 0:
+            raise gl.vm.UserError("REFUSED: CHECKS_OPEN_" + str(blocking))
         amt = min(amt, int(d.pledge))
         # --- writes
         d.pledge = u256(int(d.pledge) - amt)
         self.pledges_total = u256(int(self.pledges_total) - amt)
         d.withdraw_amount = u256(0)
         d.withdraw_at = u64(0)
+        d.withdraw_requested = u64(0)
         self._credit(d.controller, amt)
         return {"ok": True, "withdrawn": str(amt), "to": d.controller}
 
@@ -856,6 +880,7 @@ class AsVotedRegistry(gl.contract.Contract):
         self.open_total = u256(int(self.open_total) + value)
         self.checks[u64(cid)] = Check(
             check_id=u64(cid), dao_id=d.dao_id, chain=d.chain, safe=d.safe, tx=ex["tx"], block=u64(int(ex["block"])),
+            exec_time=u64(int(ex["block_time"])),
             exec_id=u64(int(ex["exec_id"])), vote_id=u64(int(vote["vote_id"])), cid=vote["cid"],
             exec_sha=ex["evidence_sha256"], vote_sha=vote["evidence_sha256"], filer=me, stake=u256(value),
             note=clean_text(note, MAX_NOTE), filed_at=u64(now), status=ST_PROVISIONAL, round=u64(0),
@@ -1198,6 +1223,7 @@ class AsVotedRegistry(gl.contract.Contract):
                 "listed_at": int(d.listed_at), "bind_id": int(d.bind_id), "lister": d.lister,
                 "controller": d.controller, "pledge": str(int(d.pledge)),
                 "withdraw_amount": str(int(d.withdraw_amount)), "withdraw_at": int(d.withdraw_at),
+                "withdraw_requested": int(d.withdraw_requested),
                 "open_checks": int(d.open_checks), "n_checks": int(d.n_checks), "as_voted": int(d.as_voted),
                 "deviates": int(d.deviates), "unclear": int(d.unclear),
                 "last_deviates_at": int(d.last_deviates_at), "last_deviates_check": int(d.last_deviates_check),
@@ -1205,7 +1231,7 @@ class AsVotedRegistry(gl.contract.Contract):
 
     def _check_view(self, c: Check, full: bool) -> dict:
         out = {"check_id": int(c.check_id), "dao_id": int(c.dao_id), "chain": c.chain, "safe": c.safe, "tx": c.tx,
-               "block": int(c.block), "exec_id": int(c.exec_id), "vote_id": int(c.vote_id), "cid": c.cid,
+               "block": int(c.block), "exec_time": int(c.exec_time), "exec_id": int(c.exec_id), "vote_id": int(c.vote_id), "cid": c.cid,
                "exec_sha": c.exec_sha, "vote_sha": c.vote_sha, "filer": c.filer, "stake": str(int(c.stake)),
                "note": c.note, "filed_at": int(c.filed_at), "status": c.status, "round": int(c.round),
                "judge_deadline": int(c.judge_deadline), "ruling": c.ruling, "ruling_summary": c.ruling_summary,

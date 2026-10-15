@@ -447,7 +447,7 @@ class TestJudge(Base):
         cid, j, c = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(ALICE, U(5)),
                                 vote_kw={"vtype": "weighted", "choices": ["Yes", "No"], "scores": [9.0, 1.0]})
         self.assertEqual(c["ruling"], "UNCLEAR")
-        self.assertIn("unclear", c["ruling_summary"])
+        self.assertIn("could not be matched", c["ruling_summary"])
 
     def test_wording_is_neutral_and_dated(self):
         for body, data in (("Send 5 USDC to " + ALICE, F.transfer(MALLORY, U(5))),
@@ -623,8 +623,11 @@ class TestRegistry(Base):
         self.pledge(5 * GEN)
         D = self.D
         cid, tx = self.flow("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(ALICE, U(5)))
+        D.call(D.rg, "request_withdrawal", self.dao, str(5 * GEN), sender=CONTROLLER)
+        D.w.advance(91)
         with self.assertRaisesRegex(world.Reverted, "CHECKS_OPEN_1"):
-            D.call(D.rg, "request_withdrawal", self.dao, str(5 * GEN), sender=CONTROLLER)
+            D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
+        D.call(D.rg, "cancel_withdrawal", self.dao, sender=CONTROLLER)
         D.judge_rule(cid)
         D.w.advance(91)
         D.call(D.rg, "finalize", cid)

@@ -1,0 +1,14 @@
+....F....
+======================================================================
+FAIL: test_r2_10_misbehaving_during_the_delay_does_not_escape (test_attacks_r2.Withdrawal.test_r2_10_misbehaving_during_the_delay_does_not_escape)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r2.py", line 52, in test_r2_10_misbehaving_during_the_delay_does_not_escape
+    with self.assertRaisesRegex(world.Reverted, "CHECKS_OPEN_1"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Reverted not raised
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.090s
+
+FAILED (failures=1)

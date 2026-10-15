@@ -158,25 +158,34 @@ log("checks", JSON.stringify(D));
   expect("wrong stake is refused (credited back)", bad.r?.ok === false && /STAKE_MUST_BE/.test(bad.r?.reason ?? ""), bad.r?.reason);
 }
 
-// --- judge and rule
-for (const k of ["asv", "dev", "won", "lost", "unc", "aexp"]) {
-  const c = await v("rg", "get_check", [D[k]]);
-  if (c.status === "PROVISIONAL") await judgeRule("filer", D[k]);
+// --- judge and rule; an appeal goes in right after its ruling (90 s window)
+const right = await freshVote(CID.cip28, COW);
+const APPEAL = {
+  won: ["dao", "This transfer of 67.0123 WETH to the Treasury Safe implements CIP-28, the standing mandate to send profits to the treasury, not the CIP-43 Ops top-up it was filed against.", right],
+  lost: ["dao", "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0],
+  aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
+};
+for (const k of ["won", "lost", "aexp", "asv", "dev", "unc"]) {
+  let c = await v("rg", "get_check", [D[k]]);
+  if (c.status === "PROVISIONAL") c = await judgeRule("filer", D[k]);
+  if (APPEAL[k] && c.status === "CONTESTABLE") {
+    const [role, text, alt] = APPEAL[k];
+    const out = await w(role, "rg", "appeal", [D[k], text, alt], BOND);
+    if (out.r?.ok === false) log("  appeal refused:", out.r.reason);
+  }
 }
 const R = {};
 for (const k of Object.keys(D)) R[k] = await v("rg", "get_check", [D[k]]);
 expect("CIP-48 is AS_VOTED", R.asv.ruling === "AS_VOTED", R.asv.ruling_summary);
+expect("appeals were filed inside the window", R.won.status === "APPEALED" && R.lost.status === "APPEALED" && R.aexp.status === "APPEALED", `${R.won.status} ${R.lost.status} ${R.aexp.status}`);
 expect("CIP-16 batch is DEVIATES", R.dev.ruling === "DEVIATES", R.dev.ruling_summary);
 expect("67 WETH against CIP-43 is DEVIATES (over amount)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
 expect("CIP-69 Treasury call is DEVIATES", R.lost.ruling === "DEVIATES", R.lost.ruling_summary);
 expect("CIP-19 is UNCLEAR and FINAL at once", R.unc.ruling === "UNCLEAR" && R.unc.status === "FINAL", R.unc.ruling_summary);
 expect("CIP-29 is AS_VOTED", R.aexp.ruling === "AS_VOTED", R.aexp.ruling_summary);
+for (const k of ["won", "lost", "aexp"]) R[k] = await v("rg", "get_check", [D[k]]);
 
-// --- appeals
-const right = await freshVote(CID.cip28, COW);
-if (R.won.status === "CONTESTABLE") await w("dao", "rg", "appeal", [D.won, "This transfer of 67.0123 WETH to the Treasury Safe implements CIP-28, the standing mandate to send profits to the treasury, not the CIP-43 Ops top-up it was filed against.", right], BOND);
-if (R.lost.status === "CONTESTABLE") await w("dao", "rg", "appeal", [D.lost, "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0], BOND);
-if (R.aexp.status === "CONTESTABLE") await w("appellant", "rg", "appeal", [D.aexp, "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0], BOND);
+// --- appeals: the fresh panel
 for (const k of ["won", "lost"]) {
   const c = await v("rg", "get_check", [D[k]]);
   if (c.status === "APPEALED") await judgeRule("filer", D[k]);

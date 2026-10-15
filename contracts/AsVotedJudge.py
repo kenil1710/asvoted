@@ -686,14 +686,34 @@ def _fmt_cap(cap: list) -> str:
     return fmt_units(whole * (10 ** s) + frac, s) + " " + cap[3]
 
 
-def cap_for(text: str, mentions: list, fam: str, relevant: list, doc_ok: bool, amts: list) -> dict:
+def amount_owners(text: str, amts: list, marks: list) -> list:
+    """For each amount, the addresses its own line names, or if none, its
+    own paragraph names. marks: [(position, address)] of every mention."""
+    out = []
+    for a in amts:
+        la, lb = line_bounds(text, a[0])
+        own = [m[1] for m in marks if la <= m[0] < lb]
+        if len(own) == 0:
+            pa, pb = para_bounds(text, a[0])
+            own = [m[1] for m in marks if pa <= m[0] < pb]
+        out.append(own)
+    return out
+
+
+def cap_for(text: str, mentions: list, fam: str, relevant: list, doc_ok: bool, amts: list, owners: list = None,
+            who: str = "") -> dict:
     """The cap ladder. Returns {"level", "cap": [..] | None, "others": [...]}
-    or {"level": ""} when no amount is stated near the recipient."""
+    or {"level": ""} when no amount is stated near the recipient. An amount
+    whose own line (or paragraph) names other addresses and not this one is
+    theirs, and is never borrowed."""
     levels = (("line", line_bounds), ("paragraph", para_bounds), ("section", section_bounds))
     for name, fn in levels:
         spans = [fn(text, p) for p in mentions]
         cands = []
-        for a in amts:
+        for k in range(len(amts)):
+            a = amts[k]
+            if owners is not None and len(owners[k]) > 0 and who not in owners[k]:
+                continue
             if family(a[3]) not in relevant:
                 continue
             for s in spans:
@@ -703,7 +723,8 @@ def cap_for(text: str, mentions: list, fam: str, relevant: list, doc_ok: bool, a
         if len(cands) > 0:
             return _pick(name, cands, fam, spans)
     if doc_ok:
-        cands = [a for a in amts if family(a[3]) in relevant]
+        cands = [amts[k] for k in range(len(amts)) if family(amts[k][3]) in relevant and
+                 (owners is None or len(owners[k]) == 0 or who in owners[k])]
         if len(cands) > 0:
             return _pick("document", cands, fam, [(0, len(text))])
     return {"level": ""}
@@ -755,6 +776,18 @@ def code_rules(inp: dict) -> list:
         if sy != "" and family(sy) not in exec_fams:
             exec_fams.append(family(sy))
     known = [safe, ZERO, SENTINEL_OWNER] + [t for t in toks if t != ""] + list(MULTISEND_ADDRS)
+    marks = []
+    for ad in addrs:
+        if ad in known:
+            continue
+        for ps in addrs[ad]:
+            marks.append((ps, ad))
+    for nm in ens:
+        if ens[nm] in known:
+            continue
+        for ps in ens_positions(low, nm):
+            marks.append((ps, ens[nm]))
+    owners = amount_owners(text, amts, marks)
     others = [a for a in addrs if a not in known]
     for nm in ens:
         if ens[nm] not in others and ens[nm] not in known:
@@ -913,7 +946,7 @@ def code_rules(inp: dict) -> list:
             continue
         relevant = exec_fams
         doc_ok = len([o for o in others if o != r]) == 0
-        c = cap_for(text, ms, fam, relevant, doc_ok, amts)
+        c = cap_for(text, ms, fam, relevant, doc_ok, amts, owners, r)
         if c["level"] == "":
             for i in idx:
                 setr(i, A_UNCLEAR, "the proposal states no amount near " + r)
@@ -1127,7 +1160,7 @@ def finish(inp: dict, base: list, model: dict) -> dict:
         summary = "Every action in execution " + tx + " on " + ed + " is named in the proposal of " + pd + "."
     elif not passed:
         summary = ("Execution " + tx + " on " + ed + " could not be matched: whether the proposal of " + pd +
-                   " passed is unclear (" + str(vote.get("outcome_why", ""))[:80] + ").")
+                   " passed is not something the contract can compute from its voting type and scores.")
     else:
         summary = ("Execution " + tx + " on " + ed + " could not be fully matched to the proposal of " + pd + ": " +
                    str(n_auth) + " of " + str(len(acts)) + " actions settled.")
