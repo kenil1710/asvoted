@@ -364,6 +364,10 @@ class TestJudge(Base):
         cid, j, c = self.judged(body, txs=[(0, COW, 0, F.transfer(ALICE, 100 * GEN)), (0, USDC, 0, F.transfer(BOB, U(100)))])
         self.assertEqual(self.outcomes(c), ["OVER_AMOUNT", "OVER_AMOUNT"])
 
+    def test_usd_only_for_a_volatile_token_is_unclear(self):
+        cid, j, c = self.judged("Pay " + ALICE + " $500 per epoch, half in COW", to=COW, data=F.transfer(ALICE, 900 * GEN))
+        self.assertEqual(self.outcomes(c), ["UNCLEAR"])
+
     def test_no_amount_stated_is_unclear(self):
         cid, j, c = self.judged("Fund " + ALICE + " and " + BOB + " for their work.", to=USDC, data=F.transfer(ALICE, U(5)))
         self.assertEqual((c["ruling"], c["status"]), ("UNCLEAR", "FINAL"))
@@ -384,6 +388,13 @@ class TestJudge(Base):
         body = "Call setRecipient on " + TARGET + " to route fees."
         cid, j, c = self.judged(body, to=TARGET, data=b"\xaa\xbb\xcc\xdd" + F.wa(MALLORY))
         self.assertIn("passes the address", c["ruling_detail"]["actions"][0]["reason"])
+
+    def test_exact_calldata_quoted_in_proposal(self):
+        data = b"\x02\xa8\x61\xa6" + F.wa(MALLORY) + F.w(5)
+        body = "Execution: to " + TARGET + ' data: "0x' + data.hex() + '"'
+        cid, j, c = self.judged(body, to=TARGET, data=data)
+        self.assertEqual((c["ruling"], c["ruling_detail"]["actions"][0]["basis"]), ("AS_VOTED", "code"))
+        self.assertEqual(len(stub.MODEL.prompts), 0)
 
     def test_model_settles_described_call(self):
         q = "Call pause() on " + TARGET + " until the audit is done"

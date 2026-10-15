@@ -15,21 +15,26 @@ import typing
 # EVERY action, in this order:
 #
 #   CODE FIRST. Code extracts from the proposal text, deterministically:
-#     * every address: "0x" + 40 hex digits, not glued to other hex/letters;
+#     * every address: "0x" + 40 hex digits, not glued to other hex/letters,
+#       and any address whose 40 hex digits appear inside quoted calldata;
 #     * every ENS name the VoteReader resolved identically at the pinned
 #       block (and the vote's snapshot block);
 #     * every token amount: a number (thousands separators, decimals,
 #       k / m / b / thousand / million / billion) next to a symbol or "$".
 #   Then, per action:
+#     * the proposal quotes the action's exact calldata, for a contract it
+#       names -> AUTHORIZED;
 #     * value moved (native send, ERC-20 transfer / transferFrom / approve,
 #       gas refund): recipient not mentioned anywhere -> NOT_AUTHORIZED.
 #       Otherwise the amounts stated next to the recipient (same line, else
 #       paragraph, else section; the whole text only when the recipient is
 #       the only address it names) are the cap. All transfers to that
-#       recipient in that token family in this execution are SUMMED; above
-#       the largest stated amount + 0.5 % -> OVER_AMOUNT; amounts stated
-#       there only in other tokens -> OVER_AMOUNT; no amount stated at all
-#       -> UNCLEAR. Unknown decimals -> UNCLEAR.
+#       recipient in that token family in this execution, and in earlier
+#       executions checked against the same proposal, are SUMMED; above the
+#       largest stated amount + 0.5 % -> OVER_AMOUNT; amounts stated there
+#       only in other tokens -> OVER_AMOUNT; only in USD while paid in a
+#       non-stable token -> UNCLEAR (no prices); no amount stated at all ->
+#       UNCLEAR. Unknown decimals -> UNCLEAR.
 #     * DELEGATECALL to an address the proposal does not mention ->
 #       NOT_AUTHORIZED. Any call that passes an address-like argument the
 #       proposal does not mention -> NOT_AUTHORIZED. A call to a contract the
@@ -377,8 +382,23 @@ def ens_positions(low: str, name: str) -> list:
     return out
 
 
+def hex_positions(low: str, who: str) -> list:
+    """Every place the address's 40 hex digits appear, even glued inside a
+    longer hex string (calldata quoted in the proposal). 160 random bits do
+    not appear by accident."""
+    out = []
+    k = low.find(who[2:])
+    while k >= 0:
+        out.append(k)
+        k = low.find(who[2:], k + 1)
+    return out
+
+
 def mentions_of(text: str, low: str, addrs: dict, ens: dict, who: str) -> list:
     pos = list(addrs.get(who, []))
+    for k in hex_positions(low, who):
+        if k - 2 not in pos:
+            pos.append(k)
     for nm in ens:
         if ens[nm] == who:
             pos = pos + ens_positions(low, nm)
@@ -700,7 +720,11 @@ def _pick(level: str, cands: list, fam: str, spans: list) -> dict:
     for c in mine:
         if best is None or c[1] * (10 ** (36 - c[2])) > best[1] * (10 ** (36 - best[2])):
             best = c
-    return {"level": level, "cap": best, "others": others, "spans": spans}
+    raw = []
+    for c in cands:
+        if family(c[3]) != fam and c[3] not in raw:
+            raw.append(c[3])
+    return {"level": level, "cap": best, "others": others, "others_raw": raw, "spans": spans}
 
 
 def _snippet(text: str, pos: int) -> str:
@@ -737,7 +761,7 @@ def code_rules(inp: dict) -> list:
             others.append(ens[nm])
 
     def mentioned(a: str) -> bool:
-        if a in addrs:
+        if a in addrs or (len(a) == 42 and low.find(a[2:]) >= 0):
             return True
         for nm in ens:
             if ens[nm] == a and len(ens_positions(low, nm)) > 0:
@@ -777,9 +801,24 @@ def code_rules(inp: dict) -> list:
                 if sy != "" and 0 <= dc <= 18:
                     prior_legs.append([str(to), family(sy), amt * (10 ** (18 - dc))])
 
+    # An action whose exact calldata is quoted in the proposal, sent to a
+    # contract the proposal names, is the proposal's own transaction.
+    lowc = _cut_all(_cut_all(_cut_all(low, " "), "\n"), "\t")
+    exact = {}
+    for a in acts:
+        words = a.get("args") or []
+        if a.get("selector", "") == "" or "ARGS_TRUNCATED_IN_VIEW" in (a.get("flags") or []) or \
+                "UNALIGNED_ARGS" in (a.get("flags") or []) or int(a.get("data_len", 0)) != 4 + 32 * len(words):
+            continue
+        blob = a["selector"][2:] + "".join([w2[2:] for w2 in words])
+        if len(blob) >= 8 + 64 and lowc.find(blob) >= 0 and mentioned(a["target"]) and int(a.get("value", "0")) == 0:
+            exact[a["i"]] = True
+
     # value legs: (action index, recipient, token ("" native), raw amount, is_approval)
     legs = []
     for a in acts:
+        if a["i"] in exact:
+            continue
         k = a["kind"]
         if k in ("erc20_transfer", "erc20_transfer_from", "gas_refund"):
             legs.append([a["i"], a["recipient"], a["token"], int(a["amount"]), False])
@@ -880,9 +919,16 @@ def code_rules(inp: dict) -> list:
                 setr(i, A_UNCLEAR, "the proposal states no amount near " + r)
             continue
         if c["cap"] is None:
-            for i in idx:
-                setr(i, A_OVER, "the proposal states amounts near " + r + " only in " + ", ".join(c["others"]) +
-                     ", not in " + sym, "", 10 ** 6, c["level"])
+            if len([o for o in c["others_raw"] if o != "USD"]) == 0:
+                # Only dollar figures near the recipient, paid in another token:
+                # comparing them needs a price, which this contract never guesses.
+                for i in idx:
+                    setr(i, A_UNCLEAR, "the proposal states amounts near " + r + " only in USD; " + sym +
+                         " cannot be compared without a price", "", 0, c["level"])
+            else:
+                for i in idx:
+                    setr(i, A_OVER, "the proposal states amounts near " + r + " only in " + ", ".join(c["others"]) +
+                         ", not in " + sym, "", 10 ** 6, c["level"])
             continue
         within, over = _cmp_cap(total, 18, c["cap"])
         sent = fmt_units(total, 18) + " " + sym
@@ -897,8 +943,13 @@ def code_rules(inp: dict) -> list:
                 setr(i, A_OVER, sent + joined + " is above the largest amount the proposal states for this "
                      "recipient (" + _fmt_cap(c["cap"]) + ")", _snippet(text, c["cap"][0]), over, c["level"])
 
+    for i in exact:
+        setr(i, A_AUTH, "the proposal quotes this exact calldata, for a contract it names")
+
     # 2. calls: identification and address arguments
     for a in acts:
+        if a["i"] in exact:
+            continue
         k = a["kind"]
         if k not in ("call", "delegatecall", "empty"):
             continue

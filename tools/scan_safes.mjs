@@ -13,6 +13,6 @@ for (const [space, chain, addr] of T) {
     const rec = txs.results.slice(0, 100);
     console.log(space, chain, addr, `v${info.version} ${info.threshold}/${info.owners.length} executed=${txs.count}`, "recent:", rec.slice(0, 3).map((r) => `${r.executionDate?.slice(0, 10)} ${r.dataDecoded?.method ?? (r.data ? r.data.slice(0, 10) : "eth")}`).join(", "));
   } catch (e) { console.log(space, chain, addr, "ERR", e.message); }
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 2500));
 }
-writeFileSync("safe_txs.json", JSON.stringify(out));
+writeFileSync(process.env.OUT || "safe_txs.json", JSON.stringify(out));
