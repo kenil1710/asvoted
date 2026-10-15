@@ -177,6 +177,15 @@ class TestExecReader(unittest.TestCase):
         self.assertEqual([(x["kind"], x["path"]) for x in a], [("erc20_transfer", "0.0.0"), ("delegatecall", "0.1")])
         self.assertEqual(a[1]["op"], "DELEGATECALL")
 
+    def test_nested_safe_execution_ignores_signature_owners(self):
+        sigs = F.wa(MALLORY) + F.w(0) + b"\x01"           # approved-hash signature: r = owner
+        inner = F.exec_calldata(USDC, 0, F.transfer(ALICE, 5), 0, sigs=sigs)
+        tx, n = F.safe_exec(self.D.mc, OTHER_SAFE, 0, inner)
+        a = self.D.view(self.D.er, "get_execution", self.read(tx, n))["actions"][0]
+        self.assertIn(ALICE, a["addr_args"])
+        self.assertNotIn(MALLORY, a["addr_args"])
+        self.assertIn("NESTED_SAFE_EXECUTION", a["flags"])
+
     def test_fake_multisend_is_a_delegatecall(self):
         data = F.multisend([(0, USDC, 0, F.transfer(ALICE, 1))])
         tx, n = F.safe_exec(self.D.mc, TARGET, 0, data, op=1)

@@ -611,6 +611,21 @@ def classify(op: int, to: str, value: int, data: bytes, path: str, batch: str) -
     if len(args) % 32 != 0:
         act["flags"].append("UNALIGNED_ARGS")
     act["addr_args"] = addr_like_words(args)
+    if sel == SEL_EXEC:
+        # A call into ANOTHER Safe's execTransaction: its signatures carry
+        # owner addresses (approved-hash and contract signatures put the
+        # owner in r), which are not arguments of the action. The addresses
+        # that matter are the inner target and those in the inner calldata.
+        try:
+            inner = decode_exec(data)
+            found = addr_like_words(enc_addr(inner["to"]) + (inner["data"][4:] if len(inner["data"]) >= 4 else b""))
+            for x in (inner["gasToken"], inner["refundReceiver"]):
+                if x != ZERO and x not in found:
+                    found.append(x)
+            act["addr_args"] = found
+            act["flags"].append("NESTED_SAFE_EXECUTION")
+        except ValueError:
+            act["flags"].append("MALFORMED_NESTED_SAFE_EXECUTION")
     if op == 1:
         act["kind"] = "delegatecall"
         return act
