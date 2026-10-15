@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/*
+ * AsVoted — "the ballot and the receipt".
+ * The ballot (what was voted) is set in a book serif on cool ballot paper,
+ * the receipt (what was executed) in a printer's monospace on white
+ * thermal paper with a torn edge. The one loud element is the verdict
+ * stamp; everything else stays quiet.
+ */
+:root {
+  --paper: #eceff3;        /* ballot paper, cool grey-blue */
+  --sheet: #f8f9fb;        /* the ballot sheet itself */
+  --receipt: #ffffff;      /* thermal receipt */
+  --ink: #161a33;          /* ballot ink, navy */
+  --ink-2: #4b5170;
+  --ink-3: #6e7491;
+  --rule: #cfd5df;
+  --rule-2: #e1e5ec;
+  --booth: #2340c8;        /* voting-booth blue, links and focus */
+  --booth-soft: #e3e8fb;
+  --ok: #12704a;           /* stamp: as voted */
+  --ok-soft: #e1f2ea;
+  --dev: #b4232a;          /* stamp: deviates */
+  --dev-soft: #f9e4e4;
+  --unclear: #8a5a00;      /* stamp: unclear */
+  --unclear-soft: #f6ecd6;
+  --mark: #fff1a8;         /* highlighter on quoted lines */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10131f;
+    --sheet: #171b2b;
+    --receipt: #1d2131;
+    --ink: #e9ebf3;
+    --ink-2: #b4b9cc;
+    --ink-3: #8d93aa;
+    --rule: #2f354b;
+    --rule-2: #252a3d;
+    --booth: #9aabff;
+    --booth-soft: #232b52;
+    --ok: #5ccf97;
+    --ok-soft: #15322a;
+    --dev: #ff7f7f;
+    --dev-soft: #3a1c22;
+    --unclear: #e9b94f;
+    --unclear-soft: #352a14;
+    --mark: #4a4220;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #10131f;
+  --sheet: #171b2b;
+  --receipt: #1d2131;
+  --ink: #e9ebf3;
+  --ink-2: #b4b9cc;
+  --ink-3: #8d93aa;
+  --rule: #2f354b;
+  --rule-2: #252a3d;
+  --booth: #9aabff;
+  --booth-soft: #232b52;
+  --ok: #5ccf97;
+  --ok-soft: #15322a;
+  --dev: #ff7f7f;
+  --dev-soft: #3a1c22;
+  --unclear: #e9b94f;
+  --unclear-soft: #352a14;
+  --mark: #4a4220;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-receipt: var(--receipt);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-2: var(--rule-2);
+  --color-booth: var(--booth);
+  --color-booth-soft: var(--booth-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-dev: var(--dev);
+  --color-dev-soft: var(--dev-soft);
+  --color-unclear: var(--unclear);
+  --color-unclear-soft: var(--unclear-soft);
+  --color-mark: var(--mark);
+  --font-serif: var(--font-literata), Georgia, serif;
+  --font-sans: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--booth); outline-offset: 2px; border-radius: 3px; }
+
+.prose-ballot { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.7; color: var(--ink); }
+.prose-ballot p { margin: 0 0 0.85em; }
+.prose-ballot h1, .prose-ballot h2, .prose-ballot h3 { font-weight: 600; margin: 1.1em 0 0.45em; line-height: 1.3; }
+.prose-ballot h1 { font-size: 1.25rem; }
+.prose-ballot h2 { font-size: 1.12rem; }
+.prose-ballot h3 { font-size: 1.02rem; }
+.prose-ballot code, .prose-ballot pre { font-family: var(--font-mono); font-size: 0.78rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.prose-ballot mark { background: var(--mark); color: inherit; padding: 0 2px; border-radius: 2px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent); }
+.prose-ballot .addr { font-family: var(--font-mono); font-size: 0.82em; overflow-wrap: anywhere; }
+
+/* the receipt: white paper, torn top and bottom edges */
+.receipt {
+  background: var(--receipt);
+  font-family: var(--font-mono);
+  position: relative;
+  --tooth: 9px;
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--tooth)) 100%;
+  mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--tooth)) 100%;
+  padding-bottom: calc(var(--tooth) + 14px);
+}
+
+/* the stamp: the one loud element */
+.stamp {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border: 3px solid currentColor;
+  outline: 1.5px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 6px;
+  padding: 0.3em 0.75em;
+  transform: rotate(-4deg);
+  display: inline-block;
+  line-height: 1;
+  mix-blend-mode: multiply;
+}
+:root[data-theme="dark"] .stamp { mix-blend-mode: normal; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stamp { mix-blend-mode: normal; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .stamp-in { animation: stamp-in 420ms cubic-bezier(.2,1.6,.4,1) both; animation-delay: 250ms; }
+  @keyframes stamp-in {
+    0% { opacity: 0; transform: rotate(-4deg) scale(1.9); }
+    70% { opacity: 1; transform: rotate(-4deg) scale(0.96); }
+    100% { opacity: 1; transform: rotate(-4deg) scale(1); }
+  }
+  .live-dot { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+.break-anywhere { overflow-wrap: anywhere; word-break: break-word; }
