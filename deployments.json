@@ -5,117 +5,131 @@
   "explorer": "https://explorer-studio-dev.genlayer.com/",
   "contracts": {
     "ExecReader": {
-      "address": "0x344a58093BD63F9ed1992bE53D08e16F0603d4FC",
-      "deploy_tx": "0x8d3d329ffb10e543e6d2725e5fc9a37484ae8330348483cce184d67ae2ee5679",
+      "address": "0xE2e7C95764F8B79f290fF6508615288892E2D3DF",
+      "deploy_tx": "0xad149e0297d38ae71b2941cc9759c6bc64fa4668984b9f46eeb14a8557e38230",
       "file": "contracts/ExecReader.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
-      "bytes": 44332,
-      "sha256": "a32b5049846a8cff6e27feae9587042f994c3aaffe7afac10161af2b10a7d0e7",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 45164,
+      "sha256": "4909d23888c4da172d03bbceac4c67faf41b4cca122b6205ed161888275b30e9",
       "constructor_args": [],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:17:17.468Z"
+      "deployed_at": "2026-10-15T22:38:40.870Z"
     },
     "VoteReader": {
-      "address": "0x5F180aE5d788CB32F51321abF0387CdafAD1DE96",
-      "deploy_tx": "0x01a663cfa99d30038442996a36b98b9de32c042eed9b6d310c70277aa2f674e1",
+      "address": "0xCc11fecbc480F5504005310720ab6Acd28eB67fF",
+      "deploy_tx": "0xd373563864e1205cb5ebec1001ef12bbd626953e568a7c197cbd8e1d8aa01fab",
       "file": "contracts/VoteReader.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
       "bytes": 50014,
       "sha256": "4ee549d44fd54eda89f3e10c06fe95fa35d887ab4c22b7fd36628b3636895e1c",
       "constructor_args": [],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:17:26.725Z"
+      "deployed_at": "2026-10-15T22:38:50.656Z"
     },
     "AsVotedJudge": {
-      "address": "0x9942005Eb4Ca5C7f5dbA9876545B861B007256F5",
-      "deploy_tx": "0xc942f1b04e68d9d10377262b2ecf4dc5ad3f93da8b93bfcb1feb920597b883d6",
+      "address": "0xA551073A2aA7949AFE22997a6d261ecCE1e99D66",
+      "deploy_tx": "0x25cdf6549db3f473face81b3ca0c246c36bfc0d1b7ad1b6265821e7ca4f8bf96",
       "file": "contracts/AsVotedJudge.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
-      "bytes": 46957,
-      "sha256": "e6d22804571ad2fee8cb6ee279ee34b99c5fe6fa20ef590b02826758c2e76e81",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 49335,
+      "sha256": "97c7fc99c1953482038b42406bca9e99d36934b8e4df42460b6b330bfd40dc88",
       "constructor_args": [],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:17:35.641Z"
+      "deployed_at": "2026-10-15T22:38:56.983Z"
     },
     "AsVotedRegistry": {
-      "address": "0x134F334D7102d2A9A75335052625A109Bc4F51AA",
-      "deploy_tx": "0x6e4c0898eff2120331f24109ee5afff0f8f25651f8dbf59be04c9a9f26869806",
+      "address": "0xE6cA8E64fBD3f2Cb68ACa2E8Af144e435EAe7528",
+      "deploy_tx": "0x13f203a5446e09d8888836fdae963c0a144c668a6b5a21ad4af7246b95bdd0c1",
       "file": "contracts/AsVotedRegistry.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
       "bytes": 60800,
       "sha256": "e2bc0b60ed49ba4064b024bd6854d2cf69cc4ff58a227f63005e342f5c55689d",
       "constructor_args": [
         "CANONICAL",
-        "0x344a58093BD63F9ed1992bE53D08e16F0603d4FC",
-        "0x5F180aE5d788CB32F51321abF0387CdafAD1DE96",
-        "0x9942005Eb4Ca5C7f5dbA9876545B861B007256F5",
+        "0xE2e7C95764F8B79f290fF6508615288892E2D3DF",
+        "0xCc11fecbc480F5504005310720ab6Acd28eB67fF",
+        "0xA551073A2aA7949AFE22997a6d261ecCE1e99D66",
         ""
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:17:42.619Z",
+      "deployed_at": "2026-10-15T22:39:03.933Z",
       "mode": "CANONICAL"
     },
     "AsVotedRegistryDemo": {
-      "address": "0x4b0aC71d1E839F6FB88eB4452Dc72Edd752f8d14",
-      "deploy_tx": "0x0592ea686b854eb172e5b68f847dcda191c94527e9bab9a95b599b63569b9a6e",
+      "address": "0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",
+      "deploy_tx": "0xfd1837bb1904199159bab5eb35109515ff7222d77e2a4484dade32be9197a628",
       "file": "contracts/AsVotedRegistry.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
       "bytes": 60800,
       "sha256": "e2bc0b60ed49ba4064b024bd6854d2cf69cc4ff58a227f63005e342f5c55689d",
       "constructor_args": [
         "DEMO",
-        "0x344a58093BD63F9ed1992bE53D08e16F0603d4FC",
-        "0x5F180aE5d788CB32F51321abF0387CdafAD1DE96",
-        "0x9942005Eb4Ca5C7f5dbA9876545B861B007256F5",
+        "0xE2e7C95764F8B79f290fF6508615288892E2D3DF",
+        "0xCc11fecbc480F5504005310720ab6Acd28eB67fF",
+        "0xA551073A2aA7949AFE22997a6d261ecCE1e99D66",
         "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:17:52.054Z",
+      "deployed_at": "2026-10-15T22:39:13.430Z",
       "mode": "DEMO"
     },
     "DaoStanding": {
-      "address": "0xDe3a7566fD287CBafa7bfa1a4734c319b98f7815",
-      "deploy_tx": "0xea07f82b97ecd88e2f75db2439cc64f325bb199b3ab07490b1dfd8d4fc046018",
+      "address": "0x16fec6B9ce8A069c9262a209884360378037083C",
+      "deploy_tx": "0x5358e37503a60dd352d4cca9d2522ed6e8de9ec3b799b080d66484fba634ccae",
       "file": "contracts/DaoStanding.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
       "bytes": 2845,
       "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
       "constructor_args": [
-        "0x134F334D7102d2A9A75335052625A109Bc4F51AA",
+        "0xE6cA8E64fBD3f2Cb68ACa2E8Af144e435EAe7528",
         30
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:18:00.735Z",
+      "deployed_at": "2026-10-15T22:39:18.978Z",
       "mode": "CANONICAL"
     },
     "DaoStandingDemo": {
-      "address": "0x43054e2b629E4a5Ea43099F32c539390826B1B90",
-      "deploy_tx": "0xaaebb7294b8ebe8a2a4f90d227b8dc564949e61ca138389ed8ed63b497712faf",
+      "address": "0xA8b2467277f32562ce01c789217D995C21982BCF",
+      "deploy_tx": "0xd98cbb7449d1fa092c0b51380bd0fb4c10fbd13ac5c0f13d2cef2fb84778ee2f",
       "file": "contracts/DaoStanding.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
       "bytes": 2845,
       "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
       "constructor_args": [
-        "0x4b0aC71d1E839F6FB88eB4452Dc72Edd752f8d14",
+        "0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",
         30
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:18:12.295Z",
+      "deployed_at": "2026-10-15T22:39:27.527Z",
       "mode": "DEMO"
     },
     "GrantGate": {
-      "address": "0xEA37F2bB3f0323F34a8e7A48d4C384695Cfbe3cc",
-      "deploy_tx": "0xd00ccd83cb1c50869af03b2fec26a57780070971745d385e9b15f40c52997e93",
+      "address": "0x869752052e4dd8A8d1B9BB50d76fF1aEAeD09332",
+      "deploy_tx": "0x40bc50a2e2db2222664f7ccbb5d966374d643e7a4575ea27f4332db0a7199f7d",
       "file": "contracts/GrantGate.py",
-      "commit": "b628405cd6350513f70af47c0d03bdd4336fc368",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
       "bytes": 4084,
       "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
       "constructor_args": [
-        "0xDe3a7566fD287CBafa7bfa1a4734c319b98f7815"
+        "0x16fec6B9ce8A069c9262a209884360378037083C"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-15T22:18:21.509Z",
+      "deployed_at": "2026-10-15T22:39:36.242Z",
       "mode": "CANONICAL"
+    },
+    "GrantGateDemo": {
+      "address": "0xDadfBfC4bC8a08aD7485e4A31C7A2fc1bF21AA72",
+      "deploy_tx": "0xe04b8ebf9cb860797d5d52bef3df9d7dee5f2aa957ed1c2e156dfb0c931dd0f9",
+      "file": "contracts/GrantGate.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xA8b2467277f32562ce01c789217D995C21982BCF"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:39:42.210Z",
+      "mode": "DEMO"
     }
   }
 }

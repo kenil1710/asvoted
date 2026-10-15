@@ -1,0 +1,234 @@
+/**
+ * Every path, end to end, on the DEMO registry (90 s contest windows, 600 s
+ * judge / appeal deadlines), with real executions and proposals:
+ *
+ *   refusals   list_dao of a Safe the space does not list; claim_dao by a
+ *              non-admin; duplicate filing; payable call with a wrong amount
+ *   AS_VOTED   CoW CIP-48                                -> finalize, stake to pledge
+ *   DEVIATES   CoW CIP-16 batch                          -> finalize, pledge slashed, bounty
+ *   appeal won CoW 67 WETH filed against CIP-43 (wrong)  -> DAO appeals naming CIP-28 -> AS_VOTED
+ *   appeal lost CoW Treasury CIP-69 signMessage call     -> DAO appeals with words only -> DEVIATES stands
+ *   UNCLEAR    CoW CIP-19                                -> final at once, refund
+ *   expiry     CoW CIP-37 never judged                   -> expire after 600 s -> UNCLEAR
+ *   appeal expiry  CoW CIP-29 AS_VOTED appealed, never judged -> expire -> ruling stands, bond back
+ *   consumer   GrantGateDemo before / after the final DEVIATES
+ *   drain      controller withdraws the pledge, everyone claims; held_now == 0
+ *
+ *   node demo_paths.mjs [--from=step]
+ * Writes docs/demo-run.log (stdout) and docs/seed-demo.json.
+ */
+import { readFileSync, writeFileSync } from "node:fs";
+import { connect, accounts, argOf, returnedJson, sleep } from "./harness.mjs";
+
+const dep = JSON.parse(readFileSync(new URL("../deployments.json", import.meta.url), "utf8")).contracts;
+const A = { er: dep.ExecReader.address, vr: dep.VoteReader.address, jg: dep.AsVotedJudge.address, rg: dep.AsVotedRegistryDemo.address, gate: dep.GrantGateDemo.address };
+const acc = accounts();
+const who = (role) => acc[role].address.toLowerCase();
+const C = {};
+for (const role of ["filer", "filer2", "dao", "appellant", "demo"]) {
+  C[role] = { er: connect({ address: A.er, role }), vr: connect({ address: A.vr, role }), jg: connect({ address: A.jg, role }), rg: connect({ address: A.rg, role }), gate: connect({ address: A.gate, role }) };
+}
+const J = (v) => (typeof v === "string" ? JSON.parse(v) : v);
+const STAKE = 10n ** 17n, BOND = 10n ** 17n, GEN = 10n ** 18n;
+const COW = "0xcA771eda0c70aA7d053aB1B25004559B918FE662", TREAS = "0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669";
+const CID = {
+  cip48: "bafkreigatik76cmd2amxbkav55jzrexyygnebausjg7isbb2akbnevw4xq", cip16: "bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4",
+  cip43: "bafkreigqmaollb3qnv7tjrrqp2huwnds6dyxeh33lybvovdpowza6ms6sq", cip28: "bafkreie2zitrxqwtmz6ehbompehqnhy2duddhhp4z2udmw645dcbpt3i4m",
+  cip69: "bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe", cip19: "bafkreigeksmh3n7sxmon5y7vhow2vieuxoyhyq3u42ent6cbwq7sfenwpq",
+  cip37: "bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam", cip29: "bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu",
+};
+const TX = {
+  cip48: ["0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16", 27, COW], cip16: ["0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1", 19, COW],
+  weth67: ["0x2d3d227cc11bb047e4b221e2a1d1c6077ce3534b798659258b08a05e28c9baba", 26, COW], cip69: ["0x5b453427e61374b5d023a9920943fcbe05a54b7d06b9fc557d512c20351abe22", 891, TREAS],
+  cip19: ["0x1fd579d7bbb8e7e8b8a6e2816f679ca55dddf36728615420d5a7f21c87d4870f", 9, COW], cip37: ["0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f", 22, COW],
+  cip29: ["0xaa412db50fb9cb384d56ddec01a00997d686927d332f13ddf93e7644a5f47c29", 17, COW],
+};
+const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
+const results = [];
+const expect = (name, ok, detail) => { results.push({ name, ok, detail }); log(`${ok ? "PASS" : "FAIL"}  ${name}  ${detail ?? ""}`); };
+const now = () => Math.floor(Date.now() / 1000);
+
+async function w(role, c, fn, args, value = 0n) {
+  log(`→ ${role} ${fn} ${JSON.stringify(args).slice(0, 110)}${value ? " +" + value : ""}`);
+  const out = await C[role][c].send(fn, args, value);
+  const r = returnedJson(out);
+  log(`  ${out.ok ? "OK" : "REVERTED"} ${out.status} ${out.seconds?.toFixed(0)}s ${out.hash} ${out.ok ? JSON.stringify(r ?? out.returned ?? "").slice(0, 200) : (out.revertReason ?? "").slice(0, 160)}`);
+  return { ...out, r };
+}
+const v = async (c, fn, args = []) => J(await C.filer[c].view(fn, args));
+
+async function freshSpace(space, chain, safe) {
+  const bid = Number(await v("vr", "get_binding_id", [space, chain, safe]));
+  const b = bid ? await v("vr", "get_binding", [bid]) : null;
+  if (!b || now() - b.read_at > 3000) await w("filer", "vr", "read_space", [space, chain, safe]);
+}
+async function freshVote(cid, safe) {
+  let id = Number(await v("vr", "get_proposal_id", [cid, "ethereum", safe]));
+  const p = id ? await v("vr", "get_proposal", [id]) : null;
+  if (!p || now() - p.read_at > 3000) {
+    await w("filer", "vr", "read_proposal", [cid, "ethereum", safe]);
+    id = Number(await v("vr", "get_proposal_id", [cid, "ethereum", safe]));
+  }
+  return id;
+}
+async function execId(key) {
+  const [tx, nonce, safe] = TX[key];
+  let id = Number(await v("er", "get_execution_id", ["ethereum", safe, tx]));
+  if (!id) { await w("filer", "er", "read_execution", ["ethereum", safe, tx, nonce]); id = Number(await v("er", "get_execution_id", ["ethereum", safe, tx])); }
+  return id;
+}
+async function daoFor(safe) {
+  let id = Number(await v("rg", "get_dao_id", ["cow.eth", "ethereum", safe]));
+  if (!id) { await freshSpace("cow.eth", "ethereum", safe); await w("filer", "rg", "list_dao", ["cow.eth", "ethereum", safe]); id = Number(await v("rg", "get_dao_id", ["cow.eth", "ethereum", safe])); }
+  return id;
+}
+async function file(role, key, cidKey, note) {
+  const [tx, , safe] = TX[key];
+  const existing = Number(await v("rg", "get_check_id_by_tx", ["ethereum", safe, tx]));
+  if (existing) return existing;
+  const dao = await daoFor(safe);
+  const e = await execId(key);
+  const vid = await freshVote(CID[cidKey], safe);
+  const out = await w(role, "rg", "file_check", [dao, e, vid, note], STAKE);
+  if (out.r?.ok === false) log("  refused:", out.r.reason);
+  return Number(await v("rg", "get_check_id_by_tx", ["ethereum", safe, tx]));
+}
+async function judgeRule(role, id) {
+  const c = await v("rg", "get_check", [id]);
+  const j = await v("jg", "get_judgment", [A.rg, id, c.round]);
+  for (let i = 0; i < 3 && !j.found; i++) {
+    const out = await w(role, "jg", "judge", [A.rg, id]);
+    if (out.ok) break;
+  }
+  await w(role, "rg", "rule", [id]);
+  return v("rg", "get_check", [id]);
+}
+async function waitPast(t, label) {
+  const s = t - now() + 5;
+  if (s > 0) { log(`… waiting ${s}s for ${label}`); await sleep(s * 1000); }
+}
+
+const D = {};
+// --- refusals and claim
+const cow = await daoFor(COW);
+const treas = await daoFor(TREAS);
+const randomSafe = "0x00000000000000000000000000000000000000a5";
+await freshSpace("cow.eth", "ethereum", randomSafe);
+{
+  const out = await w("filer", "rg", "list_dao", ["cow.eth", "ethereum", randomSafe]);
+  expect("listing a Safe the space does not list is refused", !out.ok && /SAFE_NOT_LISTED/.test(out.revertReason ?? ""), out.revertReason);
+}
+await freshSpace("cow.eth", "ethereum", COW);
+{
+  const out = await w("filer", "rg", "claim_dao", [cow]);
+  expect("claim by a non-admin is refused", !out.ok && /NOT_AN_ADMIN/.test(out.revertReason ?? ""), out.revertReason);
+}
+for (const id of [cow, treas]) {
+  const d = await v("rg", "get_dao", [id]);
+  if (d.controller !== who("dao")) await w("dao", "rg", "claim_dao", [id]);
+}
+expect("demo controller claims both listings", (await v("rg", "get_dao", [cow])).controller === who("dao") && (await v("rg", "get_dao", [treas])).controller === who("dao"));
+if (BigInt((await v("rg", "get_dao", [cow])).pledge) === 0n) await w("dao", "rg", "pledge", [cow], 5n * GEN);
+if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "rg", "pledge", [treas], 2n * GEN);
+{
+  const out = await w("filer", "rg", "pledge", [cow], GEN);
+  expect("pledge by a non-controller is credited back, ok:false", out.ok && out.r?.ok === false, out.r?.reason);
+}
+{
+  const g = await w("demo", "gate", "request_grant", [cow, "release tranche 1"]);
+  expect("GrantGate carries out a request while the DAO is in good standing", g.r?.carried_out === true, JSON.stringify(g.r?.reasons));
+}
+
+// --- file everything
+D.asv = await file("filer", "cip48", "cip48", "demo: as voted");
+D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
+D.won = await file("filer2", "weth67", "cip43", "demo: filed against the wrong proposal");
+D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
+D.unc = await file("filer", "cip19", "cip19", "demo: unclear");
+D.exp = await file("filer", "cip37", "cip37", "demo: never judged, expires");
+D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
+log("checks", JSON.stringify(D));
+{
+  const [tx, , safe] = TX.cip48;
+  const e = Number(await v("er", "get_execution_id", ["ethereum", safe, tx]));
+  const vid = await freshVote(CID.cip48, safe);
+  const out = await w("appellant", "rg", "file_check", [cow, e, vid, "duplicate"], STAKE);
+  expect("duplicate filing is refused (stake credited back)", out.r?.ok === false && /DUPLICATE/.test(out.r?.reason ?? ""), out.r?.reason);
+  const bad = await w("appellant", "rg", "file_check", [cow, e, vid, "wrong stake"], STAKE + 1n);
+  expect("wrong stake is refused (credited back)", bad.r?.ok === false && /STAKE_MUST_BE/.test(bad.r?.reason ?? ""), bad.r?.reason);
+}
+
+// --- judge and rule
+for (const k of ["asv", "dev", "won", "lost", "unc", "aexp"]) {
+  const c = await v("rg", "get_check", [D[k]]);
+  if (c.status === "PROVISIONAL") await judgeRule("filer", D[k]);
+}
+const R = {};
+for (const k of Object.keys(D)) R[k] = await v("rg", "get_check", [D[k]]);
+expect("CIP-48 is AS_VOTED", R.asv.ruling === "AS_VOTED", R.asv.ruling_summary);
+expect("CIP-16 batch is DEVIATES", R.dev.ruling === "DEVIATES", R.dev.ruling_summary);
+expect("67 WETH against CIP-43 is DEVIATES (over amount)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
+expect("CIP-69 Treasury call is DEVIATES", R.lost.ruling === "DEVIATES", R.lost.ruling_summary);
+expect("CIP-19 is UNCLEAR and FINAL at once", R.unc.ruling === "UNCLEAR" && R.unc.status === "FINAL", R.unc.ruling_summary);
+expect("CIP-29 is AS_VOTED", R.aexp.ruling === "AS_VOTED", R.aexp.ruling_summary);
+
+// --- appeals
+const right = await freshVote(CID.cip28, COW);
+if (R.won.status === "CONTESTABLE") await w("dao", "rg", "appeal", [D.won, "This transfer of 67.0123 WETH to the Treasury Safe implements CIP-28, the standing mandate to send profits to the treasury, not the CIP-43 Ops top-up it was filed against.", right], BOND);
+if (R.lost.status === "CONTESTABLE") await w("dao", "rg", "appeal", [D.lost, "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0], BOND);
+if (R.aexp.status === "CONTESTABLE") await w("appellant", "rg", "appeal", [D.aexp, "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0], BOND);
+for (const k of ["won", "lost"]) {
+  const c = await v("rg", "get_check", [D[k]]);
+  if (c.status === "APPEALED") await judgeRule("filer", D[k]);
+}
+R.won = await v("rg", "get_check", [D.won]);
+R.lost = await v("rg", "get_check", [D.lost]);
+expect("appeal naming CIP-28 wins: AS_VOTED, bond refunded", R.won.final_verdict === "AS_VOTED" && R.won.final_how === "APPEAL_RULED", R.won.appeal_summary);
+expect("appeal with words only loses: DEVIATES stands, bond to the filer", R.lost.final_verdict === "DEVIATES" && R.lost.settlement.some((m) => /appeal bond to the filer/.test(m[0])), JSON.stringify(R.lost.settlement));
+
+// --- finalize after the 90 s window
+for (const k of ["asv", "dev"]) {
+  const c = await v("rg", "get_check", [D[k]]);
+  if (c.status === "CONTESTABLE") { await waitPast(c.contest_deadline, `check #${D[k]} contest window`); await w("filer", "rg", "finalize", [D[k]]); }
+}
+R.asv = await v("rg", "get_check", [D.asv]);
+R.dev = await v("rg", "get_check", [D.dev]);
+expect("AS_VOTED final: stake to the DAO pledge", R.asv.final_verdict === "AS_VOTED" && R.asv.settlement.some((m) => /stake to the DAO pledge/.test(m[0])), JSON.stringify(R.asv.settlement));
+expect("DEVIATES final: pledge slashed, bounty to the filer", R.dev.final_verdict === "DEVIATES" && BigInt(R.dev.slash) > 0n && R.dev.bounty_to === who("filer"), `slash ${R.dev.slash} severity ${R.dev.severity}`);
+{
+  const g = await w("demo", "gate", "request_grant", [cow, "release tranche 2"]);
+  expect("GrantGate refuses after a final DEVIATES", g.r?.carried_out === false, JSON.stringify(g.r?.reasons));
+}
+
+// --- expiries (600 s)
+{
+  const c = await v("rg", "get_check", [D.exp]);
+  if (c.status === "PROVISIONAL") { await waitPast(c.judge_deadline, `check #${D.exp} judge deadline`); await w("filer", "rg", "expire", [D.exp]); }
+  const a = await v("rg", "get_check", [D.aexp]);
+  if (a.status === "APPEALED") { await waitPast(a.appeal_deadline, `check #${D.aexp} appeal deadline`); await w("filer", "rg", "expire", [D.aexp]); }
+}
+R.exp = await v("rg", "get_check", [D.exp]);
+R.aexp = await v("rg", "get_check", [D.aexp]);
+expect("never judged: expire -> FINAL UNCLEAR, stake refunded", R.exp.final_verdict === "UNCLEAR" && R.exp.final_how === "EXPIRED_UNJUDGED");
+expect("appeal never judged: expire -> ruling stands, bond refunded", R.aexp.final_verdict === "AS_VOTED" && R.aexp.final_how === "APPEAL_EXPIRED");
+
+// --- drain
+for (const id of [cow, treas]) {
+  const d = await v("rg", "get_dao", [id]);
+  if (BigInt(d.pledge) > 0n && BigInt(d.withdraw_amount) === 0n) await w("dao", "rg", "request_withdrawal", [id, d.pledge]);
+}
+for (const id of [cow, treas]) {
+  const d = await v("rg", "get_dao", [id]);
+  if (BigInt(d.withdraw_amount) > 0n) { await waitPast(d.withdraw_at, `dao #${id} withdrawal delay`); await w("filer", "rg", "execute_withdrawal", [id]); }
+}
+for (const role of ["filer", "filer2", "dao", "appellant"]) {
+  const cl = await v("rg", "claimable_of", [who(role)]);
+  if (BigInt(cl.claimable) > 0n) await w(role, "rg", "claim", []);
+}
+const L = await v("rg", "get_ledger");
+expect("ledger invariant holds", L.invariant_holds === true && L.views_match_storage === true, JSON.stringify(L));
+expect("demo drains to exactly 0 held (pledges, open stakes, claimable)", L.held_now === "0" && L.claimable === "0" && L.pledges === "0" && L.open === "0", `held_now ${L.held_now}`);
+const stats = await v("rg", "get_stats");
+writeFileSync(new URL("../docs/seed-demo.json", import.meta.url), JSON.stringify({ registry: A.rg, checks: D, results, ledger: L, stats,
+  final: Object.fromEntries(Object.entries(R).map(([k, c]) => [k, { check_id: c.check_id, ruling: c.ruling, appeal_ruling: c.appeal_ruling, final: c.final_verdict, how: c.final_how, summary: c.appeal_summary || c.ruling_summary, settlement: c.settlement }])) }, null, 2) + "\n");
+log(`\n${results.filter((r) => r.ok).length}/${results.length} demo expectations passed`);

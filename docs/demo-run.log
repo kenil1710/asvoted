@@ -1,0 +1,5 @@
+22:43:36 → filer list_dao ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
+22:43:58   OK ACCEPTED 22s 0xd3d5320a7c89a5281fecdc06715280951f7bfe41a424e2c4e912f0aa47f61d64 {"dao_id":1,"ok":true}
+22:44:02 → filer read_space ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+22:44:14   OK ACCEPTED 12s 0xa61cdadc5b60f39d290001b471f7d1e4329c22c04352280405c3cd9f7b8cb4c8 {"bind_id":2,"listed":true}
+22:44:14 → filer list_dao ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]

@@ -14,3 +14,4 @@ research_cache/
 *.tsbuildinfo
 docs/demo/raw/
 scratch/
+test/.patrol_secret
