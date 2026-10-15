@@ -8,10 +8,10 @@ import { CheckList } from "@/components/CheckList";
 import { ErrorNote, Section, Skeleton } from "@/components/ui";
 import { Specimen } from "@/components/Specimen";
 
-function Figure({ n, label }: { n: React.ReactNode; label: string }) {
+function Figure({ n, label, k }: { n: React.ReactNode; label: string; k: string }) {
   return (
     <div className="border-l border-rule pl-4">
-      <p className="font-serif text-3xl font-semibold tabular sm:text-4xl">{n}</p>
+      <p className="font-serif text-3xl font-semibold tabular sm:text-4xl" data-k={k}>{n}</p>
       <p className="mt-0.5 text-sm text-ink-2">{label}</p>
     </div>
   );
@@ -46,12 +46,12 @@ export default function Home() {
       </section>
 
       <section aria-label="Registry figures" className="mt-14 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-        <Figure n={n("checks")} label="checks filed" />
-        <Figure n={n("final:AS_VOTED")} label="final as voted" />
-        <Figure n={n("final:DEVIATES")} label="final deviates" />
-        <Figure n={n("final:UNCLEAR")} label="final unclear" />
-        <Figure n={n("daos")} label="DAOs listed" />
-        <Figure n={ledger.data ? formatGen(ledger.data.pledges, 2) : <Skeleton className="h-8 w-12" />} label="GEN pledged" />
+        <Figure k="checks" n={n("checks")} label="checks filed" />
+        <Figure k="final:AS_VOTED" n={n("final:AS_VOTED")} label="final as voted" />
+        <Figure k="final:DEVIATES" n={n("final:DEVIATES")} label="final deviates" />
+        <Figure k="final:UNCLEAR" n={n("final:UNCLEAR")} label="final unclear" />
+        <Figure k="daos" n={n("daos")} label="DAOs listed" />
+        <Figure k="pledges" n={ledger.data ? formatGen(ledger.data.pledges, 2) : <Skeleton className="h-8 w-12" />} label="GEN pledged" />
       </section>
       {stats.error && <div className="mt-4"><ErrorNote error={stats.error} retry={() => void stats.mutate()} /></div>}
 

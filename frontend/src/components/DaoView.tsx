@@ -67,7 +67,7 @@ export function DaoView({ id }: { id: number }) {
       </div>
       <section aria-label="Record" className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-5">
         {[["final as voted", d.as_voted], ["final deviates", d.deviates], ["final unclear", d.unclear], ["open checks", d.open_checks], ["GEN pledged", formatGen(d.pledge, 2)]].map(([l, v]) => (
-          <div key={String(l)} className="border-l border-rule pl-4"><p className="font-serif text-3xl font-semibold tabular">{v}</p><p className="text-sm text-ink-2">{l}</p></div>
+          <div key={String(l)} className="border-l border-rule pl-4"><p className="font-serif text-3xl font-semibold tabular" data-k={`dao:${l}`}>{v}</p><p className="text-sm text-ink-2">{l}</p></div>
         ))}
       </section>
       <Section title="Checks">

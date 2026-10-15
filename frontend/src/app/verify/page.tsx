@@ -40,12 +40,12 @@ export default function VerifyPage() {
       <p className="font-semibold">{label}</p>
       {!l ? <Skeleton className="mt-2 h-20 w-full" /> : (
         <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 tabular">
-          <dt className="text-ink-3">Received</dt><dd>{formatGen(l.received)} GEN</dd>
-          <dt className="text-ink-3">Pledges</dt><dd>{formatGen(l.pledges)} GEN</dd>
-          <dt className="text-ink-3">Open stakes and bonds</dt><dd>{formatGen(l.open)} GEN</dd>
-          <dt className="text-ink-3">Claimable</dt><dd>{formatGen(l.claimable)} GEN</dd>
-          <dt className="text-ink-3">Claimed</dt><dd>{formatGen(l.claimed)} GEN</dd>
-          <dt className="text-ink-3">Held now</dt><dd>{formatGen(l.held_now)} GEN</dd>
+          <dt className="text-ink-3">Received</dt><dd data-k={`${label}:received`}>{formatGen(l.received)} GEN</dd>
+          <dt className="text-ink-3">Pledges</dt><dd data-k={`${label}:pledges`}>{formatGen(l.pledges)} GEN</dd>
+          <dt className="text-ink-3">Open stakes and bonds</dt><dd data-k={`${label}:open`}>{formatGen(l.open)} GEN</dd>
+          <dt className="text-ink-3">Claimable</dt><dd data-k={`${label}:claimable`}>{formatGen(l.claimable)} GEN</dd>
+          <dt className="text-ink-3">Claimed</dt><dd data-k={`${label}:claimed`}>{formatGen(l.claimed)} GEN</dd>
+          <dt className="text-ink-3">Held now</dt><dd data-k={`${label}:held_now`}>{formatGen(l.held_now)} GEN</dd>
           <dt className="text-ink-3">Invariant</dt><dd className={l.invariant_holds ? "font-semibold text-ok" : "font-semibold text-dev"}>{l.invariant_holds ? "holds" : "broken"}</dd>
           <dt className="text-ink-3">Recomputed from records</dt><dd className={l.views_match_storage ? "text-ok" : "text-dev"}>{l.views_match_storage === null ? "paged" : l.views_match_storage ? "matches" : "differs"}</dd>
           <dt className="text-ink-3">Contract balance</dt><dd>{formatGen(l.on_chain_balance)} GEN</dd>

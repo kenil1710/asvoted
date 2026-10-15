@@ -54,3 +54,32 @@
 23:12:23 check #4 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0x2d3d227c… on 2024-05-25 is named in the proposal of 2023-08-02.
 
 === seed 5/15: cow.eth CIP-24 continued funding for development services
+23:12:25 → read_execution
+23:12:42   OK ACCEPTED 17s 0x64c0f0e3d8e954398cb8c0f250ebc21f77fc733357a34db875ecf605301c0638 {"actions":1,"block":16935646,"exec_id":7,"safe_tx_hash":"0xcddb9a2ed5e226a7b96775e75ef698548240e7a15c7606b6a2ecd10733e30670"}
+23:12:45 → read_proposal
+23:13:00   OK ACCEPTED 15s 0xf6b0366f5f83c82081d2abb1a2c08a1469a04af91d14a68544fa47be004e33a1 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":8}
+23:13:01 → file_check
+23:13:14   OK ACCEPTED 13s 0xe0344cfb14e08c47b677c55d1552b096ba5a1813d07b67c84e032418e4774a61 {"check_id":5,"judge_deadline":1792192386,"ok":true}
+23:13:15 check #5
+23:13:17 → judge
+23:13:32   OK ACCEPTED 15s 0x17ed357cda051b3db67b5c0580c3300e48aa56b4b1f27df50150f4d426b8fd77 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27."}
+23:13:35 → rule
+23:13:52   OK ACCEPTED 17s 0xf8e56e880651a29c465e3f0bbdc1a581c96166b2734bba0a9cea1b090742dd10 {"check_id":5,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:13:54 check #5 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27.
+
+=== seed 6/15: cow.eth CIP-30 oSnap
+GenLayer RPC error (gen_call): Rate limit exceeded: 30 requests per minute
+23:13:56 → read_execution
+23:14:13   OK ACCEPTED 17s 0xda3eba1ae4d7c512a7a5fa5a56b43e4f076823869d64df24786118ca378575b6 {"actions":2,"block":17974009,"exec_id":8,"safe_tx_hash":"0xf4f6c090408e169a2620114a721b1ff2ecf457e8a8183e713dfa200724c2d5c6"}
+23:14:19 → read_proposal
+23:14:35   OK ACCEPTED 16s 0xea421c6bec45de3e20920e5bdec633c6415fe4ad235b6bcf28ad3aedad635ea8 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":10}
+23:14:42 → file_check
+23:14:56   OK ACCEPTED 14s 0xc44ea01cd2ab0c2299e08c06304fb4295d37b2b17e6f44cd24d570f1cdf07377 {"check_id":6,"judge_deadline":1792192488,"ok":true}
+23:14:59 check #6
+23:15:14 → judge
+23:15:35   OK ACCEPTED 21s 0x5044d751d18ade9471ba5c9a9c7e7dfdd88086751b97e72fcddff5b491eeadad {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0x6b5e48e3… on 2023-08-23 is named in the proposal of 2023-08-17."}
+23:15:36 → rule
+23:15:52   OK ACCEPTED 17s 0x1349bc2192582e838112cfce5590257b08e666b089cd682f5be5f62d7135fa6b {"check_id":6,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:15:54 check #6 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0x6b5e48e3… on 2023-08-23 is named in the proposal of 2023-08-17.
+
+=== seed 7/15: cow.eth CIP-16 claim and delegate SAFE tokens
