@@ -21,6 +21,7 @@ ${lines}
 } as const;
 
 export const DEPLOY_COMMIT = "${commits[0]}";
+export const PATROL_ADDRESS = "${JSON.parse(readFileSync(root + "test/.accounts.json", "utf8")).patrol.address.toLowerCase()}";
 export const DEPLOYMENTS = ${JSON.stringify(Object.fromEntries(Object.entries(c).map(([k, v]) => [k, { address: v.address.toLowerCase(), file: v.file, commit: v.commit, sha256: v.sha256, bytes: v.bytes, deploy_tx: v.deploy_tx, constructor_args: v.constructor_args, mode: v.mode ?? "" }])), null, 2)} as const;
 `);
 const md = ["# Addresses (GenLayer Studio Dev, chain 61997)", "", `Every contract below was deployed from commit \`${commits.join(", ")}\`. \`tools/verify_source.mjs\` reads each one back with \`gen_getContractCode\` and compares it byte for byte with that commit.`, "",

@@ -12,6 +12,7 @@ export const ADDR = {
 } as const;
 
 export const DEPLOY_COMMIT = "95ce2673dc8b24daf312224e071d9774605d6c4e";
+export const PATROL_ADDRESS = "0xf58f80cde7200b8cebccbe8671c40c4df4786762";
 export const DEPLOYMENTS = {
   "ExecReader": {
     "address": "0x6898903b3e2787bf5dad1645ac5e0a3b013a10bc",
