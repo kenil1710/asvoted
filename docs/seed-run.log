@@ -83,3 +83,26 @@ GenLayer RPC error (gen_call): Rate limit exceeded: 30 requests per minute
 23:15:54 check #6 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0x6b5e48e3… on 2023-08-23 is named in the proposal of 2023-08-17.
 
 === seed 7/15: cow.eth CIP-16 claim and delegate SAFE tokens
+23:16:00 → file_check
+23:16:21   OK ACCEPTED 20s 0x64c59986a78a3c2b0195d6110d0234087e44bafe63baa80b22e290ed3a360cd5 {"check_id":7,"judge_deadline":1792192566,"ok":true}
+23:16:22 check #7
+23:16:29 → judge
+23:16:54   OK ACCEPTED 25s 0x98b1198a06442059201a243e10e9943b7467e151fb2b99cdb8c952537fed1376 {"overall":"DEVIATES","round":0,"summary":"Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention."}
+23:16:55 → rule
+23:17:16   OK ACCEPTED 22s 0x6109ed31b2ec2e8589a037abe8f8af3be9c25599c83ae0d22842e05fc2dbbaa6 {"check_id":7,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+23:17:17 check #7 CONTESTABLE ruling=DEVIATES final=- :: Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention.
+
+=== seed 8/15: cow.eth CIP-19 karpatkey core treasury team
+23:17:22 → read_execution
+23:17:50   OK ACCEPTED 27s 0x1997d6d1533bb4db9b70bc1708761d739d5e2d4edbbe73e92a7d041ceb816a3c {"actions":3,"block":16554166,"exec_id":9,"safe_tx_hash":"0x9a2ba659eb039bbbfab0120c3e0213e9d58fb0eb022c075e5f99d82cdd2ed167"}
+23:17:53 → file_check
+23:18:08   OK ACCEPTED 15s 0x99d36e1d269fc9be3f7a27a0b31fda8c2a869785e321116b1dab56da2da3ac0d {"check_id":8,"judge_deadline":1792192680,"ok":true}
+23:18:09 check #8
+23:18:11 → judge
+23:18:27   OK ACCEPTED 16s 0xf3bba969a7cbb99dcbe5089d63fee8964473ccd1f29bb6e981e24ad6cb6e2f80 {"overall":"UNCLEAR","round":0,"summary":"Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled."}
+23:18:28 → rule
+23:18:42   OK ACCEPTED 14s 0x7901764b3f5e51fa6c1e1d1201c796e2a34fb36197b63650a222022d6519a30b {"check_id":8,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+23:18:44 check #8 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled.
+
+=== seed 9/15: paraswap-dao.eth PIP-59 return 40.203 WETH to Bybit
+GenLayer RPC error (sim_estimateTransactionFees): execution failed

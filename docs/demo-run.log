@@ -84,3 +84,24 @@ Details: NonceTooLow(expected=138,ac
 23:15:51 → filer rule [3]
 23:16:05   OK ACCEPTED 15s 0x7f5b5fa0a72d4c9a4ae71f48b35a6ddbc09a37aa45e391e3e1f27be5216ecceb {"check_id":3,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
 23:16:06 → dao appeal [3,"This transfer of 67.0123 WETH to the Treasury Safe implements CIP-28, the standing mandate to send profits +100000000000000000
+23:16:21   OK ACCEPTED 14s 0xbe24ca57343a23fb385a4abeaaa3e5db7789753086134ba1565af0e3a1f9b8ff {"appeal_deadline":1792106773,"check_id":3,"ok":true}
+23:16:28 → filer judge ["0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",4]
+23:16:45   OK ACCEPTED 17s 0x6f0f4c9ad253c2b7b4c819484a91e3812e9c39028a1f2e7b070f5e5a29b4ddad {"overall":"DEVIATES","round":0,"summary":"Execution 0x5b453427… on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention."}
+23:16:45 → filer rule [4]
+23:17:01   OK ACCEPTED 16s 0xef905b57a4f83e9d2edee1b8115b2c91d0f6594b5640fc20437623003e72ea93 {"check_id":4,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+23:17:02 → dao appeal [4,"The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Sa +100000000000000000
+23:17:14   OK ACCEPTED 12s 0xc27c9835587fac8437ee80335a3bfc40bb0f82ab70d64017f5b88aa088ebc45a {"appeal_deadline":1792106826,"check_id":4,"ok":true}
+23:17:17 → filer judge ["0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",6]
+23:17:39   OK ACCEPTED 23s 0x023a68591170d7d3138ba45cda05a968a629865821c569b5791be5e561811f4a {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17."}
+23:17:39 → filer rule [6]
+23:17:54   OK ACCEPTED 14s 0x3908ce49ed9fd1d56d9d54e884d97edd248cb6538ede4a7589532e8f75beace8 {"check_id":6,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:17:56 → appellant appeal [6,"The solver rewards renewal should have required a fresh budget report before the transfer; please have a n +100000000000000000
+23:18:09   OK ACCEPTED 13s 0x13c19d6232731754e5c4097f4bbac6f90e551340b04ac59a0a7957ab70cfc42f {"appeal_deadline":1792106881,"check_id":6,"ok":true}
+23:18:11 → filer judge ["0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",1]
+23:18:36   OK ACCEPTED 25s 0x477199c5312dfa5b8904bcd4588a921e8eab03b248ca2d9c07d6b9ad4b4772ca {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24."}
+23:18:36 → filer rule [1]
+23:18:51   OK ACCEPTED 15s 0xde279c3b0c40c86337185acda3786cd186468434ebd9848d6372100eff3921b2 {"check_id":1,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:18:55 → filer judge ["0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",2]
+23:19:09   OK ACCEPTED 15s 0xe89e222ec052cf70db5543e8ad2cfbd15a8dadf9158fba5c3ac90174020e9469 {"overall":"DEVIATES","round":0,"summary":"Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention."}
+23:19:09 → filer rule [2]
+23:19:32   OK ACCEPTED 22s 0xa194de2fff27c934161ee52667818aaa46a5352a905c3f4018b7827d669df4f8 {"check_id":2,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}

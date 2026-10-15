@@ -128,7 +128,7 @@ export function CheckView({ id }: { id: number }) {
       </div>
       <div className="mt-6"><VerdictBanner check={c} ex={ex.data} vote={vote.data} animate /></div>
       <div className="mt-6"><Timeline c={c} /></div>
-      <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start [&>*]:min-w-0">
         {vote.data ? <Ballot vote={vote.data} quotes={quotes} /> : <Skeleton className="h-[30rem] w-full" />}
         {ex.data ? <Receipt ex={ex.data} ruled={detail?.actions ?? null} /> : <Skeleton className="h-[30rem] w-full" />}
       </div>

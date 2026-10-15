@@ -102,7 +102,7 @@ function BallotText({ text, quotes }: { text: string; quotes: string[] }) {
 export function Ballot({ vote, quotes }: { vote: Proposal; quotes: string[] }) {
   const total = Number(vote.scores_total) || 0;
   return (
-    <article aria-label="The proposal as voted" className="rounded-lg border border-rule bg-sheet p-4 sm:p-6">
+    <article aria-label="The proposal as voted" className="min-w-0 rounded-lg border border-rule bg-sheet p-4 sm:p-6">
       <header className="border-b border-rule pb-4">
         <p className="text-sm text-ink-2">The ballot · {vote.space}</p>
         <h3 className="mt-1 font-serif text-xl font-semibold leading-snug sm:text-2xl">{vote.title}</h3>
@@ -184,7 +184,7 @@ function describe(a: Action, ex: Execution) {
 export function Receipt({ ex, ruled }: { ex: Execution; ruled: RuledAction[] | null }) {
   const byI = new Map((ruled ?? []).map((r) => [r.i, r]));
   return (
-    <article aria-label="The execution as decoded" className="receipt rounded-t-lg border border-b-0 border-rule px-4 pt-4 text-[13px] sm:px-6 sm:pt-6">
+    <article aria-label="The execution as decoded" className="receipt min-w-0 rounded-t-lg border border-b-0 border-rule px-4 pt-4 text-[13px] sm:px-6 sm:pt-6">
       <header className="border-b border-dashed border-rule pb-4">
         <p className="text-ink-2">The receipt · {CHAIN_LABEL[ex.chain] ?? ex.chain}</p>
         <p className="mt-1 break-anywhere text-[15px] font-medium">Safe <Addr value={ex.safe} chain={ex.chain} size={6} /></p>
