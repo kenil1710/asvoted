@@ -1,0 +1,15 @@
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env*
+!.env.example
+test/.accounts.json
+.accounts.json
+test/.state*.json
+research_cache/
+.next/
+.vercel/
+*.tsbuildinfo
+docs/demo/raw/
