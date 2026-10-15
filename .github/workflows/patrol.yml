@@ -1,0 +1,18 @@
+# Calls the patrol bot every 15 minutes, exactly as cron-job.org would:
+# POST https://asvoted.vercel.app/api/patrol with the x-patrol-secret header.
+name: patrol
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+jobs:
+  patrol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Run one patrol
+        env:
+          PATROL_SECRET: ${{ secrets.PATROL_SECRET }}
+        run: |
+          curl -sS -m 320 -X POST -H "x-patrol-secret: $PATROL_SECRET" https://asvoted.vercel.app/api/patrol \
+            | python3 -c 'import json,sys; r=json.load(sys.stdin); print(json.dumps({k: r[k] for k in ("started","dry_run","daos_watched","executions_seen","already_checked","not_final_yet","matched","closed","seconds")}, indent=1)); [print("write", w["fn"], w["ok"], w["note"], w["hash"]) for w in r["writes"]]'

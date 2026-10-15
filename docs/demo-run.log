@@ -1,0 +1,6 @@
+23:02:44 → filer list_dao ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
+23:02:59   OK ACCEPTED 15s 0x96c11c20257a35d181653243b6ce69081db769df16ad21439762b60703fec3e8 {"dao_id":1,"ok":true}
+GenLayer RPC error (gen_call): Rate limit exceeded: 500 requests per hour
+  … get_dao_id hit the HOURLY RPC limit (1), waiting 90s
+GenLayer RPC error (gen_call): Rate limit exceeded: 500 requests per hour
+  … get_dao_id hit the HOURLY RPC limit (2), waiting 90s
