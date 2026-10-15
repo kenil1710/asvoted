@@ -106,3 +106,21 @@ GenLayer RPC error (gen_call): Rate limit exceeded: 30 requests per minute
 
 === seed 9/15: paraswap-dao.eth PIP-59 return 40.203 WETH to Bybit
 GenLayer RPC error (sim_estimateTransactionFees): execution failed
+23:18:46 → read_space
+23:18:59   OK ACCEPTED 13s 0x69cf6e80150b969697e7f25de98ae28891a93dd24b58ed930df4f5965a196b98 {"bind_id":4,"listed":true}
+23:18:59 → list_dao
+23:19:13   OK ACCEPTED 13s 0xc3fcd8b18ee985301975abf6ee23033b67e14aa6686e116ae53b952f9f82ad2c {"dao_id":3,"ok":true}
+23:19:15 → read_execution
+23:19:32   OK ACCEPTED 17s 0xc98f468a587b07bde4748fffda5bcdb0f98d1ad3531317dffd1664a2de1fd614 {"actions":1,"block":22102943,"exec_id":10,"safe_tx_hash":"0x9c2a2fc05793ce5cefabf6b417f4e454b8bb18a8edc7b324db868b9a9e0f49d0"}
+23:19:35 → read_proposal
+23:19:54   OK ACCEPTED 19s 0x1f554991b0bdfb05fa3e31d8bfc8070a53d9db222bf4c9d649a5831eba86f27d {"listed":true,"outcome":"PASSED","space":"paraswap-dao.eth","vote_id":11}
+23:19:55 → file_check
+23:20:09   OK ACCEPTED 14s 0x4c1eaaeb3be5fe8214b4dca2e58afe1fef199dca1761eed9d15a6a56c58dc75f {"check_id":9,"judge_deadline":1792192801,"ok":true}
+23:20:10 check #9
+23:20:13 → judge
+23:20:35   OK ACCEPTED 22s 0x9a4f087f32c1fbf38c735f39071146f2f83fd9cf8c566b7579e1be704fea1171 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xb35fba26… on 2025-03-22 is named in the proposal of 2025-03-20."}
+23:20:37 → rule
+23:20:57   OK ACCEPTED 20s 0x1dcda9c5074d5cc0be77f07b65f008828c3b3cb3562e1f30530ed7d63b67ab2e {"check_id":9,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+23:20:59 check #9 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xb35fba26… on 2025-03-22 is named in the proposal of 2025-03-20.
+
+=== seed 10/15: paraswap-dao.eth PIP-43 ParaTroopers grant

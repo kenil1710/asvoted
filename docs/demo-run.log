@@ -105,3 +105,37 @@ Details: NonceTooLow(expected=138,ac
 23:19:09   OK ACCEPTED 15s 0xe89e222ec052cf70db5543e8ad2cfbd15a8dadf9158fba5c3ac90174020e9469 {"overall":"DEVIATES","round":0,"summary":"Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention."}
 23:19:09 → filer rule [2]
 23:19:32   OK ACCEPTED 22s 0xa194de2fff27c934161ee52667818aaa46a5352a905c3f4018b7827d669df4f8 {"check_id":2,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+23:19:43 PASS  CIP-48 is AS_VOTED  Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24.
+23:19:43 PASS  appeals were filed inside the window  APPEALED APPEALED APPEALED
+23:19:43 PASS  CIP-16 batch is DEVIATES  Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention.
+23:19:43 PASS  67 WETH against CIP-43 is DEVIATES (over amount)  Execution 0x2d3d227c… on 2024-05-25 sends more than the proposal of 2024-05-24 states.
+23:19:43 PASS  CIP-69 Treasury call is DEVIATES  Execution 0x5b453427… on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention.
+23:19:43 FAIL  CIP-19 is UNCLEAR and FINAL at once  
+23:19:43 PASS  CIP-29 is AS_VOTED  Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17.
+23:19:49 → filer judge ["0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",3]
+23:20:03   OK ACCEPTED 14s 0x226c6df1b6be14d3963670fc566aa2504032d3098e426cb4527de071beaecb66 {"overall":"AS_VOTED","round":1,"summary":"Every action in execution 0x2d3d227c… on 2024-05-25 is named in the proposal of 2023-08-02."}
+23:20:03 → filer rule [3]
+23:20:17   OK ACCEPTED 14s 0x870d29b711edad9dbea5188ed71579a01c601784612367621b6fbde412c80cae {"appeal_ruling":"AS_VOTED","check_id":3,"final":"AS_VOTED","ok":true}
+23:20:26 → filer judge ["0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",4]
+23:20:41   OK ACCEPTED 15s 0xc44e0c373fe6a14637e048c3cf94db4ecc12a783c2def4f1342ba51cff51d0fc {"overall":"DEVIATES","round":1,"summary":"Execution 0x5b453427… on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention."}
+23:20:41 → filer rule [4]
+23:21:00   OK ACCEPTED 19s 0x5b6ac4112d752de0701595cbfe379cc8b4bcfd6c0fc38af5cf4f70030d40a0d5 {"appeal_ruling":"DEVIATES","check_id":4,"final":"DEVIATES","ok":true}
+23:21:04 PASS  appeal naming CIP-28 wins: AS_VOTED, bond refunded  Every action in execution 0x2d3d227c… on 2024-05-25 is named in the proposal of 2023-08-02.
+23:21:04 PASS  appeal with words only loses: DEVIATES stands, bond to the filer  [["stake refunded","0xf9469ea4a318403492e230ff60e397aa33319bf2","100000000000000000"],["appeal bond to the filer","0xf9469ea4a318403492e230ff60e397aa33319bf2","100000000000000000"],["pledge slashed, bounty","0xf9469ea4a318403492e230ff60e397aa33319bf2","200000000000000000"]]
+23:21:06 → filer finalize [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for finalize (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:21:18   OK ACCEPTED 12s 0x2ecb8387cd60dcd1a86a668c0f990afb182325e5067d1b27a07450167d86f8da {"check_id":1,"final":"AS_VOTED","ok":true}
+23:21:19 → filer finalize [2]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for finalize (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:21:32   OK ACCEPTED 13s 0xcdcd13cc6b8c955499550226da86828ccc4eeb34e96ffc53b11914ada7e94f72 {"check_id":2,"final":"DEVIATES","ok":true}
+23:21:36 PASS  AS_VOTED final: stake to the DAO pledge  [["stake to the DAO pledge","dao#1","100000000000000000"]]
+23:21:36 PASS  DEVIATES final: pledge slashed, bounty to the filer  slash 500000000000000000 severity MINOR
+23:21:36 → demo request_grant [1,"release tranche 2"]
