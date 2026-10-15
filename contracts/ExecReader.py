@@ -272,6 +272,72 @@ def keccak256(data: bytes) -> bytes:
     return b"".join(s[i].to_bytes(8, "little") for i in range(4))
 
 
+# --- ABI ----------------------------------------------------------------------
+
+def _word(b: bytes, i: int) -> int:
+    """The i-th 32-byte word of b as an unsigned int; ValueError if short."""
+    if len(b) < 32 * (i + 1):
+        raise ValueError("short")
+    return int.from_bytes(b[32 * i:32 * (i + 1)], "big")
+
+
+def _w_addr(b: bytes, i: int) -> str:
+    v = _word(b, i)
+    if v >> 160 != 0:
+        raise ValueError("dirty address")
+    return "0x" + ("0" * 40 + hex(v)[2:])[-40:]
+
+
+def _w_bytes(b: bytes, i: int) -> bytes:
+    off = _word(b, i)
+    if off % 32 != 0 or off + 32 > len(b):
+        raise ValueError("bad offset")
+    n = int.from_bytes(b[off:off + 32], "big")
+    if off + 32 + n > len(b):
+        raise ValueError("bad length")
+    return b[off + 32:off + 32 + n]
+
+
+def enc_word(v: int) -> bytes:
+    return int(v).to_bytes(32, "big")
+
+
+def enc_addr(a: str) -> bytes:
+    return bytes(12) + bytes.fromhex(a[2:])
+
+
+def hexb(s: typing.Any) -> bytes:
+    t = str(s)
+    if t.startswith("0x"):
+        t = t[2:]
+    if len(t) % 2 == 1:
+        raise ValueError("odd hex")
+    return bytes.fromhex(t)
+
+
+def fmt_units(raw: int, decimals: int) -> str:
+    """A raw token amount as a decimal string with thousands separators,
+    at most 4 decimals."""
+    if decimals < 0:
+        return str(raw) + " (raw)"
+    whole = raw // (10 ** decimals) if decimals > 0 else raw
+    frac = raw - whole * (10 ** decimals) if decimals > 0 else 0
+    w = str(whole)
+    g = ""
+    while len(w) > 3:
+        g = "," + w[-3:] + g
+        w = w[:-3]
+    g = w + g
+    if decimals > 0 and frac > 0:
+        f = ("0" * decimals + str(frac))[-decimals:][:4]
+        while f.endswith("0"):
+            f = f[:-1]
+        if f != "":
+            g = g + "." + f
+    return g
+# ==== end shared ====
+
+# ==== shared rpc helpers: generated from contracts/shared/rpc.py by tools/inline_shared.py; edit there ====
 # --- HTTP / JSON-RPC ----------------------------------------------------------
 
 class ReadFailed(Exception):
@@ -459,72 +525,7 @@ def pin_block(chain: str, block: int) -> dict:
     if block >= 0 and blk["timestamp"] < low["timestamp"] - LEADER_LAG_S:
         return {"reject": "LEADER_BLOCK_TOO_OLD"}
     return {"block": blk}
-
-
-# --- ABI ----------------------------------------------------------------------
-
-def _word(b: bytes, i: int) -> int:
-    """The i-th 32-byte word of b as an unsigned int; ValueError if short."""
-    if len(b) < 32 * (i + 1):
-        raise ValueError("short")
-    return int.from_bytes(b[32 * i:32 * (i + 1)], "big")
-
-
-def _w_addr(b: bytes, i: int) -> str:
-    v = _word(b, i)
-    if v >> 160 != 0:
-        raise ValueError("dirty address")
-    return "0x" + ("0" * 40 + hex(v)[2:])[-40:]
-
-
-def _w_bytes(b: bytes, i: int) -> bytes:
-    off = _word(b, i)
-    if off % 32 != 0 or off + 32 > len(b):
-        raise ValueError("bad offset")
-    n = int.from_bytes(b[off:off + 32], "big")
-    if off + 32 + n > len(b):
-        raise ValueError("bad length")
-    return b[off + 32:off + 32 + n]
-
-
-def enc_word(v: int) -> bytes:
-    return int(v).to_bytes(32, "big")
-
-
-def enc_addr(a: str) -> bytes:
-    return bytes(12) + bytes.fromhex(a[2:])
-
-
-def hexb(s: typing.Any) -> bytes:
-    t = str(s)
-    if t.startswith("0x"):
-        t = t[2:]
-    if len(t) % 2 == 1:
-        raise ValueError("odd hex")
-    return bytes.fromhex(t)
-
-
-def fmt_units(raw: int, decimals: int) -> str:
-    """A raw token amount as a decimal string with thousands separators,
-    at most 4 decimals."""
-    if decimals < 0:
-        return str(raw) + " (raw)"
-    whole = raw // (10 ** decimals) if decimals > 0 else raw
-    frac = raw - whole * (10 ** decimals) if decimals > 0 else 0
-    w = str(whole)
-    g = ""
-    while len(w) > 3:
-        g = "," + w[-3:] + g
-        w = w[:-3]
-    g = w + g
-    if decimals > 0 and frac > 0:
-        f = ("0" * decimals + str(frac))[-decimals:][:4]
-        while f.endswith("0"):
-            f = f[:-1]
-        if f != "":
-            g = g + "." + f
-    return g
-# ==== end shared ====
+# ==== end shared rpc ====
 
 
 # =============================================================================
