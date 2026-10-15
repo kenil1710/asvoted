@@ -41,3 +41,11 @@ Details: exec)
 23:09:58   OK ACCEPTED 23s 0x0ff817a70215a486f5afb5a4af90db9a969d7d2b7467b00b02789a928bf85c9f {"actions":4,"block":17974015,"exec_id":4,"safe_tx_hash":"0xdf657f2c95f41dd3013349dd905a99a447b896b5aaed4fcab82c78565ef0e0f1"}
 23:10:00 → filer read_proposal ["bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
 23:10:29   OK ACCEPTED 29s 0xd1f3befcebe913474975e4efad8d0b0af0bed43df42b07ef1e2ccf4cca852b65 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":4}
+23:10:30 → filer file_check [1,4,4,"demo: deviates"] +100000000000000000
+23:10:49   OK ACCEPTED 19s 0xbc69b2dfc75d80e36ed54fed1ba32644e2b82f0f1d5a9abc9540614c0b45f8f8 {"check_id":2,"judge_deadline":1792106441,"ok":true}
+23:10:59 → filer read_proposal ["bafkreigqmaollb3qnv7tjrrqp2huwnds6dyxeh33lybvovdpowza6ms6sq","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+23:11:22   OK ACCEPTED 23s 0xbfac03bb7405ace5f2442702e96516c9158a014711f51fc7affa04a99ad45fad {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":6}
+23:11:24 → filer2 file_check [1,5,6,"demo: filed against the wrong proposal"] +100000000000000000
+23:11:48   OK ACCEPTED 24s 0x000eb35059ebc7f61fd73fe6ecfacf885e6766d9878822f48d99e4836ffcfbe6 {"check_id":3,"judge_deadline":1792106500,"ok":true}
+23:11:55 → filer read_execution ["ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669","0x5b453427e61374b5d023a9920943fcbe05a54b7d06b9fc557d
+23:12:11   OK ACCEPTED 16s 0x7605f4724b6497b60de6cba2e97758b2e8fb718071e74a74be1174f4cc5c48bb {"actions":1,"block":25881591,"exec_id":6,"safe_tx_hash":"0x8a620608cc456607bc1b11580646bf6f004917b3605297f5207ebaf8d30a11ec"}
