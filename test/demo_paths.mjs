@@ -99,7 +99,13 @@ async function daoFor(safe) {
 async function file(role, key, cidKey, note) {
   const [tx, , safe] = TX[key];
   const existing = Number(await v("rg", "get_check_id_by_tx", ["ethereum", safe, tx]));
-  if (existing) return existing;
+  if (existing) {
+    // a check that expired unjudged (a stalled run) proved nothing: refile it,
+    // except the path that is about expiry itself
+    const ec = await v("rg", "get_check", [existing]);
+    if (!(ec.status === "FINAL" && ec.final_how === "EXPIRED_UNJUDGED" && key !== "cip24")) return existing;
+    log(`  check #${existing} expired unjudged; refiling ${key}`);
+  }
   const dao = await daoFor(safe);
   const e = await execId(key);
   const vid = await freshVote(CID[cidKey], safe);
