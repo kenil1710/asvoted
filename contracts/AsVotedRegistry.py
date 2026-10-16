@@ -72,6 +72,7 @@ MODES = {
 
 CHECK_STAKE = 10 ** 17          # 0.1 GEN, exact
 APPEAL_BOND = 10 ** 17          # 0.1 GEN, exact
+PRIOR_MAX = 24                  # earlier executions one judgment reads; more -> within-cap is UNCLEAR
 MIN_PLEDGE = 10 ** 17
 MAX_VALUE = 10 ** 27
 BPS = 10000
@@ -685,7 +686,7 @@ class AsVotedRegistry(gl.contract.Contract):
                 continue
             if int(pc.exec_id) not in out:
                 out.append(int(pc.exec_id))
-        return out[:8]
+        return out[:PRIOR_MAX + 1]
 
     # --- DAOs -----------------------------------------------------------------
 
@@ -917,14 +918,19 @@ class AsVotedRegistry(gl.contract.Contract):
             return {"error": "SNAPSHOT_MISMATCH"}
         counter = c.appeal_text if rnd == 1 else ""
         prior_ids = json.loads(c.appeal_prior_json if rnd == 1 and int(c.appeal_vote_id) > 0 else c.prior_json)
+        truncated = len(prior_ids) > PRIOR_MAX
+        prior_ids = prior_ids[:PRIOR_MAX]
         prior = []
         for pid in prior_ids:
             pe = self._ext(self.exec_reader, "get_execution", [int(pid)])
             if not isinstance(pe, dict) or not pe.get("found"):
                 return {"error": "READER_UNREADABLE"}
-            prior.append({"exec_id": int(pid), "tx": pe["tx"], "actions": pe["actions"], "tokens": pe["tokens"]})
-        sha = _sha(_canon({"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd}))
-        return {"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd, "input_sha256": sha}
+            prior.append({"exec_id": int(pid), "tx": pe["tx"], "actions": pe["actions"], "tokens": pe["tokens"],
+                          "block_time": int(pe.get("block_time") or 0)})
+        sha = _sha(_canon({"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd,
+                           "prior_truncated": truncated}))
+        return {"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd,
+                "prior_truncated": truncated, "input_sha256": sha}
 
     @gl.public.view
     def get_judge_input(self, check_id: int) -> typing.Any:

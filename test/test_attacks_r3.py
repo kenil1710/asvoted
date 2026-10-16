@@ -68,6 +68,11 @@ class Ownership(R3):
         txs = [(0, USDC, 0, F.transfer(ALICE, U(10_000))), (0, USDC, 0, F.transfer(BOB, U(10_000)))]
         self.assertEqual(self.ruling(body, txs=txs), "AS_VOTED")
 
+    def test_r3_06b_each_elsewhere_in_the_line_is_not_per_recipient(self):
+        body = "Send 10,000 USDC to " + ALICE + " and " + BOB + ", each of whom signs the release."
+        txs = [(0, USDC, 0, F.transfer(ALICE, U(10_000))), (0, USDC, 0, F.transfer(BOB, U(10_000)))]
+        self.assertNotEqual(self.ruling(body, txs=txs), "AS_VOTED")
+
     def test_r3_07_same_address_two_purposes_is_not_a_deviation(self):
         body = (ALICE + " receives 5,000 USDC for the audit.\n\n" +
                 ALICE + " is also reimbursed 3,000 USDC for travel.")
@@ -112,6 +117,17 @@ class Wording(R3):
                 (USDC, F.transfer(ALICE, U(1_000)), 29)]
         self.assertEqual(self.series(body, legs), ["AS_VOTED", "AS_VOTED", "DEVIATES"])
 
+    def test_r3_12b_a_period_word_far_from_the_amount_is_not_a_period(self):
+        body = "Grant of 12,000 USDC to " + ALICE + ", paid out in instalments per month."
+        legs = [(USDC, F.transfer(ALICE, U(12_000)), 61), (USDC, F.transfer(ALICE, U(12_000)), 30)]
+        self.assertEqual(self.series(body, legs), ["AS_VOTED", "DEVIATES"])
+
+    def test_r3_12c_for_n_months_caps_the_total(self):
+        body = "Pay " + ALICE + " 1,000 USDC per month for 2 months."
+        legs = [(USDC, F.transfer(ALICE, U(1_000)), 91), (USDC, F.transfer(ALICE, U(1_000)), 61),
+                (USDC, F.transfer(ALICE, U(1_000)), 30)]
+        self.assertEqual(self.series(body, legs), ["AS_VOTED", "AS_VOTED", "DEVIATES"])
+
     def test_r3_13_unknown_period_with_earlier_payments_is_unclear(self):
         body = "Pay " + ALICE + " 500 USDC per epoch."
         legs = [(USDC, F.transfer(ALICE, U(500)), 40), (USDC, F.transfer(ALICE, U(500)), 20)]
@@ -142,9 +158,11 @@ class Numbers(R3):
             body = "Send 1" + sep + "000" + sep + "000 USDC to " + ALICE + "."
             self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(1_000_000))), "AS_VOTED", repr(sep))
 
-    def test_r3_23_space_grouping_never_makes_a_bigger_cap(self):
+    def test_r3_23_one_plain_space_group_is_no_amount(self):
+        # "5 000" is 5,000 or a list number then 000; it is neither a cap of 0
+        # (which made every payment OVER) nor a cap of 5,000.
         body = "Send 5 000 USDC to " + ALICE + "."
-        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(5_001_000))), "DEVIATES")
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(5_000))), "UNCLEAR")
 
     def test_r3_24_one_dot_group_reads_as_a_decimal(self):
         # "50.000" is 50 or 50,000; the smaller reading is the one kept.

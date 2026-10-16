@@ -342,6 +342,41 @@ def _hexch(ch: str) -> bool:
     return ch in "0123456789abcdefABCDEF"
 
 
+def _blank(s: str, a: int, b: int) -> str:
+    """s with [a, b) replaced by spaces (newlines kept), so positions hold."""
+    mid = "".join(["\n" if ch == "\n" else " " for ch in s[a:b]])
+    return s[:a] + mid + s[b:]
+
+
+def visible_text(text: str) -> str:
+    """The proposal as a voter sees it rendered: HTML comments (which
+    Markdown never shows) are blanked; an unclosed one hides the rest."""
+    s = text
+    k = s.find("<!--")
+    while k >= 0:
+        e = s.find("-->", k + 4)
+        e = len(s) if e < 0 else e + 3
+        s = _blank(s, k, e)
+        k = s.find("<!--", e)
+    return s
+
+
+def without_link_targets(text: str) -> str:
+    """The text with Markdown link and image targets "](...)" blanked: a URL
+    can name an address, but a number inside it is not an amount."""
+    s = text
+    k = s.find("](")
+    while k >= 0:
+        e = s.find(")", k + 2)
+        nl = s.find("\n", k + 2)
+        if e < 0 or (0 <= nl < e):
+            k = s.find("](", k + 2)
+            continue
+        s = _blank(s, k + 2, e)
+        k = s.find("](", e)
+    return s
+
+
 def address_mentions(text: str) -> dict:
     """lowercase address -> [positions] for every 0x + 40 hex in the text that
     is not glued to a letter/digit on either side."""
@@ -523,7 +558,7 @@ def amounts_in(text: str) -> list:
         if not text[i].isdigit():
             i += 1
             continue
-        if i > 0 and (text[i - 1].isalnum() or text[i - 1] in "#-/_:."):
+        if i > 0 and (text[i - 1].isalnum() or text[i - 1] in "#-/_:.=?&"):
             j = i
             while j < n and (text[j].isalnum() or text[j] in ".,"):
                 j += 1
@@ -534,14 +569,52 @@ def amounts_in(text: str) -> list:
         while j < n and text[j].isdigit():
             digits += text[j]
             j += 1
-        while j + 3 < n and text[j] in ",'" and text[j + 1:j + 4].isdigit() and (j + 4 >= n or not text[j + 4].isdigit()):
+        # "1.000.000" / "1.250.000,50": dot-grouped thousands (two groups, or
+        # a decimal comma after them). One group alone ("50.000") stays a
+        # decimal point: the smaller reading.
+        euro_frac = ""
+        if len(digits) <= 3:
+            g = []
+            q = j
+            while q + 3 < n and text[q] == "." and text[q + 1:q + 4].isdigit() and len(text[q + 1:q + 4]) == 3 and \
+                    (q + 4 >= n or not text[q + 4].isdigit()):
+                g.append(text[q + 1:q + 4])
+                q += 4
+            comma = q + 1 < n and text[q] == "," and text[q + 1].isdigit() and len(g) > 0
+            if len(g) >= 2 or comma:
+                digits += "".join(g)
+                j = q
+                if comma:
+                    j += 1
+                    while j < n and text[j].isdigit():
+                        euro_frac += text[j]
+                        j += 1
+        # "1 000 000" (spaces) or "1 000" (no-break / thin spaces): grouped
+        # thousands. One plain-space group ("5 000") is ambiguous and is no
+        # amount at all.
+        if len(digits) <= 3 and euro_frac == "":
+            g = []
+            q = j
+            seps = ""
+            while q + 3 < n and text[q] in "    " and text[q + 1:q + 4].isdigit() and \
+                    (q + 4 >= n or not text[q + 4].isdigit()):
+                g.append(text[q + 1:q + 4])
+                seps += text[q]
+                q += 4
+            if len(g) == 1 and seps == " ":
+                i = q
+                continue
+            if len(g) > 0:
+                digits += "".join(g)
+                j = q
+        while euro_frac == "" and j + 3 < n and text[j] in ",'" and text[j + 1:j + 4].isdigit() and (j + 4 >= n or not text[j + 4].isdigit()):
             digits += text[j + 1:j + 4]
             j += 4
-        if j + 3 == n and j < n and text[j] in ",'" and text[j + 1:j + 4].isdigit():
+        if euro_frac == "" and j + 3 == n and j < n and text[j] in ",'" and text[j + 1:j + 4].isdigit():
             digits += text[j + 1:j + 4]
             j += 4
-        frac = ""
-        if j + 1 < n and text[j] == "." and text[j + 1].isdigit():
+        frac = euro_frac
+        if euro_frac == "" and j + 1 < n and text[j] == "." and text[j + 1].isdigit():
             j += 1
             while j < n and text[j].isdigit():
                 frac += text[j]
@@ -686,48 +759,225 @@ def _fmt_cap(cap: list) -> str:
     return fmt_units(whole * (10 ** s) + frac, s) + " " + cap[3]
 
 
-def amount_owners(text: str, amts: list, marks: list) -> list:
-    """For each amount, the addresses its own line names, or if none, its
-    own paragraph names. marks: [(position, address)] of every mention."""
+def _distinct(xs: list) -> list:
     out = []
+    for x in xs:
+        if x not in out:
+            out.append(x)
+    return out
+
+
+def _indent(line: str) -> int:
+    return len(line) - len(line.lstrip(" \t"))
+
+
+def _list_marker(line: str) -> bool:
+    t = line.lstrip(" \t")
+    if len(t) >= 2 and t[0] in "-*+" and t[1] == " ":
+        return True
+    k = 0
+    while k < len(t) and t[k].isdigit() and k < 3:
+        k += 1
+    return 0 < k and k + 1 < len(t) and t[k] in ".)" and t[k + 1] == " "
+
+
+def _cell_of(line: str, off: int) -> int:
+    """Index of the table cell holding offset `off` of a "|" row."""
+    return len([1 for q in range(min(off, len(line))) if line[q] == "|"])
+
+
+EACH_WORDS = ("each", "apiece", "per recipient", "per address", "per person", "per grantee", "per member")
+MIN_WORDS = ("at least", "minimum", "minimum of", "a minimum of", "min.", "min", "no less than", "not less than",
+             "more than", "starting at", "starting from")
+PERIODS = (("per month", "M"), ("/month", "M"), ("a month", "M"), ("monthly", "M"), ("each month", "M"),
+           ("every month", "M"), ("/mo", "M"), ("per week", "W"), ("/week", "W"), ("weekly", "W"),
+           ("every week", "W"), ("each week", "W"), ("per day", "D"), ("/day", "D"), ("daily", "D"),
+           ("per quarter", "Q"), ("quarterly", "Q"), ("per year", "Y"), ("/year", "Y"), ("yearly", "Y"),
+           ("annually", "Y"), ("per annum", "Y"), ("per epoch", "?"), ("each epoch", "?"), ("every epoch", "?"),
+           ("per round", "?"), ("each round", "?"), ("per season", "?"), ("per distribution", "?"),
+           ("per payment", "?"), ("each payment", "?"), ("per period", "?"), ("recurring", "?"), ("bi-weekly", "?"),
+           ("biweekly", "?"))
+
+
+def period_key(code: str, t: int) -> str:
+    """The calendar period (UTC) holding time t, for a per-period amount."""
+    y, m, d = _civil_from_days(int(t) // 86400)
+    if code == "M":
+        return str(y) + "-" + str(m)
+    if code == "Q":
+        return str(y) + "-Q" + str((m - 1) // 3)
+    if code == "Y":
+        return str(y)
+    if code == "W":
+        return "W" + str((int(t) // 86400 + 3) // 7)
+    return "D" + str(int(t) // 86400)
+
+
+def amount_flags(text: str, amts: list) -> list:
+    """Per amount: {"min": a minimum, not a cap ("at least 1,000 USDC");
+    "period": "" | M W D Q Y (calendar) | "?" (a period code cannot date)}."""
+    low = text.lower()
+    out = []
+    for k in range(len(amts)):
+        p = amts[k][0]
+        la, lb = line_bounds(text, p)
+        before = low[max(la, p - 24):p]
+        if p > 0 and text[p - 1] == "$":
+            before = low[max(la, p - 25):p - 1]
+        b2 = before.rstrip(" *_`")
+        mn = False
+        for w in MIN_WORDS:
+            if b2.endswith(w) and (len(b2) == len(w) or not b2[len(b2) - len(w) - 1].isalpha()):
+                mn = True
+        stop = lb
+        if k + 1 < len(amts) and amts[k + 1][0] < stop:
+            stop = amts[k + 1][0]
+        after = low[p:min(stop, p + 48)]
+        per = ""
+        for w, code in PERIODS:
+            if low[p:min(stop, p + 30)].find(w) >= 0:
+                per = code
+                break
+        # "for 6 months": a total the repeats may not exceed
+        times = 0
+        if per in ("M", "W", "D", "Q", "Y"):
+            unit = {"M": "month", "W": "week", "D": "day", "Q": "quarter", "Y": "year"}[per]
+            rest = low[p:stop]
+            f = rest.find("for ")
+            while f >= 0 and times == 0:
+                q = f + 4
+                num = ""
+                while q < len(rest) and rest[q].isdigit():
+                    num += rest[q]
+                    q += 1
+                if num != "" and len(num) < 4 and rest[q:q + 1 + len(unit)] == " " + unit:
+                    times = int(num)
+                f = rest.find("for ", f + 4)
+        val = False
+        for w in ("worth", "equivalent", "in value", "valued", "denominated"):
+            if after.find(w) >= 0 and after.find(w) < 28:
+                val = True
+        out.append({"min": mn, "period": per, "value_of": val, "times": times})
+    return out
+
+
+def amount_owners(text: str, amts: list, marks: list) -> list:
+    """Whose amount is it: per amount {"addrs": [...], "kind"}. The addresses
+    on its own line ("line"; several of them: "each" in the line -> "line",
+    one amount on the line -> "shared", else "multi"); else in its table
+    column ("cell"); else in its list item ("item"); else in its paragraph
+    ("para" when one address, "multi" when several). marks: [(position,
+    address)] of every mention."""
+    out = []
+    low = text.lower()
     for a in amts:
         la, lb = line_bounds(text, a[0])
-        own = [m[1] for m in marks if la <= m[0] < lb]
+        own = _distinct([m[1] for m in marks if la <= m[0] < lb])
+        kind = "line"
+        if len(own) > 1:
+            near = low[a[0]:min(lb, a[0] + 26)]
+            seg = low[la:lb]
+            if len([1 for w in EACH_WORDS if _whole_word(near, w)]) > 0 or \
+                    len([1 for w in ("each receive", "each get", "will each", "both receive") if seg.find(w) >= 0]) > 0:
+                kind = "line"
+            elif len([x for x in amts if la <= x[0] < lb]) == 1:
+                kind = "shared"
+            else:
+                kind = "multi"
+        line = text[la:lb]
+        if len(own) == 0 and line.lstrip().startswith("|"):
+            ci = _cell_of(line, a[0] - la)
+            k = la
+            while len(own) == 0 and k > 0:
+                pa, pb = line_bounds(text, k - 1)
+                row = text[pa:pb]
+                if not row.lstrip().startswith("|"):
+                    break
+                own = _distinct([m[1] for m in marks if pa <= m[0] < pb and _cell_of(row, m[0] - pa) == ci])
+                k = pa
+            kind = "cell" if len(own) == 1 else "multi"
+        pa, pb = para_bounds(text, a[0])
         if len(own) == 0:
-            pa, pb = para_bounds(text, a[0])
-            own = [m[1] for m in marks if pa <= m[0] < pb]
-        out.append(own)
+            # the list item holding this line: from the nearest marker line at
+            # or above it (with no deeper indent) to the next marker line at
+            # that indent or shallower
+            k = la
+            start = -1
+            ind = _indent(line)
+            while k >= pa:
+                ka, kb = line_bounds(text, k)
+                ln = text[ka:kb]
+                if _list_marker(ln) and _indent(ln) <= ind:
+                    start = ka
+                    break
+                if ka == 0:
+                    break
+                k = ka - 1
+            if start >= 0:
+                si = _indent(text[start:line_bounds(text, start)[1]])
+                end = pb
+                k = lb + 1
+                while k < pb:
+                    ka, kb = line_bounds(text, k)
+                    ln = text[ka:kb]
+                    if _list_marker(ln) and _indent(ln) <= si:
+                        end = ka
+                        break
+                    k = kb + 1
+                own = _distinct([m[1] for m in marks if start <= m[0] < end])
+                kind = "item" if len(own) == 1 else "multi"
+        if len(own) == 0:
+            own = _distinct([m[1] for m in marks if pa <= m[0] < pb])
+            kind = "para" if len(own) == 1 else "multi"
+        if len(own) == 0:
+            kind = ""
+        out.append({"addrs": own, "kind": kind})
     return out
 
 
 def cap_for(text: str, mentions: list, fam: str, relevant: list, doc_ok: bool, amts: list, owners: list = None,
-            who: str = "") -> dict:
-    """The cap ladder. Returns {"level", "cap": [..] | None, "others": [...]}
-    or {"level": ""} when no amount is stated near the recipient. An amount
-    whose own line (or paragraph) names other addresses and not this one is
-    theirs, and is never borrowed."""
+            who: str = "", flags: list = None) -> dict:
+    """The cap ladder. Returns {"level", "cap": [..] | None, "others": [...],
+    "cands": [...]}, {"level": "min"} when only minimums are stated near the
+    recipient, or {"level": ""} when no amount is. An amount whose owners are
+    other addresses is theirs, and is never borrowed."""
     levels = (("line", line_bounds), ("paragraph", para_bounds), ("section", section_bounds))
+    saw_min = False
+
+    def usable(k: int) -> bool:
+        if owners is not None and len(owners[k]["addrs"]) > 0 and who not in owners[k]["addrs"]:
+            return False
+        return family(amts[k][3]) in relevant
+
     for name, fn in levels:
         spans = [fn(text, p) for p in mentions]
         cands = []
         for k in range(len(amts)):
             a = amts[k]
-            if owners is not None and len(owners[k]) > 0 and who not in owners[k]:
+            if not usable(k):
                 continue
-            if family(a[3]) not in relevant:
+            inside = len([1 for s in spans if s[0] <= a[0] < s[1]]) > 0
+            if not inside:
                 continue
-            for s in spans:
-                if s[0] <= a[0] < s[1]:
-                    cands.append(a)
-                    break
+            if flags is not None and flags[k]["min"]:
+                saw_min = True
+                continue
+            cands.append(a + [k])
         if len(cands) > 0:
             return _pick(name, cands, fam, spans)
+        if saw_min:
+            return {"level": "min"}
     if doc_ok:
-        cands = [amts[k] for k in range(len(amts)) if family(amts[k][3]) in relevant and
-                 (owners is None or len(owners[k]) == 0 or who in owners[k])]
+        cands = []
+        for k in range(len(amts)):
+            if usable(k):
+                if flags is not None and flags[k]["min"]:
+                    saw_min = True
+                    continue
+                cands.append(amts[k] + [k])
         if len(cands) > 0:
             return _pick("document", cands, fam, [(0, len(text))])
-    return {"level": ""}
+    return {"level": "min"} if saw_min else {"level": ""}
 
 
 def _pick(level: str, cands: list, fam: str, spans: list) -> dict:
@@ -745,7 +995,7 @@ def _pick(level: str, cands: list, fam: str, spans: list) -> dict:
     for c in cands:
         if family(c[3]) != fam and c[3] not in raw:
             raw.append(c[3])
-    return {"level": level, "cap": best, "others": others, "others_raw": raw, "spans": spans}
+    return {"level": level, "cap": best, "others": others, "others_raw": raw, "spans": spans, "cands": mine, "all": cands}
 
 
 def _snippet(text: str, pos: int) -> str:
@@ -769,7 +1019,8 @@ def code_rules(inp: dict) -> list:
     toks = ex["tokens"]
     acts = ex["actions"]
     addrs = address_mentions(text)
-    amts = amounts_in(text)
+    amts = amounts_in(without_link_targets(text))
+    flags = amount_flags(text, amts)
     exec_fams = ["USD"]
     for t in toks:
         sy = toks[t].get("symbol", "")
@@ -832,7 +1083,7 @@ def code_rules(inp: dict) -> list:
                 amt = int(a.get("amount") or 0) if k != "call" and k != "delegatecall" and k != "empty" else int(a.get("value", "0"))
                 to = a.get("recipient") if a.get("recipient") else a.get("target")
                 if sy != "" and 0 <= dc <= 18:
-                    prior_legs.append([str(to), family(sy), amt * (10 ** (18 - dc))])
+                    prior_legs.append([str(to), family(sy), amt * (10 ** (18 - dc)), int(pe.get("block_time") or 0)])
 
     # An action whose exact calldata is quoted in the proposal, sent to a
     # contract the proposal names, is the proposal's own transaction.
@@ -883,6 +1134,7 @@ def code_rules(inp: dict) -> list:
 
     # 1. value legs, grouped by (recipient, family, approval)
     groups = {}
+    exec_tot = {}          # recipient|family -> this execution's transfers + finite approvals, 18 decimals
     for lg in legs:
         sym = sym_of(lg[2]) if lg[2] != "" else ex["tokens"].get("", {}).get("symbol", "ETH")
         fam = family(sym) if sym != "" else ""
@@ -890,6 +1142,30 @@ def code_rules(inp: dict) -> list:
         if gk not in groups:
             groups[gk] = []
         groups[gk].append(lg + [sym, fam])
+        dc = dec_of(lg[2]) if lg[2] != "" else 18
+        if fam != "" and 0 <= dc <= 18 and lg[3] < UNLIMITED:
+            tk = lg[1] + "|" + fam
+            exec_tot[tk] = exec_tot.get(tk, 0) + lg[3] * (10 ** (18 - dc))
+    now_t = int(ex.get("block_time", 0))
+    truncated = bool(inp.get("prior_truncated"))
+
+    def prior_of(who: str, fam: str, per: str) -> list:
+        """[counted sum, count, uncounted sum]: earlier transfers to `who`
+        under this proposal; a calendar-period amount counts only those in
+        the same period, a period code cannot date counts none."""
+        got = [0, 0, 0]
+        for pl in prior_legs:
+            if pl[0] != who or pl[1] != fam:
+                continue
+            if per == "?":
+                got[2] += pl[2]
+                continue
+            if per != "" and period_key(per, pl[3]) != period_key(per, now_t):
+                continue
+            got[0] += pl[2]
+            got[1] += 1
+        return got
+
     for gk in groups:
         g = groups[gk]
         r = g[0][1]
@@ -912,22 +1188,16 @@ def code_rules(inp: dict) -> list:
                 setr(i, A_UNCLEAR, "the token's symbol or decimals could not be read")
             continue
         # amounts in one scale (18 decimals), so USDC and DAI to one recipient add up
-        total = 0
+        gtotal = 0
         for k in range(len(g)):
-            total += g[k][3] * (10 ** (18 - decs[k]))
-        n_prior = 0
-        if not approval:
-            for pl in prior_legs:
-                if pl[0] == r and pl[1] == fam:
-                    total += pl[2]
-                    n_prior += 1
+            gtotal += g[k][3] * (10 ** (18 - decs[k]))
         ms = mentions_of(text, low, addrs, ens, r)
-        if approval and total == 0:
+        if approval and gtotal == 0:
             for i in idx:
                 setr(i, A_AUTH, "revokes an approval for an address the proposal mentions",
                      _snippet(text, ms[0]) if len(ms) > 0 else "")
             continue
-        if approval and total >= UNLIMITED:
+        if approval and gtotal >= UNLIMITED:
             ok = False
             q = ""
             for p in ms:
@@ -946,13 +1216,21 @@ def code_rules(inp: dict) -> list:
             continue
         relevant = exec_fams
         doc_ok = len([o for o in others if o != r]) == 0
-        c = cap_for(text, ms, fam, relevant, doc_ok, amts, owners, r)
+        c = cap_for(text, ms, fam, relevant, doc_ok, amts, owners, r, flags)
+        if c["level"] == "min":
+            for i in idx:
+                setr(i, A_UNCLEAR, "the proposal states only a minimum near " + r + ", not a cap")
+            continue
         if c["level"] == "":
             for i in idx:
                 setr(i, A_UNCLEAR, "the proposal states no amount near " + r)
             continue
         if c["cap"] is None:
-            if len([o for o in c["others_raw"] if o != "USD"]) == 0:
+            # dollar figures ("$500", "500 USD", "50,000 USDC worth of") are a
+            # valuation; a stablecoin amount stated plainly is a different token
+            dollars = [x for x in c["all"] if family(x[3]) != fam and
+                       (x[3] == "USD" or (family(x[3]) == "USD" and flags[x[4]]["value_of"]))]
+            if len(dollars) == len([x for x in c["all"] if family(x[3]) != fam]):
                 # Only dollar figures near the recipient, paid in another token:
                 # comparing them needs a price, which this contract never guesses.
                 for i in idx:
@@ -963,18 +1241,79 @@ def code_rules(inp: dict) -> list:
                     setr(i, A_OVER, "the proposal states amounts near " + r + " only in " + ", ".join(c["others"]) +
                          ", not in " + sym, "", 10 ** 6, c["level"])
             continue
-        within, over = _cmp_cap(total, 18, c["cap"])
+        cap = c["cap"]
+        ck = cap[4]
+        own = owners[ck]
+        per = flags[ck]["period"]
+        # whom the cap covers: one amount stated for several addresses on one
+        # line (no "each") covers what all of them receive together
+        covered = own["addrs"] if own["kind"] == "shared" and r in own["addrs"] else [r]
+        total = 0
+        n_prior = 0
+        uncounted = 0
+        for who in covered:
+            total += exec_tot.get(who + "|" + fam, 0)
+            pr = prior_of(who, fam, per)
+            total += pr[0]
+            n_prior += pr[1]
+            uncounted += pr[2]
+        within, over = _cmp_cap(total, 18, cap)
         sent = fmt_units(total, 18) + " " + sym
-        joined = "" if len(idx) == 1 and n_prior == 0 else " (" + str(len(idx) + n_prior) + " transfers summed" + \
+        n_legs = len([1 for lg in legs if lg[1] in covered])
+        joined = "" if n_legs == 1 and n_prior == 0 else " (" + str(n_legs + n_prior) + " transfers and approvals summed" + \
+            (" for " + str(len(covered)) + " recipients the stated amount covers together" if len(covered) > 1 else "") + \
             (", " + str(n_prior) + " of them in earlier executions checked against this proposal" if n_prior > 0 else "") + ")"
+        q = _snippet(text, cap[0])
         if within:
+            if own["kind"] == "multi":
+                why = "the amount near " + r + " is stated where several addresses are named; code cannot tell whose it is"
+                for i in idx:
+                    setr(i, A_UNCLEAR, why, q, 0, c["level"])
+                continue
+            if uncounted > 0 and not _cmp_cap(total + uncounted, 18, cap)[0]:
+                why = ("the stated amount repeats (" + ("per period" if per == "?" else "per calendar period") +
+                       ") and earlier executions under this proposal sent more; code cannot date the period")
+                for i in idx:
+                    setr(i, A_UNCLEAR, why, q, 0, c["level"])
+                continue
+            times = flags[ck]["times"]
+            if times > 0:
+                every = 0
+                for who in covered:
+                    every += exec_tot.get(who + "|" + fam, 0) + prior_of(who, fam, "")[0]
+                if not _cmp_cap(every, 18, [cap[0], cap[1] * times, cap[2], cap[3]])[0]:
+                    for i in idx:
+                        setr(i, A_OVER, fmt_units(every, 18) + " " + sym + " sent to " + r + " under this proposal in all is "
+                             "above the " + str(times) + " payments of " + _fmt_cap(cap) + " it states", q, 10 ** 4, c["level"])
+                    continue
+            if truncated:
+                for i in idx:
+                    setr(i, A_UNCLEAR, "more earlier executions are checked against this proposal than one judgment "
+                         "reads; the running total cannot be confirmed", q, 0, c["level"])
+                continue
+            per_txt = "" if per == "" else (" per period" if per == "?" else " per " + {"M": "month", "W": "week",
+                      "D": "day", "Q": "quarter", "Y": "year"}[per])
             for i in idx:
                 setr(i, A_AUTH, sent + joined + " to a recipient the proposal names, within the stated " +
-                     _fmt_cap(c["cap"]), _snippet(text, c["cap"][0]), 0, c["level"])
-        else:
-            for i in idx:
-                setr(i, A_OVER, sent + joined + " is above the largest amount the proposal states for this "
-                     "recipient (" + _fmt_cap(c["cap"]) + ")", _snippet(text, c["cap"][0]), over, c["level"])
+                     _fmt_cap(cap) + per_txt, q, 0, c["level"])
+            continue
+        # over the largest amount: several amounts stated for this recipient
+        # alone may add up (an audit fee and a reimbursement); only words can say
+        mine = [x for x in c["cands"] if owners[x[4]]["kind"] in ("line", "cell", "item", "para")
+                and owners[x[4]]["addrs"] == [r] and flags[x[4]]["period"] == ""]
+        if len(covered) == 1 and len(mine) > 1:
+            num = 0
+            for x in mine:
+                num += x[1] * (10 ** (36 - x[2]))
+            if total * BPS * (10 ** 18) <= num * (BPS + TOL_BPS):
+                for i in idx:
+                    setr(i, A_UNCLEAR, sent + joined + " is above the largest amount stated for " + r +
+                         " but within the " + str(len(mine)) + " amounts stated for it together; whether they add up "
+                         "needs the words", q, 0, c["level"])
+                continue
+        for i in idx:
+            setr(i, A_OVER, sent + joined + " is above the largest amount the proposal states for this "
+                 "recipient (" + _fmt_cap(cap) + ")", q, over, c["level"])
 
     for i in exact:
         setr(i, A_AUTH, "the proposal quotes this exact calldata, for a contract it names")
@@ -1241,9 +1580,13 @@ class AsVotedJudge(gl.contract.Contract):
         if self.judgments.get(key) is not None:
             raise gl.vm.UserError("REFUSED: ALREADY_JUDGED")
         in_sha = _sha(_canon({"exec": inp["exec"], "vote": inp["vote"], "prior": inp.get("prior") or [],
-                              "counter_evidence": inp.get("counter_evidence", ""), "round": rnd}))
+                              "counter_evidence": inp.get("counter_evidence", ""), "round": rnd,
+                              "prior_truncated": bool(inp.get("prior_truncated"))}))
         if in_sha != inp.get("input_sha256"):
             raise gl.vm.UserError("REFUSED: EVIDENCE_HASH_MISMATCH")
+        # judge the proposal as voters saw it rendered (no HTML comments)
+        inp["vote"] = dict(inp["vote"])
+        inp["vote"]["text"] = visible_text(str(inp["vote"].get("text") or ""))
         base = code_rules(inp)
         nonce = in_sha[:16]
         if len([r for r in base if r["outcome"] == A_MODEL]) == 0:
