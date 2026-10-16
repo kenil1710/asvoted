@@ -207,7 +207,7 @@ export function Receipt({ ex, ruled }: { ex: Execution; ruled: RuledAction[] | n
                 <span className="w-5 shrink-0 pt-0.5 text-right text-ink-3 tabular">{a.i + 1}</span>
                 {d.token !== null ? <TokenMark chain={ex.chain} token={d.token} symbol={d.sym} /> : <span aria-hidden="true" className="inline-flex size-6 shrink-0 items-center justify-center rounded border border-rule text-[10px] text-ink-3">fn</span>}
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                     <p className="break-anywhere">
                       <span className={a.op === "DELEGATECALL" ? "font-semibold text-dev" : "font-semibold"}>{d.verb}</span>{" "}
                       <span>{d.amount}</span>
@@ -216,20 +216,20 @@ export function Receipt({ ex, ruled }: { ex: Execution; ruled: RuledAction[] | n
                     </p>
                     {r ? <OutcomeChip outcome={r.outcome} /> : <span className="text-xs text-ink-3">not judged</span>}
                   </div>
-                  <p className="mt-1 text-[11px] text-ink-3">
+                  <p className="mt-1 break-anywhere text-[11px] text-ink-3">
                     {a.op === "DELEGATECALL" ? "DELEGATECALL" : "call"} to <span className="font-mono">{shortAddress(a.target)}</span>
                     {a.batch ? <> · inside {a.batch} (path {a.path})</> : null}
                     {a.selector ? <> · selector {a.selector}</> : null}
                     {a.flags.length > 0 ? <> · {a.flags.join(", ").toLowerCase()}</> : null}
                   </p>
                   {r && (
-                    <p className="mt-1.5 font-sans text-[13px] leading-snug text-ink-2">
+                    <p className="mt-1.5 break-anywhere font-sans text-[13px] leading-snug text-ink-2">
                       {r.reason}
                       {r.basis === "model" && <span className="ml-1 text-ink-3">(read from the proposal&apos;s words by the validators&apos; model)</span>}
                     </p>
                   )}
                   {r?.quote && (
-                    <blockquote className="mt-1.5 border-l-2 border-mark pl-2 font-serif text-[13px] italic text-ink-2">“{r.quote}”</blockquote>
+                    <blockquote className="mt-1.5 break-anywhere border-l-2 border-mark pl-2 font-serif text-[13px] italic text-ink-2">“{r.quote}”</blockquote>
                   )}
                 </div>
               </div>

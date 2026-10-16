@@ -152,7 +152,9 @@ check("Disagreement behaviour documented exactly as on chain", t.status === 0 &&
   const ts = readFileSync(root + "frontend/src/lib/deployments.ts", "utf8"), md = readFileSync(root + "ADDRESSES.md", "utf8"), sub = existsSync(root + "docs/SUBMISSION.md") ? readFileSync(root + "docs/SUBMISSION.md", "utf8") : "";
   const all = Object.values(dep).map((d) => d.address);
   const miss = all.filter((a) => !ts.includes(a) || !md.includes(a));
-  const stray = [...new Set([...(ts + md + sub).matchAll(/0x[0-9a-fA-F]{40}/g)].map((m) => m[0]))].filter((a) => !all.includes(a) && a.toLowerCase() !== JSON.parse(readFileSync(root + "test/.accounts.json", "utf8")).patrol.address.toLowerCase());
+  const roles = Object.values(JSON.parse(readFileSync(root + "test/.accounts.json", "utf8"))).map((r) => r.address.toLowerCase());
+  const known = new Set([...all.map((a) => a.toLowerCase()), ...roles]);
+  const stray = [...new Set([...(ts + md + sub).matchAll(/(?<![0-9a-fA-Fx])0x[0-9a-fA-F]{40}(?![0-9a-fA-F])/g)].map((m) => m[0]))].filter((a) => !known.has(a.toLowerCase()));
   check("One set of addresses everywhere (deployments.json, site, ADDRESSES.md, SUBMISSION)", miss.length === 0 && stray.length === 0, `missing: ${miss.join(",") || "none"}; other addresses: ${stray.join(",") || "none"}`);
 }
 // 14 Vercel
