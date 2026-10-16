@@ -35,10 +35,15 @@ const NOTES = {
     "CIP-19 names the treasury Safe that received COW, GNO and ETH but states no amount for it, so the transfers cannot be compared with anything.",
   "0x8a6a840af3c35e320106b4d44b6144d16e17c95b3aaabe6eb2a5c5ddaee08908":
     "PIP-43 sets pay as \"$500 per Trooper per epoch\" in a PSP / ARB split. The Safe sent 343,828 PSP. Comparing dollars with PSP needs a price, which the contract never fetches.",
+  "0x2d3d227cc11bb047e4b221e2a1d1c6077ce3534b798659258b08a05e28c9baba":
+    "CIP-28 is a standing mandate: send idle (W)ETH from the solver rewards Safe to the treasury Safe monthly. Its lines naming the treasury state no amount; its figures (\"Send 213 ETH and 237 WETH\") are an example on another line. Under the round-3 rule a cap must be the single amount on the recipient's own line, list item or table row, so the 67.0123 WETH cannot be compared with anything. It was AS_VOTED on 93d5be9 against the 237 WETH figure.",
+  "0xc2e1137ce39723ae629f47ba58885a32b043820ef3c716346d3806feb2bfe19b":
+    "MIP79 sends half of the acqui-hire tokens to the Credit Guild multisig. The line naming the multisig says \"half\" and states no figure; the 175,969 MORPHO total is on another line. Under the round-3 rule that is no cap, so the 87,984.5 MORPHO transfer is UNCLEAR. It was AS_VOTED on 93d5be9 against the total.",
   "0x06a19d459f77e109287002cd3b702fb432b9ee6f1a20607f623faf2aea65d846":
-    "The transfer itself is authorized, but Krause House votes with weighted voting, whose result the contract does not compute, so it cannot say the proposal passed.",
+    "Krause House votes with weighted voting, whose result the contract does not compute, so it cannot say the proposal passed. (Its one transfer is also UNCLEAR now: the wallet's own line states no amount.)",
 };
 
+const BEFORE = Object.fromEntries(JSON.parse(readFileSync(root + "docs/superseded/93d5be9/seed-canonical.json", "utf8")).checks.map((c) => [c.tx, c.final || c.ruling]));
 const st = await view(dep.AsVotedRegistry.address, "get_stats");
 const out = [];
 for (let off = 0; off < st.checks; off += 25) {
@@ -59,11 +64,15 @@ const n = (v) => rows.filter((r) => (r.final || r.ruling) === v).length;
 writeFileSync(root + "docs/seed-canonical.json", JSON.stringify({ registry: dep.AsVotedRegistry.address, commit: dep.AsVotedRegistry.commit, read_at: new Date().toISOString(), stats: st, checks: rows }, null, 2) + "\n");
 const md = [
   "# Seeds: real DAO executions on the canonical registry", "",
-  `Registry [\`${dep.AsVotedRegistry.address}\`](${GL}/address/${dep.AsVotedRegistry.address}) (CANONICAL, 72 h contest window), deployed from commit \`${dep.AsVotedRegistry.commit.slice(0, 10)}\`. Every row below is read back from the chain by \`tools/seeds_md.mjs\`; nothing in this table is typed by hand except the explanations, each checked by hand against the execution on its block explorer and the pinned proposal text.`, "",
+  `Registry [\`${dep.AsVotedRegistry.address}\`](${GL}/address/${dep.AsVotedRegistry.address}) (CANONICAL, 6 h contest window), deployed from commit \`${dep.AsVotedRegistry.commit.slice(0, 10)}\`. Every row below is read back from the chain by \`tools/seeds_md.mjs\`; nothing in this table is typed by hand except the explanations, each checked by hand against the execution on its block explorer and the pinned proposal text.`, "",
   `**${rows.length} checks: ${n("AS_VOTED")} AS_VOTED, ${n("DEVIATES")} DEVIATES, ${n("UNCLEAR")} UNCLEAR.** DAOs: ${[...new Set(rows.map((r) => r.space))].join(", ")}. Chains: ${[...new Set(rows.map((r) => r.chain))].join(", ")}.`, "",
   "How they were chosen: every Snapshot space whose settings list a Safe as a treasury on Ethereum, Arbitrum, Optimism, Base or Polygon (`tools/scan_known.mjs`), their executed Safe transactions (Safe Transaction Service, used only to find candidates), and for each the most recent passed proposal of the space that ended before it and names an address it touches (`tools/match.mjs`). Pairs where a different proposal was the right one were corrected by hand (the 67 WETH transfer is CIP-28, not CIP-43). No verdict was chosen; each row is what the contracts ruled.", "",
   "| # | DAO | Chain | Execution | Actions | Proposal (ended) | Ruling | Status |", "|---|---|---|---|---|---|---|---|",
   ...rows.map((r) => `| [${r.check_id}](${SITE}/check/${r.check_id}) | ${r.space} | ${r.chain} | [\`${r.tx.slice(0, 10)}…\`](${EXPL[r.chain]}/tx/${r.tx}) ${r.exec_date} | ${r.actions} | [${r.proposal.replace(/\|/g, "/").slice(0, 70)}](https://ipfs.snapshot.box/ipfs/${r.cid}) (${r.proposal_end}) | **${(r.final || r.ruling).replace("_", " ")}** | ${r.status.toLowerCase()} |`),
+  "", "## Before and after round 3", "",
+  "Before: the canonical run on `93d5be9` (`docs/superseded/93d5be9/seed-canonical.json`). After: this run.", "",
+  "| # | Execution | Proposal | Before | After | Why it changed |", "|---|---|---|---|---|---|",
+  ...rows.map((r) => { const b = BEFORE[r.tx] ?? "—"; const a = (r.final || r.ruling); return `| ${r.check_id} | \`${r.tx.slice(0, 10)}…\` | ${r.proposal.replace(/\|/g, "/").slice(0, 50)} | ${b.replace("_", " ")} | ${a.replace("_", " ")} | ${b === a ? "same" : "no single cap on the recipient's own line (below)"} |`; }),
   "", "## Every DEVIATES and UNCLEAR, explained", "",
   ...rows.filter((r) => (r.final || r.ruling) !== "AS_VOTED").map((r) => `- **#${r.check_id} ${r.space}, ${(r.final || r.ruling).replace("_", " ")}.** ${r.summary} ${NOTES[r.tx] ?? ""}`),
   "", "## Rulings, verbatim", "", "As stored on chain. The site shows a DEVIATES sentence as \"includes an action proposal <id> does not cover\": the check compares with the one proposal the filer named, and the DAO can appeal with another.", "",
