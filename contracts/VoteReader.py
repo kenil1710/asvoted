@@ -42,6 +42,7 @@ VERSION = "1.0.0"
 IPFS_GATEWAYS = ("https://snapshot.4everland.link/ipfs/", "https://ipfs.snapshot.box/ipfs/")
 SNAPSHOT_HUB = "https://hub.snapshot.org/graphql"
 ENS_REGISTRY = "0x00000000000c2e074ec69a0dfb2997ba6c7d2e1e"
+NAME_WRAPPER = "0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401"
 
 MAX_SOURCE_BYTES = 200000
 MAX_UNIXFS_CHUNK = 262144
@@ -1050,6 +1051,49 @@ def read_proposal(p: dict, now: int, block: int) -> dict:
     }
 
 
+def _proj_raw(call: list, r: typing.Any) -> typing.Any:
+    if not isinstance(r, list) or r[0] != "ok" or not isinstance(r[1], str):
+        return ""
+    return r[1].lower()
+
+
+def decode_addresses(raw: str) -> list:
+    """An ABI-encoded address[] return value."""
+    if not raw.startswith("0x"):
+        return []
+    h = raw[2:]
+    try:
+        off = int(h[0:64], 16) * 2
+        n = int(h[off:off + 64], 16)
+    except Exception:
+        return []
+    out = []
+    for i in range(min(n, 64)):
+        w = h[off + 64 + 64 * i:off + 128 + 64 * i]
+        if len(w) != 64:
+            return []
+        out.append("0x" + w[24:])
+    return out
+
+
+def control_of(space: str, chain: str, safe: str) -> dict:
+    """Who controls the space (the ENS owner of its name, through the
+    NameWrapper when wrapped) and who owns the Safe, at each chain's
+    finalized block. verified: the space's owner is the Safe or one of its
+    owners. Raises ReadFailed / Disagree."""
+    node = namehash(space).hex()
+    own = dual_read("ethereum", [["eth_call", [{"to": ENS_REGISTRY, "data": "0x02571be3" + node}, "finalized"]]],
+                    _proj_word)[0]
+    if own == NAME_WRAPPER:
+        own = dual_read("ethereum", [["eth_call", [{"to": NAME_WRAPPER, "data": "0x6352211e" + node}, "finalized"]]],
+                        _proj_word)[0]
+    owners = decode_addresses(dual_read(chain, [["eth_call", [{"to": safe, "data": "0xa0e67e2b"}, "finalized"]]],
+                                        _proj_raw)[0])
+    own = _addr(own) if own != "" else ""
+    return {"space_owner": own, "safe_owners": owners,
+            "verified": own != "" and own != ZERO and (own == safe or own in owners)}
+
+
 def read_space(p: dict) -> dict:
     hd = _hub_json(hub_query_space(p["space"]))
     if hd is None:
@@ -1059,8 +1103,44 @@ def read_space(p: dict) -> dict:
         return {"refused": b["error"]}
     if str(hd["space"].get("id", "")).lower() != p["space"]:
         return {"refused": "SPACE_NOT_FOUND"}
+    try:
+        ctl = control_of(p["space"], p["chain"], p["safe"])
+    except ReadFailed:
+        return {"refused": "RPC_UNREADABLE"}
+    except Disagree:
+        return {"refused": "RPC_DISAGREE"}
     return {"space": p["space"], "chain": p["chain"], "safe": p["safe"], "listed": b["listed"],
-            "treasuries": b["treasuries"], "controllers": b["controllers"], "space_network": b["network"]}
+            "treasuries": b["treasuries"], "controllers": b["controllers"], "space_network": b["network"],
+            "space_owner": ctl["space_owner"], "safe_owners": ctl["safe_owners"], "verified": ctl["verified"]}
+
+
+def read_names(names: list, block: int, snap: int) -> dict:
+    """The proposal's ENS names as of an execution: resolved at its Ethereum
+    block (final for this node) and, when the space votes on Ethereum, at the
+    vote's snapshot block too. A name counts only if both agree: it means
+    what voters saw, unchanged when the Safe acted, and never what it was
+    repointed to later."""
+    if len(names) == 0:
+        return {"ens": {}, "block": block}
+    try:
+        fins = finalized_each("ethereum")
+    except ReadFailed:
+        return {"refused": "RPC_UNREADABLE"}
+    if fins is None:
+        return {"refused": "RPC_WRONG_CHAIN_OR_UNREADABLE"}
+    low = fins[0]["number"] if fins[0]["number"] <= fins[1]["number"] else fins[1]["number"]
+    if block > low:
+        return {"refused": "BLOCK_NOT_FINALIZED"}
+    try:
+        at = resolve_names(names, block)
+        if snap > 0 and snap < block:
+            then = resolve_names(names, snap)
+            at = {n: at[n] for n in at if then.get(n, "") == at[n]}
+        return {"ens": at, "block": block}
+    except ReadFailed:
+        return {"refused": "ENS_UNREADABLE"}
+    except Disagree:
+        return {"refused": "ENS_RPC_DISAGREE"}
 
 
 def validate_proposal(theirs: typing.Any, p: dict, now: int) -> bool:
@@ -1130,6 +1210,9 @@ class SpaceBinding:
     treasuries_json: str
     controllers_json: str
     space_network: str
+    space_owner: str
+    safe_owners_json: str
+    verified: bool
     read_at: u64
     reader: Address
 
@@ -1141,6 +1224,7 @@ class VoteReader(gl.contract.Contract):
     nb: u64
     binds: gl.storage.TreeMap[u64, SpaceBinding]
     latest_bind: gl.storage.TreeMap[str, u64]    # space|chain|safe -> latest bind_id
+    names_at: gl.storage.TreeMap[str, str]       # vote_id|l1_block -> {name: address} at that Ethereum block
 
     def __init__(self) -> None:
         self.n = u64(0)
@@ -1247,10 +1331,54 @@ class VoteReader(gl.contract.Contract):
         self.binds[u64(bid)] = SpaceBinding(
             bind_id=u64(bid), space=sp, chain=ch, safe=sf, listed=bool(ev["listed"]),
             treasuries_json=_canon(ev["treasuries"]), controllers_json=_canon(ev["controllers"]),
-            space_network=ev["space_network"], read_at=u64(now), reader=gl.message.sender_address)
+            space_network=ev["space_network"], space_owner=ev["space_owner"],
+            safe_owners_json=_canon(ev["safe_owners"]), verified=bool(ev["verified"]), read_at=u64(now),
+            reader=gl.message.sender_address)
         self.latest_bind[key] = u64(bid)
         self.nb = u64(bid)
         return {"bind_id": bid, "listed": bool(ev["listed"])}
+
+    @gl.public.write
+    def read_names_at(self, vote_id: int, l1_block: int) -> typing.Any:
+        """Resolve one proposal's ENS names at one Ethereum block: the block
+        an execution belongs to (ExecReader's l1_block). A name then means what
+        it resolved to when the Safe acted, never what it was repointed to
+        later. Refusals raise before any write."""
+        x = self.props.get(u64(max(_as_int(vote_id, 0), 0)))
+        if x is None:
+            raise gl.vm.UserError("REFUSED: NO_SUCH_PROPOSAL_RECORD")
+        blk = _as_int(l1_block, -1)
+        if blk <= 0:
+            raise gl.vm.UserError("REFUSED: BAD_BLOCK")
+        key = str(int(x.vote_id)) + "|" + str(blk)
+        if key in self.names_at:
+            return {"vote_id": int(x.vote_id), "l1_block": blk, "ens": json.loads(self.names_at[key])}
+        names = json.loads(x.ens_names_json)
+        snap = int(x.snapshot) if x.space_network == "1" else 0
+
+        def leader() -> dict:
+            return read_names(names, blk, snap)
+
+        def validator(res: gl.vm.Result) -> bool:
+            if not isinstance(res, gl.vm.Return):
+                return False
+            return _canon(read_names(names, blk, snap)) == _canon(res.calldata)
+
+        ev = gl.vm.run_nondet(leader, validator) if len(names) > 0 else {"ens": {}, "block": blk}
+        if not isinstance(ev, dict):
+            raise gl.vm.UserError("REFUSED: EVIDENCE_UNREADABLE")
+        if "refused" in ev:
+            raise gl.vm.UserError("REFUSED: " + str(ev["refused"])[:80])
+        # --- writes
+        self.names_at[key] = _canon(ev["ens"])
+        return {"vote_id": int(x.vote_id), "l1_block": blk, "ens": ev["ens"]}
+
+    @gl.public.view
+    def get_names_at(self, vote_id: int, l1_block: int) -> typing.Any:
+        key = str(max(_as_int(vote_id, 0), 0)) + "|" + str(max(_as_int(l1_block, 0), 0))
+        if key not in self.names_at:
+            return {"found": False}
+        return {"found": True, "ens": json.loads(self.names_at[key])}
 
     # --- views (storage only) -------------------------------------------------
 
@@ -1274,7 +1402,8 @@ class VoteReader(gl.contract.Contract):
         return {"bind_id": int(x.bind_id), "space": x.space, "chain": x.chain, "safe": x.safe,
                 "listed": bool(x.listed), "treasuries": json.loads(x.treasuries_json),
                 "controllers": json.loads(x.controllers_json), "space_network": x.space_network,
-                "read_at": int(x.read_at), "reader": x.reader.as_hex.lower()}
+                "space_owner": x.space_owner, "safe_owners": json.loads(x.safe_owners_json),
+                "verified": bool(x.verified), "read_at": int(x.read_at), "reader": x.reader.as_hex.lower()}
 
     @gl.public.view
     def get_proposal(self, vote_id: int) -> typing.Any:
