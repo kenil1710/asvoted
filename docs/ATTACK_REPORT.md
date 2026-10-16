@@ -1,12 +1,14 @@
 # Attack report
 
-Three rounds, written as an outsider trying to get a wrong verdict, move money that should not move, or make the registry say something false. Every attack is a test that runs offline against the same contract files that are deployed (`test/test_attacks.py`, `test/test_attacks_r2.py`, `test/test_attacks_r3.py`).
+Four rounds, written as an outsider trying to get a wrong verdict, move money that should not move, or make the registry say something false. Every attack is a test that runs offline against the same contract files that are deployed (`test/test_attacks.py`, `test/test_attacks_r2.py`, `test/test_attacks_r3.py`).
 
 ```
-cd test && python3 -m unittest -q test_attacks test_attacks_r2 test_attacks_r3
+cd test && python3 -m unittest -q test_attacks test_attacks_r2 test_attacks_r3 test_attacks_r4
 ```
 
 Round 1 was run against the first full deployment (commit `790d695`, all nine contracts, seeding started). Four of its tests failed on that code ([first run](research/attacks_r1_first_run.txt)). Round 2 attacked only the round-1 fixes; one of its tests failed ([first run](research/attacks_r2_first_run.txt)). All findings were fixed in commit `93d5be9`, which is what is deployed now; the `790d695` deployment and its partial seed run are recorded as superseded in `deployments.json` and `docs/superseded/`.
+
+Round 4 attacked the round-3 fixes; its report, with the commit that fixed each finding, is [ATTACK_REPORT_R4.md](ATTACK_REPORT_R4.md).
 
 ## Findings and fixes
 

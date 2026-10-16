@@ -112,7 +112,7 @@ Economics of a wrong pairing:
 
 1. **Read a real verdict.** Open https://asvoted.vercel.app, pick any check. Left: the proposal as voted, CID-pinned, with the quoted lines highlighted. Right: every decoded action with its chip. Click the tx and block links to see the same execution on Etherscan / Basescan / Optimistic Etherscan.
 2. **Verify the code.** `/verify` reads every contract's code back from Studio Dev and compares its sha256 with the file at the deploy commit on GitHub, in your browser. Or `node tools/verify_source.mjs`.
-3. **Run the offline suite.** `cd test && python3 -m unittest -q test_asvoted test_attacks test_attacks_r2 test_attacks_r3` (no network), and `python3 tools/scan_writes.py` (no state written before a revert, every write method of every contract).
+3. **Run the offline suite.** `cd test && python3 -m unittest -q test_asvoted test_attacks test_attacks_r2 test_attacks_r3 test_attacks_r4` (no network), and `python3 tools/scan_writes.py` (no state written before a revert, every write method of every contract).
 4. **Re-run a real read locally.** `python3 tools/live.py exec ethereum 0xcA771eda0c70aA7d053aB1B25004559B918FE662 0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16 27` runs the contract's own ExecReader code against the two real RPCs and checks the validator path agrees.
 5. **Drive every path yourself.** Switch the header to **Demo**, connect a wallet funded from the Studio faucet, file a check on `/file`, and use the buttons on the check page (each disabled with the contract's own reason until it applies). `test/demo_paths.mjs` does the whole set end to end; its log is [docs/demo-run.log](docs/demo-run.log).
 
