@@ -6,7 +6,8 @@
  *              non-admin; duplicate filing; payable call with a wrong amount
  *   AS_VOTED   CoW CIP-48                                -> finalize, stake to pledge
  *   DEVIATES   CoW CIP-16 batch                          -> finalize, pledge slashed, bounty
- *   appeal won CoW 67 WETH filed against CIP-43 (wrong)  -> DAO appeals naming CIP-28 -> AS_VOTED
+ *   appeal won CoW 6,000,000 COW to the Treasury (CIP-37) filed against CIP-43 (wrong)
+ *              -> DAO appeals naming CIP-37 -> AS_VOTED
  *   appeal lost CoW Treasury CIP-69 signMessage call     -> DAO appeals with words only -> DEVIATES stands
  *   UNCLEAR    CoW CIP-19                                -> final at once, refund
  *   expiry     CoW CIP-37 never judged                   -> expire after 600 s -> UNCLEAR
@@ -37,7 +38,7 @@ const CID = {
   cip48: "bafkreigatik76cmd2amxbkav55jzrexyygnebausjg7isbb2akbnevw4xq", cip16: "bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4",
   cip43: "bafkreigqmaollb3qnv7tjrrqp2huwnds6dyxeh33lybvovdpowza6ms6sq", cip28: "bafkreie2zitrxqwtmz6ehbompehqnhy2duddhhp4z2udmw645dcbpt3i4m",
   cip69: "bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe", cip19: "bafkreigeksmh3n7sxmon5y7vhow2vieuxoyhyq3u42ent6cbwq7sfenwpq",
-  cip37: "bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam", cip29: "bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu",
+  cip37: "bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam", cip24: "bafkreidsqpnzeomzl5kyaashogdq3mztw7yhkoim35ndc7xysmuflq4xcm", cip29: "bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu",
 };
 const TX = {
   cip48: ["0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16", 27, COW], cip16: ["0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1", 19, COW],
@@ -45,6 +46,7 @@ const TX = {
   bal200k: ["0xa85e7333380b8d40be2fa89c24cb7183be0006d1c2e78134ada10ced08336ad3", 902, TREAS],
   cip19: ["0x1fd579d7bbb8e7e8b8a6e2816f679ca55dddf36728615420d5a7f21c87d4870f", 9, COW], cip37: ["0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f", 22, COW],
   cip29: ["0xaa412db50fb9cb384d56ddec01a00997d686927d332f13ddf93e7644a5f47c29", 17, COW],
+  cip24: ["0x1af684f90ded18dcd55438f8c1acc64c427c8aa2cfa223d56a6d043d7f8e67f7", 13, COW],
 };
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const results = [];
@@ -74,6 +76,14 @@ async function freshVote(cid, safe) {
   }
   return id;
 }
+/** The proposal's ENS names resolved at the execution's L1 block, which a filing needs. */
+async function namesAt(vid, eid) {
+  const p = await v("vr", "get_proposal", [vid]);
+  const e = await v("er", "get_execution", [eid]);
+  if (!p.ens_names?.length || !e.l1_block) return;
+  const have = await v("vr", "get_names_at", [vid, e.l1_block]);
+  if (!have.found) await w("filer", "vr", "read_names_at", [vid, e.l1_block]);
+}
 async function execId(key) {
   const [tx, nonce, safe] = TX[key];
   let id = Number(await v("er", "get_execution_id", ["ethereum", safe, tx]));
@@ -92,6 +102,7 @@ async function file(role, key, cidKey, note) {
   const dao = await daoFor(safe);
   const e = await execId(key);
   const vid = await freshVote(CID[cidKey], safe);
+  await namesAt(vid, e);
   const out = await w(role, "rg", "file_check", [dao, e, vid, note], STAKE);
   if (out.r?.ok === false) log("  refused:", out.r.reason);
   return Number(await v("rg", "get_check_id_by_tx", ["ethereum", safe, tx]));
@@ -145,10 +156,10 @@ if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "r
 // --- file everything
 D.asv = await file("filer", "cip48", "cip48", "demo: as voted");
 D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
-D.won = await file("filer2", "weth67", "cip43", "demo: filed against the wrong proposal");
+D.won = await file("filer2", "cip37", "cip43", "demo: filed against the wrong proposal");
 D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
 D.unc = await file("filer", "cip19", "cip19", "demo: unclear");
-D.exp = await file("filer", "cip37", "cip37", "demo: never judged, expires");
+D.exp = await file("filer", "cip24", "cip24", "demo: never judged, expires");
 D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
 D.gate = await file("filer", "bal200k", "cip69", "demo: a recent execution against a proposal that does not cover it, for GrantGate");
 log("checks", JSON.stringify(D));
@@ -163,9 +174,10 @@ log("checks", JSON.stringify(D));
 }
 
 // --- judge and rule; an appeal goes in right after its ruling (90 s window)
-const right = await freshVote(CID.cip28, COW);
+const right = await freshVote(CID.cip37, COW);
+await namesAt(right, await execId("cip37"));
 const APPEAL = {
-  won: ["dao", "This transfer of 67.0123 WETH to the Treasury Safe implements CIP-28, the standing mandate to send profits to the treasury, not the CIP-43 Ops top-up it was filed against.", right],
+  won: ["dao", "This transfer of 6,000,000 COW to the Treasury Safe implements CIP-37, COW liquidity through programmatic orders, not the CIP-43 Ops Safe renewal it was filed against.", right],
   lost: ["dao", "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0],
   aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
 };
@@ -183,7 +195,7 @@ for (const k of Object.keys(D)) R[k] = await v("rg", "get_check", [D[k]]);
 expect("CIP-48 is AS_VOTED", R.asv.ruling === "AS_VOTED", R.asv.ruling_summary);
 expect("appeals were filed inside the window", R.won.status === "APPEALED" && R.lost.status === "APPEALED" && R.aexp.status === "APPEALED", `${R.won.status} ${R.lost.status} ${R.aexp.status}`);
 expect("CIP-16 batch is DEVIATES", R.dev.ruling === "DEVIATES", R.dev.ruling_summary);
-expect("67 WETH against CIP-43 is DEVIATES (over amount)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
+expect("6,000,000 COW against CIP-43 is DEVIATES (CIP-43 states only ETH and USD for the Treasury)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
 expect("CIP-69 Treasury call is DEVIATES", R.lost.ruling === "DEVIATES", R.lost.ruling_summary);
 expect("CIP-19 is UNCLEAR and FINAL at once", R.unc.ruling === "UNCLEAR" && R.unc.status === "FINAL", R.unc.ruling_summary);
 expect("CIP-29 is AS_VOTED", R.aexp.ruling === "AS_VOTED", R.aexp.ruling_summary);
@@ -196,7 +208,7 @@ for (const k of ["won", "lost"]) {
 }
 R.won = await v("rg", "get_check", [D.won]);
 R.lost = await v("rg", "get_check", [D.lost]);
-expect("appeal naming CIP-28 wins: AS_VOTED, bond refunded", R.won.final_verdict === "AS_VOTED" && R.won.final_how === "APPEAL_RULED", R.won.appeal_summary);
+expect("appeal naming CIP-37 wins: AS_VOTED, bond refunded", R.won.final_verdict === "AS_VOTED" && R.won.final_how === "APPEAL_RULED", R.won.appeal_summary);
 expect("appeal with words only loses: DEVIATES stands, bond to the filer", R.lost.final_verdict === "DEVIATES" && R.lost.settlement.some((m) => /appeal bond to the filer/.test(m[0])), JSON.stringify(R.lost.settlement));
 
 // --- finalize after the 90 s window
@@ -225,6 +237,23 @@ expect("DEVIATES final: pledge slashed, bounty to the filer", R.dev.final_verdic
 R.exp = await v("rg", "get_check", [D.exp]);
 R.aexp = await v("rg", "get_check", [D.aexp]);
 expect("never judged: expire -> FINAL UNCLEAR, stake refunded", R.exp.final_verdict === "UNCLEAR" && R.exp.final_how === "EXPIRED_UNJUDGED");
+{
+  // an expired check proved nothing: the same execution and proposal can be filed again
+  const e = await execId("cip24");
+  const vid = await freshVote(CID.cip24, COW);
+  let id = Number(await v("rg", "get_check_id_by_tx", ["ethereum", COW, TX.cip24[0]]));
+  if (id === D.exp) {
+    const out = await w("filer2", "rg", "file_check", [cow, e, vid, "demo: refiled after expiry"], STAKE);
+    if (out.r?.ok === false) log("  refused:", out.r.reason);
+    id = Number(await v("rg", "get_check_id_by_tx", ["ethereum", COW, TX.cip24[0]]));
+  }
+  D.refile = id;
+  let c = await v("rg", "get_check", [id]);
+  if (c.status === "PROVISIONAL") c = await judgeRule("filer", id);
+  if (c.status === "CONTESTABLE") { await waitPast(c.contest_deadline, `check #${id} contest window`); await w("filer", "rg", "finalize", [id]); }
+  R.refile = await v("rg", "get_check", [id]);
+  expect("an expired check can be refiled and ruled", id !== D.exp && R.refile.final_verdict !== "", `check #${id} ${R.refile.final_verdict} ${R.refile.ruling_summary}`);
+}
 expect("appeal never judged: expire -> ruling stands, bond refunded", R.aexp.final_verdict === "AS_VOTED" && R.aexp.final_how === "APPEAL_EXPIRED");
 
 // --- drain

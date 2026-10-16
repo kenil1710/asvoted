@@ -8,7 +8,7 @@
  * so what is on chain is byte-identical to the pushed commit. Order:
  *
  *   ExecReader, VoteReader, AsVotedJudge                  (shared by both registries)
- *   AsVotedRegistry  CANONICAL  (72 h contest window, no demo seam)
+ *   AsVotedRegistry  CANONICAL  (6 h contest window, no demo seam)
  *   AsVotedRegistry  DEMO       (90 s contest window, demo controller = the `dao` test account)
  *   DaoStanding x2 (30-day window), GrantGate x2
  *
@@ -65,7 +65,9 @@ async function one(name, file, args, extra = {}) {
 
 const er = await one("ExecReader", "ExecReader", []);
 const vr = await one("VoteReader", "VoteReader", []);
-const jg = await one("AsVotedJudge", "AsVotedJudge", []);
+// the tokens the judge identifies by symbol, fixed at deployment (symbols read on chain: test/token_list.json)
+const tokenList = JSON.stringify(JSON.parse(readFileSync(new URL("./token_list.json", import.meta.url), "utf8")));
+const jg = await one("AsVotedJudge", "AsVotedJudge", [tokenList]);
 const rc = await one("AsVotedRegistry", "AsVotedRegistry", ["CANONICAL", er, vr, jg, ""], { mode: "CANONICAL" });
 const rd = await one("AsVotedRegistryDemo", "AsVotedRegistry", ["DEMO", er, vr, jg, acc.dao.address.toLowerCase()], { mode: "DEMO" });
 const sc = await one("DaoStanding", "DaoStanding", [rc, 30], { mode: "CANONICAL" });

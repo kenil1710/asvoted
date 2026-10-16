@@ -963,12 +963,6 @@ def strict_cap(who: str, fam: str, relevant: list, amts: list, owners: list, fla
     stated in who's own line, list item or table row, with no other amount
     for that family there. {"kind": "cap", "cap", "k"} | {"kind": "unclear",
     "why"} | {"kind": "other", "others", "dollars"} | {"kind": "none"}."""
-    low = text.lower()
-    for p in mentions:
-        la, lb = line_bounds(text, p)
-        seg = low[la:lb]
-        if len([1 for w in NEG_WORDS if seg.find(w) >= 0]) > 0 or _whole_word(seg, "not"):
-            return {"kind": "unclear", "why": "the line naming " + who + " refuses or excludes something"}
     mine = []
     other = []
     for k in range(len(amts)):
@@ -1028,7 +1022,7 @@ def amount_owners(text: str, amts: list, marks: list) -> list:
             if len([1 for w in EACH_WORDS if _whole_word(near, w)]) > 0 or \
                     len([1 for w in ("each receive", "each get", "will each", "both receive") if seg.find(w) >= 0]) > 0:
                 kind = "line"
-            elif len([x for x in amts if la <= x[0] < lb]) == 1:
+            elif len([x for x in amts if la <= x[0] < lb and family(x[3]) == family(a[3])]) == 1:
                 kind = "shared"
             else:
                 kind = "multi"

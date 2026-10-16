@@ -1,7 +1,7 @@
 /**
  * The full pipeline for one real execution, idempotent step by step:
  *   VoteReader.read_space -> Registry.list_dao -> ExecReader.read_execution ->
- *   VoteReader.read_proposal -> Registry.file_check (+ stake) ->
+ *   VoteReader.read_proposal -> VoteReader.read_names_at (if the text names ENS names) -> Registry.file_check (+ stake) ->
  *   AsVotedJudge.judge -> Registry.rule
  * Every step that already happened is detected by a view and skipped, so a
  * run that dropped can be started again with the same arguments.
@@ -64,6 +64,12 @@ if (!checkId) {
   }
   log(`proposal #${voteId}`);
   if (stop === "vote") process.exit(0);
+  // the proposal's ENS names as of the execution (its L1 block): a filing needs them
+  const pv = J(await C.vr.view("get_proposal", [voteId]));
+  const ev = J(await C.er.view("get_execution", [execId]));
+  if (pv.ens_names?.length && ev.l1_block > 0 && !J(await C.vr.view("get_names_at", [voteId, ev.l1_block])).found) {
+    await step("read_names_at", C.vr, "read_names_at", [voteId, ev.l1_block]);
+  }
   const out = await step("file_check", C.rg, "file_check", [daoId, execId, voteId, note], STAKE);
   const r = returnedJson(out);
   if (r && r.ok === false) { log("refused:", r.reason); process.exit(3); }
