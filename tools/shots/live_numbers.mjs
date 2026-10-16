@@ -49,6 +49,6 @@ for (const [k, want] of Object.entries(expect)) {
   if (!ok) mismatch.push([k, seen[k], want]);
 }
 const widths = [];
-for (const p of ["/", "/daos", "/dao/1", "/check/1", "/file", "/patrol", "/docs", "/verify"]) widths.push({ p, w: (await grab(p, 375, 9000)).w });
+for (const p of ["/", "/daos", "/dao/1", "/check/1", "/check/7", "/check/9", "/check/11", "/file", "/patrol", "/docs", "/verify"]) widths.push({ p, w: (await grab(p, 375, 9000)).w });
 await b.close();
 console.log(JSON.stringify({ compared, mismatch, lines, widths }));
