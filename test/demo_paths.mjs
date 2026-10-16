@@ -6,7 +6,7 @@
  *              non-admin; duplicate filing; payable call with a wrong amount
  *   AS_VOTED   CoW CIP-48                                -> finalize, stake to pledge
  *   DEVIATES   CoW CIP-16 batch                          -> finalize, pledge slashed, bounty
- *   appeal won CoW 6,000,000 COW to the Treasury (CIP-37) filed against CIP-43 (wrong)
+ *   appeal won CoW 6,000,000 COW to the Treasury (CIP-37) filed against CIP-30 (wrong: oSnap)
  *              -> DAO appeals naming CIP-37 -> AS_VOTED
  *   appeal lost CoW Treasury CIP-69 signMessage call     -> DAO appeals with words only -> DEVIATES stands
  *   UNCLEAR    CoW CIP-19                                -> final at once, refund
@@ -38,7 +38,7 @@ const CID = {
   cip48: "bafkreigatik76cmd2amxbkav55jzrexyygnebausjg7isbb2akbnevw4xq", cip16: "bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4",
   cip43: "bafkreigqmaollb3qnv7tjrrqp2huwnds6dyxeh33lybvovdpowza6ms6sq", cip28: "bafkreie2zitrxqwtmz6ehbompehqnhy2duddhhp4z2udmw645dcbpt3i4m",
   cip69: "bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe", cip19: "bafkreigeksmh3n7sxmon5y7vhow2vieuxoyhyq3u42ent6cbwq7sfenwpq",
-  cip37: "bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam", cip24: "bafkreidsqpnzeomzl5kyaashogdq3mztw7yhkoim35ndc7xysmuflq4xcm", cip29: "bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu",
+  cip37: "bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam", cip24: "bafkreidsqpnzeomzl5kyaashogdq3mztw7yhkoim35ndc7xysmuflq4xcm", cip30: "bafkreie7k2pbalnxl6hsupdmhd4i76tuc2vm52gwijqxatyzvo6yxf2m6q", cip29: "bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu",
 };
 const TX = {
   cip48: ["0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16", 27, COW], cip16: ["0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1", 19, COW],
@@ -156,7 +156,7 @@ if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "r
 // --- file everything
 D.asv = await file("filer", "cip48", "cip48", "demo: as voted");
 D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
-D.won = await file("filer2", "cip37", "cip43", "demo: filed against the wrong proposal");
+D.won = await file("filer2", "cip37", "cip30", "demo: filed against the wrong proposal");
 D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
 D.unc = await file("filer", "cip19", "cip19", "demo: unclear");
 D.exp = await file("filer", "cip24", "cip24", "demo: never judged, expires");
@@ -177,7 +177,7 @@ log("checks", JSON.stringify(D));
 const right = await freshVote(CID.cip37, COW);
 await namesAt(right, await execId("cip37"));
 const APPEAL = {
-  won: ["dao", "This transfer of 6,000,000 COW to the Treasury Safe implements CIP-37, COW liquidity through programmatic orders, not the CIP-43 Ops Safe renewal it was filed against.", right],
+  won: ["dao", "This transfer of 6,000,000 COW to the Treasury Safe implements CIP-37, COW liquidity through programmatic orders, not CIP-30, the oSnap proposal it was filed against.", right],
   lost: ["dao", "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0],
   aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
 };
@@ -195,7 +195,7 @@ for (const k of Object.keys(D)) R[k] = await v("rg", "get_check", [D[k]]);
 expect("CIP-48 is AS_VOTED", R.asv.ruling === "AS_VOTED", R.asv.ruling_summary);
 expect("appeals were filed inside the window", R.won.status === "APPEALED" && R.lost.status === "APPEALED" && R.aexp.status === "APPEALED", `${R.won.status} ${R.lost.status} ${R.aexp.status}`);
 expect("CIP-16 batch is DEVIATES", R.dev.ruling === "DEVIATES", R.dev.ruling_summary);
-expect("6,000,000 COW against CIP-43 is DEVIATES (CIP-43 states only ETH and USD for the Treasury)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
+expect("6,000,000 COW against CIP-30 is DEVIATES (CIP-30 never names the Treasury)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
 expect("CIP-69 Treasury call is DEVIATES", R.lost.ruling === "DEVIATES", R.lost.ruling_summary);
 expect("CIP-19 is UNCLEAR and FINAL at once", R.unc.ruling === "UNCLEAR" && R.unc.status === "FINAL", R.unc.ruling_summary);
 expect("CIP-29 is AS_VOTED", R.aexp.ruling === "AS_VOTED", R.aexp.ruling_summary);

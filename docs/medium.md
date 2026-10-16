@@ -38,7 +38,7 @@ The five UNCLEAR are honest gaps. Two proposals name the receiving Safe without 
 
 A check compares one execution with the one proposal its filer names. That makes pairing the weak point, so it is where appeals live.
 
-On 14 February 2024, CoW DAO's main Safe sent 6,000,000 COW to its treasury Safe. That is CIP-37, a plan to add COW liquidity through programmatic orders, and judged against CIP-37 the transfer is AS VOTED. On the demo registry I filed it against CIP-43 on purpose. CIP-43 renews the Ops Safe and talks about the treasury only in ETH and dollars. Against CIP-43 the transfer is DEVIATES: the proposal states amounts for that Safe only in other tokens.
+On 14 February 2024, CoW DAO's main Safe sent 6,000,000 COW to its treasury Safe. That is CIP-37, a plan to add COW liquidity through programmatic orders, and judged against CIP-37 the transfer is AS VOTED. On the demo registry I filed it against CIP-30 on purpose. CIP-30 sets up oSnap and never names the treasury, so against CIP-30 the transfer is DEVIATES: it sends to an address the proposal does not mention.
 
 The DAO's controller then appealed with a 0.1 GEN bond, naming CIP-37. A fresh panel of validators read CIP-37, ruled AS VOTED, and the bond went back. The filer's stake went to the DAO's pledge.
 
