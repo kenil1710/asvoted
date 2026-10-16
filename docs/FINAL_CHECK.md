@@ -1,6 +1,6 @@
 # Final check
 
-Run 2026-10-16T09:46:50.431Z by `tools/final_check.mjs` against commit `3e7071fa74`, the live site and Studio Dev. **23/23 PASS.**
+Run 2026-10-16T09:50:17.845Z by `tools/final_check.mjs` against commit `1cccf49964`, the live site and Studio Dev. **21/23 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
@@ -61,7 +61,7 @@ VoteReader.read_names_at                 first write L1373 self.names_at[key]   
 ## PASS · Views read storage only (no writes, no web/model calls in any view); get_ledger recomputation matches counters
 
 ```
-Ran 4 tests in 0.385s  OK
+Ran 4 tests in 0.370s  OK
 ```
 
 ## PASS · Evidence bound at filing to (chain, Safe, tx, proposal CID, block) and snapshotted (reader evidence hashes match every check)
@@ -91,7 +91,7 @@ Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mev
 ## PASS · All offline tests pass
 
 ```
-Ran 187 tests in 12.630s  OK
+Ran 187 tests in 12.617s  OK
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
@@ -136,33 +136,31 @@ test/harness.mjs send(), frontend lib/contract.ts send(), lib/patrol.ts write()
 missing: none; flagged words: none
 ```
 
-## PASS · Live site: 10+ numbers equal the chain
+## FAIL · Live site: 10+ numbers equal the chain
 
 ```
-17 numbers compared, mismatches: []
-= checks: site "15" chain "15"
-= final:AS_VOTED: site "0" chain "0"
-= final:DEVIATES: site "0" chain "0"
-= final:UNCLEAR: site "5" chain "5"
-= daos: site "8" chain "8"
-= pledges: site "0" chain "0"
-= Canonical registry:received: site "1.5 GEN" chain "1.5 GEN"
-= Canonical registry:open: site "1 GEN" chain "1 GEN"
-= Canonical registry:claimable: site "0.5 GEN" chain "0.5 GEN"
-= Canonical registry:held_now: site "1.5 GEN" chain "1.5 GEN"
-= Demo registry:received: site "12.8 GEN" chain "12.8 GEN"
-= Demo registry:held_now: site "0 GEN" chain "0 GEN"
-= Demo registry:claimed: site "12.8 GEN" chain "12.8 GEN"
-= dao:final as voted: site "0" chain "0"
-= dao:final deviates: site "0" chain "0"
-= dao:final unclear: site "2" chain "2"
-= dao:open checks: site "6" chain "6"
-```
+s:24:30) {
+  details: 'Server busy: all 8 execution slots occupied, retry later',
+  docsPath: undefined,
+  metaMessages: undefined,
+  shortMessage: 'Version of JSON-RPC protocol is not supported.',
+  version: '2.57.7',
+  code: -32006,
+  [cause]: {
+    code: -32006,
+    message: 'Server busy: all 8 execution slots occupied, retry later',
+    data: { retry_after_seconds: 2 }
+  }
+}
 
-## PASS · 375 px: no horizontal scroll on any page
+Node.js v22.22.2
 
 ```
-/ 375, /daos 375, /dao/1 375, /check/1 375, /check/7 375, /check/9 375, /check/11 375, /file 375, /patrol 375, /docs 375, /verify 375
+
+## FAIL · 375 px: no horizontal scroll on any page
+
+```
+
 ```
 
 ## PASS · One set of addresses everywhere (deployments.json, site, ADDRESSES.md, SUBMISSION)
