@@ -13,12 +13,12 @@ Most DAOs vote on Snapshot and a Safe multisig executes the result; nothing chec
 1. Open https://asvoted.vercel.app and pick a check: the proposal as voted on the left, every decoded action of the Safe execution on the right, a verdict per action. (163 chars)
 2. Open /verify and click Compare: each contract's code is read from Studio Dev and hashed against the deploy commit on GitHub in your browser. (140 chars)
 3. Switch the header to Demo, connect a wallet funded from the Studio faucet, and file a check on /file with a listed DAO, a Safe tx hash and a proposal CID. (154 chars)
-4. On the check page, judge and apply the ruling, then appeal within 90 seconds (a DEVIATES ruling can name a different proposal) or finalize after it. (148 chars)
+4. On the check page, judge and apply the ruling, then appeal within 90 seconds (only the DAO, answering a DEVIATES, may name another proposal) or finalize after it. (162 chars)
 5. Run the offline suite (cd test && python3 -m unittest test_asvoted test_attacks test_attacks_r2 test_attacks_r3) and read docs/SEEDS.md and docs/FINAL_CHECK.md. (160 chars)
 
-## Review verification (357/500)
+## Review verification (356/500)
 
-All 9 contracts deployed from commit 7a74665; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: 15 real seeds, all ruled, final after the 72 h contest window, each linked to Etherscan and IPFS. Demo registry: every path run on chain, 25/25, drained to 0. 187 offline tests incl. 3 attack rounds.
+All 9 contracts deployed from commit 7a74665; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: 15 real seeds, all ruled, final after the 6 h contest window, each linked to Etherscan and IPFS. Demo registry: every path run on chain, 25/25, drained to 0. 187 offline tests incl. 3 attack rounds.
 
 ## Evidence
 

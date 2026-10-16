@@ -15,10 +15,10 @@ const steps = [
   "Open https://asvoted.vercel.app and pick a check: the proposal as voted on the left, every decoded action of the Safe execution on the right, a verdict per action.",
   "Open /verify and click Compare: each contract's code is read from Studio Dev and hashed against the deploy commit on GitHub in your browser.",
   "Switch the header to Demo, connect a wallet funded from the Studio faucet, and file a check on /file with a listed DAO, a Safe tx hash and a proposal CID.",
-  "On the check page, judge and apply the ruling, then appeal within 90 seconds (a DEVIATES ruling can name a different proposal) or finalize after it.",
+  "On the check page, judge and apply the ruling, then appeal within 90 seconds (only the DAO, answering a DEVIATES, may name another proposal) or finalize after it.",
   "Run the offline suite (cd test && python3 -m unittest test_asvoted test_attacks test_attacks_r2 test_attacks_r3) and read docs/SEEDS.md and docs/FINAL_CHECK.md.",
 ];
-const verify = `All 9 contracts deployed from commit ${commit.slice(0, 7)}; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: ${seeds.checks.length} real seeds, ${nFinal === seeds.checks.length ? "all final" : "all ruled, final after the 72 h contest window"}, each linked to Etherscan and IPFS. Demo registry: every path run on chain, ${dOk}/${demo.results.length}, drained to 0. ${tests} offline tests incl. 3 attack rounds.`;
+const verify = `All 9 contracts deployed from commit ${commit.slice(0, 7)}; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: ${seeds.checks.length} real seeds, ${nFinal === seeds.checks.length ? "all final" : "all ruled, final after the 6 h contest window"}, each linked to Etherscan and IPFS. Demo registry: every path run on chain, ${dOk}/${demo.results.length}, drained to 0. ${tests} offline tests incl. 3 attack rounds.`;
 const EX = "https://explorer-studio-dev.genlayer.com/address/";
 const ev = [
   ["Repository", "https://github.com/kenil1710/asvoted"], ["Live site", "https://asvoted.vercel.app"],
