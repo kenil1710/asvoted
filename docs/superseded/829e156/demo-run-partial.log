@@ -1,0 +1,197 @@
+06:06:28 → filer list_dao ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
+06:06:41   OK ACCEPTED 13s 0xd71d7c9290ef8854852aff942a62c7ead6c95ec209e0b528666fc2e42ec8453c {"dao_id":1,"ok":true}
+06:06:44 → filer read_space ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+06:06:56   OK ACCEPTED 12s 0x43ac0bc84c0292d4a5eafc579818e135e1d32a6131a9155989c5a918d4427e0a {"bind_id":9,"listed":true}
+06:06:56 → filer list_dao ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+06:07:09   OK ACCEPTED 13s 0xc998dc9d4d13ec216f61269d427fc4ae1849dd717c5a0b7e922090b18af44b8d {"dao_id":2,"ok":true}
+06:07:11 → filer read_space ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+06:07:25   OK ACCEPTED 13s 0xf757036137dfd22ed408ced602e370f953c6c7d3d5d2091910ed16c53c4dbc11 {"bind_id":10,"listed":false}
+06:07:25 → filer list_dao ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for list_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+06:07:37   REVERTED ACCEPTED 12s 0x6921e30349cc372adfadeb29239debcf2897693245c4b39af0a96e75e8444af0 REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+06:07:37 PASS  listing a Safe the space does not list is refused  REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+06:07:39 → filer claim_dao [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for claim_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+06:07:52   REVERTED ACCEPTED 12s 0x84b95fcca60bddccdc2a6d14571a7f1015d773c379089de31f8c13de75a989e6 REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+06:07:52 PASS  claim by a non-admin is refused  REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+06:07:52 → dao claim_dao [1]
+06:08:06   OK ACCEPTED 13s 0x599c414da8d56264697a7eb9d5bf0b2ecf906020c350fb50d7b58ec4f009feb5 {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":1,"ok":true}
+06:08:07 → dao claim_dao [2]
+06:08:21   OK ACCEPTED 14s 0x455787097eafcd717dbb36324aa87016b88bf2654099c2526c35119c4c921ba5 {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":2,"ok":true}
+06:08:23 PASS  demo controller claims both listings  
+06:08:24 → dao pledge [1] +5000000000000000000
+06:08:36   OK ACCEPTED 12s 0xcfe58d07e98875362f78c27392b96987b8d2ec979f98045e72eabd6dbbaa263e {"dao_id":1,"ok":true,"pledge":"5000000000000000000"}
+06:08:37 → dao pledge [2] +2000000000000000000
+06:08:48   OK ACCEPTED 12s 0x708dd12fbd1b6a588ddda7cb4d72d1f82ce54a50a09bd7c28c06c2c022830bce {"dao_id":2,"ok":true,"pledge":"2000000000000000000"}
+06:08:48 → filer pledge [1] +1000000000000000000
+06:09:00   OK ACCEPTED 12s 0x89e7e7d280a2420b283cee8fe367c705f9357b500781310c62dc0601f7c1e23e {"ok":false,"reason":"ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE","refunded_to_claimable":"1000000000000000000"}
+06:09:00 PASS  pledge by a non-controller is credited back, ok:false  ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE
+06:09:00 → demo request_grant [2,"release tranche 1"]
+06:09:12   OK ACCEPTED 12s 0x75e15d617808b5d71457359d94da5a7b676bcda0868562b544eb05c46488f62a {"carried_out":true,"reasons":[],"request_id":1}
+06:09:12 PASS  GrantGate carries out a request while the DAO is in good standing  []
+06:09:16 → filer file_check [1,1,1,"demo: as voted"] +100000000000000000
+06:09:36   OK ACCEPTED 20s 0x475e132e5a1d78492a1316f7176c54039b31116ac3480c1745818f7943e241bb {"check_id":1,"judge_deadline":1792131562,"ok":true}
+06:09:43 → filer file_check [1,7,7,"demo: deviates"] +100000000000000000
+06:09:57   OK ACCEPTED 14s 0x156c6008addcc4cdaa333cb07958348f519cdfb63eb2749d1d5038e6dd0cab51 {"check_id":2,"judge_deadline":1792131589,"ok":true}
+06:10:03 → filer read_proposal ["bafkreigqmaollb3qnv7tjrrqp2huwnds6dyxeh33lybvovdpowza6ms6sq","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+06:10:18   OK ACCEPTED 15s 0x74f142249a156f00b0e38455fc81b87e7e0bcf14839a1e0cace180011077cdfa {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":15}
+06:10:19 → filer2 file_check [1,4,15,"demo: filed against the wrong proposal"] +100000000000000000
+06:10:33   OK ACCEPTED 14s 0x155d586ed23d509c2b99d820585115425e4dbd3b99aa2b1baf41f33bec810406 {"check_id":3,"judge_deadline":1792131625,"ok":true}
+06:10:39 → filer read_execution ["ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669","0x5b453427e61374b5d023a9920943fcbe05a54b7d06b9fc557d
+06:10:54   OK ACCEPTED 15s 0x77a2b4d86619978e37c536b681c5a399747a52bf064ed3587ed5b94111ae1379 {"actions":1,"block":25881591,"exec_id":15,"safe_tx_hash":"0x8a620608cc456607bc1b11580646bf6f004917b3605297f5207ebaf8d30a11ec"}
+06:10:57 → filer read_proposal ["bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6F
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+06:11:10   OK ACCEPTED 13s 0xaf3844b8d7fa3c3bf29bbf861e7fd32ab28c6e2e178b09ecd84a06306ab1220b {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":16}
+06:11:12 → filer2 file_check [2,15,16,"demo: appeal lost"] +100000000000000000
+06:11:26   OK ACCEPTED 14s 0x861a9d418ea2c9ba8060204be0b0367a4a5e99b7b6581d15e239d08533a2e8da {"check_id":4,"judge_deadline":1792131678,"ok":true}
+06:11:32 → filer file_check [1,8,8,"demo: unclear"] +100000000000000000
+06:11:46   OK ACCEPTED 14s 0x578ef3dbe14bcde3d7aec2a3cf85b5368a7e86f2bb428fe9b060eaecfa7934ed {"check_id":5,"judge_deadline":1792131698,"ok":true}
+06:11:52 → filer file_check [1,2,2,"demo: never judged, expires"] +100000000000000000
+06:12:06   OK ACCEPTED 14s 0xaf3c4b207a04082b86a83de3cca8f52fa34c041698041e52be291d3c158de4ee {"check_id":6,"judge_deadline":1792131718,"ok":true}
+06:12:12 → filer2 file_check [1,3,3,"demo: appeal never judged"] +100000000000000000
+06:12:26   OK ACCEPTED 13s 0x4e7a1f6bf26b53a99c7f39e6cc8165f693e20f7f06ecef648ee22fa14fca5f90 {"check_id":7,"judge_deadline":1792131738,"ok":true}
+06:12:30 → filer read_execution ["ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669","0xa85e7333380b8d40be2fa89c24cb7183be0006d1c2e78134ad
+06:12:45   OK ACCEPTED 15s 0xccf4cb6a052de5addb5226d6ae3b81b166e97b48e0b6eb24253b3e3b60dc21c1 {"actions":1,"block":26197751,"exec_id":16,"safe_tx_hash":"0xf1f54158e7b0b84376d061a8f110ee4a62cefcdd6490eebfaf6936f7d210558f"}
+06:12:48 → filer file_check [2,16,16,"demo: a recent execution against a proposal that does not cover it, for GrantGate"] +100000000000000000
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (1), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (2), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (3), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (4), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (5), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (6), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (7), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (8), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (9), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (10), waiting 90s
+GenLayer RPC error (eth_sendRawTransaction): Rate limit exceeded: 500 requests per hour
+  … file_check hit the HOURLY RPC limit (11), waiting 90s
+GenLayer RPC error (eth_getTransactionCount): fetch failed
+  … file_check attempt 1 hit transient RPC noise, waiting 4s
+GenLayer RPC error (eth_getTransactionCount): fetch failed
+  … file_check attempt 2 hit transient RPC noise, waiting 8s
+GenLayer RPC error (eth_getTransactionCount): fetch failed
+  … file_check attempt 3 hit transient RPC noise, waiting 12s
+GenLayer RPC error (eth_getTransactionCount): fetch failed
+  … file_check attempt 4 hit transient RPC noise, waiting 16s
+GenLayer RPC error (eth_getTransactionCount): fetch failed
+  … file_check attempt 5 hit transient RPC noise, waiting 20s
+GenLayer RPC error (eth_getTransactionCount): fetch failed
+06:57:50   REVERTED UNSETTLED 2702s null submit failed — An unknown RPC error occurred.
+
+Details: fetch failed
+Version: viem@2.57.7
+GenLayer RPC error (gen_call): fetch failed
+  … get_check_id_by_tx attempt 1 hit transient RPC noise, waiting 4s
+GenLayer RPC error (gen_call): fetch failed
+  … get_check_id_by_tx attempt 2 hit transient RPC noise, waiting 8s
+GenLayer RPC error (gen_call): fetch failed
+  … get_check_id_by_tx attempt 3 hit transient RPC noise, waiting 12s
+GenLayer RPC error (gen_call): fetch failed
+  … get_check_id_by_tx attempt 4 hit transient RPC noise, waiting 16s
+GenLayer RPC error (gen_call): fetch failed
+  … get_check_id_by_tx attempt 5 hit transient RPC noise, waiting 20s
+GenLayer RPC error (gen_call): fetch failed
+file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/buildRequest.js:127
+                        throw new UnknownRpcError(err);
+                              ^
+
+UnknownRpcError: An unknown RPC error occurred.
+
+Details: fetch failed
+Version: viem@2.57.7
+    at withRetry.delay.count.count (file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/buildRequest.js:127:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async attemptRetry (file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/promise/withRetry.js:24:30) {
+  details: 'fetch failed',
+  docsPath: undefined,
+  metaMessages: undefined,
+  shortMessage: 'An unknown RPC error occurred.',
+  version: '2.57.7',
+  code: -1,
+  [cause]: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14976:13
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Object.request (file:///Users/kenilvakariya/dev/asvoted/test/node_modules/genlayer-js/dist/index.js:5724:26)
+      at async withRetry.delay.count.count (file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/buildRequest.js:30:24)
+      at async attemptRetry (file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/promise/withRetry.js:24:30) {
+    [cause]: Error: getaddrinfo ENOTFOUND asvoted.vercel.app
+        at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26) {
+      errno: -3008,
+      code: 'ENOTFOUND',
+      syscall: 'getaddrinfo',
+      hostname: 'asvoted.vercel.app'
+    }
+  }
+}
+
+Node.js v22.22.2
+
+=== resumed after a local DNS failure (getaddrinfo ENOTFOUND asvoted.vercel.app) ===
+06:59:27 → filer read_space ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_space (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+06:59:39   OK ACCEPTED 12s 0x000c48447de179f872e86dc5164a87b87b5814d03aacea9094e93735a4d2463c {"bind_id":11,"listed":false}
+06:59:39 → filer list_dao ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for list_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+06:59:53   REVERTED ACCEPTED 14s 0x77df90856b2c6b5e9eb04984b4f8b8e4ad7e293fa524bf72196c06268cf67c29 REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+06:59:53 PASS  listing a Safe the space does not list is refused  REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+06:59:55 → filer read_space ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_space (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+07:00:08   OK ACCEPTED 13s 0x3556d60b68984e9b100d8bc4e1f304657f295f9ebbf0a9f42d6809aa4e4d040e {"bind_id":12,"listed":true}
+07:00:08 → filer claim_dao [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for claim_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+07:00:20   REVERTED ACCEPTED 12s 0x42180c3449344cc253de145d4023d935c07d37b932a05e82233ca0978302c892 REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+07:00:20 PASS  claim by a non-admin is refused  REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+07:00:29 PASS  demo controller claims both listings  
+07:00:31 → filer pledge [1] +1000000000000000000
+07:00:43   OK ACCEPTED 12s 0xefd8687e29e76aea81c8b7fd32879aa8110dbd9d9db740935132845a53f94970 {"ok":false,"reason":"ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE","refunded_to_claimable":"1000000000000000000"}
+07:00:43 PASS  pledge by a non-controller is credited back, ok:false  ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE
+07:00:43 → demo request_grant [2,"release tranche 1"]
+07:00:55   OK ACCEPTED 12s 0x308364948059071cab4653fd7c91209e97b2257c5fc32ca2573485596c6d85f0 {"carried_out":true,"reasons":[],"request_id":2}
+07:00:55 PASS  GrantGate carries out a request while the DAO is in good standing  []
+07:01:07 → filer read_proposal ["bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6F
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+GenLayer RPC error (eth_getTransactionByHash): fetch failed
+  … read_proposal poll attempt 1 hit transient RPC noise, waiting 2s
+07:03:56   OK FINALIZED 168s 0x05bd04943ae6b7ee3deb98d6c3620d8bd78a38ead2936fd9bc3b0124689cd7b6 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":17}

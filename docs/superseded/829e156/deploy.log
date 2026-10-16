@@ -1,0 +1,48 @@
+deployer 0x141e1F6b3A945a07c49a56151279a1F308Ca7408  HEAD 829e156efcbaf799e227929eeb3b427f678d1099  set final
+
+ExecReader  ExecReader.py  args=[]  45286 bytes  sha256 7dd9e041c41cf4653db9e1cbe04dc634fc2711753b097d6970dd5e3dda699fd4
+  fee        0.100000 GEN (estimated)
+  tx         0x68a76aa1787b4d4c2b873fdc32a1c1a3b931c26bf8f0518940c5591ee618fa1b
+  address 0x995Dd0251F1b6ee07Ec50D599E4D426b1A0ee3E0
+
+VoteReader  VoteReader.py  args=[]  50241 bytes  sha256 9534a440354bd60c25527bc077b3d7a8585e922ad8dde6c68345d018a9a3611d
+  fee        0.100000 GEN (estimated)
+  tx         0x51775045fcf4a71e07acc94f3f1479c125f963321e30c5137e1f03a55b00a811
+  address 0xE84085D2e047FD51797EA4a5567aAa6378ed4c4C
+
+AsVotedJudge  AsVotedJudge.py  args=[]  70030 bytes  sha256 b903bd1f4c8ade4e3f00d6132472ac06669cd55caad2825b9bb3bb41962646aa
+  fee        0.100000 GEN (estimated)
+  tx         0xebfcdcd6a543297b65dd17c57614ee9f8a8ba06d5ed8eff75ec025916d4498e9
+  address 0xbDF72F0600350f37634c317A4f3A508dB225A265
+
+AsVotedRegistry  AsVotedRegistry.py  args=["CANONICAL","0x995Dd0251F1b6ee07Ec50D599E4D426b1A0ee3E0","0xE84085D2e047FD51797EA4a5567aAa6378ed4c4C","0xbDF72F0600350f37634c317A4f3A508dB225A265",""]  63313 bytes  sha256 e1567ceafbeacec6deb40d2ab7dd9937668ea3081ea3f7f05fcb64993b4dd587
+  fee        0.100000 GEN (estimated)
+  tx         0x23c7a6e51f9425ff93c36a981af1a82b2547fec9ac118c4a29f494ec0f5b38ce
+  address 0x70e5Cfd6eE3e980792DF7588C501C2b547619C87
+
+AsVotedRegistryDemo  AsVotedRegistry.py  args=["DEMO","0x995Dd0251F1b6ee07Ec50D599E4D426b1A0ee3E0","0xE84085D2e047FD51797EA4a5567aAa6378ed4c4C","0xbDF72F0600350f37634c317A4f3A508dB225A265","0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"]  63313 bytes  sha256 e1567ceafbeacec6deb40d2ab7dd9937668ea3081ea3f7f05fcb64993b4dd587
+  fee        0.100000 GEN (estimated)
+  tx         0xacde822631df739bc2e1c04f9c0e528d3a972d0e256e2920a7f2f84150dbc61b
+  address 0xbe11F753e6DC262097a6dF7d65A1bF1f01ca80c6
+
+DaoStanding  DaoStanding.py  args=["0x70e5Cfd6eE3e980792DF7588C501C2b547619C87",30]  2845 bytes  sha256 952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb
+  fee        0.100000 GEN (estimated)
+  tx         0xca8f9ee4ab5ee2839ff3e7f819862fe4e0f2714fbc2d4161e37344baf27b96da
+  address 0x24685092D9B79A9198Dc0c18eA7D5E002D0900e8
+
+DaoStandingDemo  DaoStanding.py  args=["0xbe11F753e6DC262097a6dF7d65A1bF1f01ca80c6",30]  2845 bytes  sha256 952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb
+  fee        0.100000 GEN (estimated)
+  tx         0xa077067a592932b3eef496f843cae75a5bf0f6a459b0da535df1677d3f7a14c9
+  address 0x38C15757387F8a7a680A80ce4d36Fc1Bca145971
+
+GrantGate  GrantGate.py  args=["0x24685092D9B79A9198Dc0c18eA7D5E002D0900e8"]  4084 bytes  sha256 2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db
+  fee        0.100000 GEN (estimated)
+  tx         0xd7b13c18081daccbb3e94ea7bfec3ebd8d272b1ab6f611058e7785fb7e05cd5d
+  address 0x298b61AB164C8df97E1CEe74BF29139Cd6135B59
+
+GrantGateDemo  GrantGate.py  args=["0x38C15757387F8a7a680A80ce4d36Fc1Bca145971"]  4084 bytes  sha256 2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db
+  fee        0.100000 GEN (estimated)
+  tx         0x700406d4dcd17d6f24b02afe58afa2c2a49baea5e6c4dfabf227e9e32cdca1f8
+  address 0x1C35c963392EB503Abd09D9B426b4bDdc486d094
+
+wrote /Users/kenilvakariya/dev/asvoted/deployments.json
