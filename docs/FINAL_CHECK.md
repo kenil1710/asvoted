@@ -1,32 +1,32 @@
 # Final check
 
-Run 2026-10-16T02:29:28.895Z by `tools/final_check.mjs` against commit `cdf7098741`, the live site and Studio Dev. **23/23 PASS.**
+Run 2026-10-16T09:41:07.807Z by `tools/final_check.mjs` against commit `a4e8fab1d3`, the live site and Studio Dev. **22/23 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
 ```
-commit 93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b; contracts/ changes since: none
-ExecReader 0x31EabbC7978d784e9EeaAf5c4FFD82eD9BC5eeB9 sha256 4909d23888c4da17… byte-identical to HEAD
-VoteReader 0xe00Cc656c9cED6F61505E9b7440Dad2B690C19FB sha256 4ee549d44fd54eda… byte-identical to HEAD
-AsVotedJudge 0x4fFdAf25Fb27ba9bCeDAA0f94d93D14993a69Fb4 sha256 4c123527d890961d… byte-identical to HEAD
-AsVotedRegistry 0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc sha256 2810e1bb0f9a2e89… byte-identical to HEAD
-AsVotedRegistryDemo 0x01AB66898cB6f1E949449f4a9B3D384f1079ea93 sha256 2810e1bb0f9a2e89… byte-identical to HEAD
-DaoStanding 0x2dee7BBc3e09E058B3AbEdfEeD2a2334ba69b870 sha256 952d2995d8f12e54… byte-identical to HEAD
-DaoStandingDemo 0x5115162037A6aB89Bc70862b9C535e13f26D3693 sha256 952d2995d8f12e54… byte-identical to HEAD
-GrantGate 0x31EAFAAbd993be7F837569cf8aecBb44CaA233D4 sha256 2fc4477e774a6871… byte-identical to HEAD
-GrantGateDemo 0x8e437a04970bc587adaE2764F8E18A171fe1d946 sha256 2fc4477e774a6871… byte-identical to HEAD
+commit 7a746655daf01070f0cedfef806933ba243113dd; contracts/ changes since: none
+ExecReader 0x6AFBFDE6D81b2DC3EbaE2Af822dF31f9D97dDC5a sha256 d2b6475e2272a3a4… byte-identical to HEAD
+VoteReader 0x7e4a6F43Df5Bb28ECd6D4E3b8a9DB5186200Bb88 sha256 3f833fff652c40f8… byte-identical to HEAD
+AsVotedJudge 0xa75aF3785c25056589B0348a19b8fB10f5F66304 sha256 e7d1482f09d32997… byte-identical to HEAD
+AsVotedRegistry 0x1C2891FE54a5CfE98436F439e40A3043050eFF44 sha256 237bb7a1972032eb… byte-identical to HEAD
+AsVotedRegistryDemo 0x8B904F094F5b2A25C5004Ab09301dc9041c17B7a sha256 237bb7a1972032eb… byte-identical to HEAD
+DaoStanding 0x785b9091dBFc1a45F76ccE89Eaa22Dd8fb9A6D1E sha256 d45495c84350bc8f… byte-identical to HEAD
+DaoStandingDemo 0x659c4FE83ccFdfD0a6cC55A0004d70E574DfBDfa sha256 d45495c84350bc8f… byte-identical to HEAD
+GrantGate 0x8691BaB8DB890C5B20F563dE9e6f0c33645ad4c4 sha256 2fc4477e774a6871… byte-identical to HEAD
+GrantGateDemo 0xCC8De1d9b971B7fF484bbFb1C0CB1F9B2045BA7F sha256 2fc4477e774a6871… byte-identical to HEAD
 ```
 
 ## PASS · Ledger invariant holds on both registries (counters and recomputation)
 
 ```
-canonical received 1500000000000000000 = pledges 1000000000000000000 + open 0 + claimable 500000000000000000 + claimed 0; demo received 9200000000000000001 = 0 + 0 + 0 + 9200000000000000001
+canonical received 1500000000000000000 = pledges 0 + open 1000000000000000000 + claimable 500000000000000000 + claimed 0; demo received 12800000000000000002 = 0 + 0 + 0 + 12800000000000000002
 ```
 
 ## PASS · Demo registry drained to exactly 0 held
 
 ```
-demo held_now 0, claimed 9200000000000000001, on-chain balance 9200000000000000001 (Studio Dev queues claim transfers; see README)
+demo held_now 0, claimed 12800000000000000002, on-chain balance 12800000000000000002 (Studio Dev queues claim transfers; see README)
 ```
 
 ## PASS · Nothing stuck: no open check more than 3 h past its deadline (each has a permissionless exit)
@@ -38,29 +38,30 @@ none
 ## PASS · No state written before any check that can revert (AST scan, every write method of every contract)
 
 ```
-AsVotedJudge.judge                       first write L1274 self.judgments[key]                  last revert before L1272   PASS
-AsVotedRegistry.list_dao                 first write L718 self.daos[u64(did)]                   last revert before L715    PASS
-AsVotedRegistry.claim_dao                first write L750 d.controller                          last revert before L748    PASS
-AsVotedRegistry.pledge                   first write L767 self._refuse()                        last revert before -       PASS
-AsVotedRegistry.request_withdrawal       first write L788 d.withdraw_amount                     last revert before L786    PASS
-AsVotedRegistry.cancel_withdrawal        first write L802 d.withdraw_amount                     last revert before L801    PASS
-AsVotedRegistry.execute_withdrawal       first write L827 d.pledge                              last revert before L824    PASS
-AsVotedRegistry.file_check               first write L875 self._refuse()                        last revert before -       PASS
-AsVotedRegistry.rule                     first write L981 c.ruling                              last revert before L974    PASS
-AsVotedRegistry.appeal                   first write L1059 self._refuse()                       last revert before -       PASS
-AsVotedRegistry.finalize                 first write L1094 self._drop()                         last revert before L1091   PASS
-AsVotedRegistry.expire                   first write L1121 self._drop()                         last revert before L1118   PASS
-AsVotedRegistry.claim                    first write L1212 self.claimable[who]                  last revert before L1210   PASS
-ExecReader.read_execution                first write L1027 self.execs[u64(eid)]                 last revert before L1020   PASS
+AsVotedJudge.judge                       first write L1775 self.judgments[key]                  last revert before L1773   PASS
+AsVotedRegistry.list_dao                 first write L731 self.daos[u64(did)]                   last revert before L728    PASS
+AsVotedRegistry.claim_dao                first write L764 d.controller                          last revert before L762    PASS
+AsVotedRegistry.pledge                   first write L781 self._refuse()                        last revert before -       PASS
+AsVotedRegistry.request_withdrawal       first write L802 d.withdraw_amount                     last revert before L800    PASS
+AsVotedRegistry.cancel_withdrawal        first write L819 d.withdraw_amount                     last revert before L818    PASS
+AsVotedRegistry.execute_withdrawal       first write L845 d.pledge                              last revert before L842    PASS
+AsVotedRegistry.file_check               first write L907 self._refuse()                        last revert before -       PASS
+AsVotedRegistry.rule                     first write L1053 c.ruling                             last revert before L1046   PASS
+AsVotedRegistry.appeal                   first write L1173 self._refuse()                       last revert before -       PASS
+AsVotedRegistry.finalize                 first write L1224 self._drop()                         last revert before L1221   PASS
+AsVotedRegistry.expire                   first write L1258 self._drop()                         last revert before L1255   PASS
+AsVotedRegistry.claim                    first write L1376 self.claimable[who]                  last revert before L1374   PASS
+ExecReader.read_execution                first write L1122 self.execs[u64(eid)]                 last revert before L1115   PASS
 GrantGate.request_grant                  first write L83 self.requests[u64(rid)]                last revert before -       PASS
-VoteReader.read_proposal                 first write L1195 self.props[u64(vid)]                 last revert before L1192   PASS
-VoteReader.read_space                    first write L1244 self.binds[u64(bid)]                 last revert before L1241   PASS
+VoteReader.read_proposal                 first write L1282 self.props[u64(vid)]                 last revert before L1279   PASS
+VoteReader.read_space                    first write L1331 self.binds[u64(bid)]                 last revert before L1328   PASS
+VoteReader.read_names_at                 first write L1373 self.names_at[key]                   last revert before L1371   PASS
 ```
 
 ## PASS · Views read storage only (no writes, no web/model calls in any view); get_ledger recomputation matches counters
 
 ```
-Ran 4 tests in 0.316s  OK
+Ran 4 tests in 0.385s  OK
 ```
 
 ## PASS · Evidence bound at filing to (chain, Safe, tx, proposal CID, block) and snapshotted (reader evidence hashes match every check)
@@ -81,22 +82,22 @@ VoteReader.fetch_ipfs uses only bytes for which cid_matches() holds; read_propos
 Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mevblocker.io, https://arb1.arbitrum.io/rpc, https://arb-pokt.nodies.app, https://mainnet.optimism.io, https://optimism.drpc.org, https://mainnet.base.org, https://base-pokt.nodies.app, https://polygon-bor-rpc.publicnode.com, https://polygon.drpc.org, https://snapshot.4everland.link/ipfs/, https://ipfs.snapshot.box/ipfs/, https://hub.snapshot.org/graphql. rpc_send refuses any URL not in CHAINS; VoteReader.http_get refuses any URL not a gateway+valid CID, the hub query endpoint, or a CHAINS RPC.
 ```
 
-## PASS · Nobody acts for a DAO they don't control: listings proven by the space's own treasury setting; claims need a space admin/moderator; canonical has no demo seam
+## PASS · Nobody acts for a DAO they don't control: a listing needs the space's own treasury setting (unverified by Snapshot, so each listing is its own record); claims, pledges and DEVIATES appeals need a space admin/moderator; canonical has no demo seam
 
 ```
-9 canonical listings, each with a listed=true binding (bad: none); canonical demo_controllers = []; demo log: "claim by a non-admin is refused"
+8 canonical listings, each with a listed=true binding (bad: none); canonical demo_controllers = []; demo log: "claim by a non-admin is refused"
 ```
 
 ## PASS · All offline tests pass
 
 ```
-Ran 118 tests in 1.394s  OK
+Ran 187 tests in 12.603s  OK
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
 
 ```
-23/23 expectations passed (docs/demo-run.log)
+25/25 expectations passed (docs/demo-run.log)
 ```
 
 ## PASS · Partial or unreadable data refuses or is UNCLEAR, never a guess
@@ -140,22 +141,22 @@ missing: none; flagged words: none
 ```
 17 numbers compared, mismatches: []
 = checks: site "15" chain "15"
-= final:AS_VOTED: site "10" chain "10"
-= final:DEVIATES: site "2" chain "2"
-= final:UNCLEAR: site "3" chain "3"
-= daos: site "9" chain "9"
-= pledges: site "1" chain "1"
+= final:AS_VOTED: site "0" chain "0"
+= final:DEVIATES: site "0" chain "0"
+= final:UNCLEAR: site "5" chain "5"
+= daos: site "8" chain "8"
+= pledges: site "0" chain "0"
 = Canonical registry:received: site "1.5 GEN" chain "1.5 GEN"
-= Canonical registry:open: site "0 GEN" chain "0 GEN"
+= Canonical registry:open: site "1 GEN" chain "1 GEN"
 = Canonical registry:claimable: site "0.5 GEN" chain "0.5 GEN"
 = Canonical registry:held_now: site "1.5 GEN" chain "1.5 GEN"
-= Demo registry:received: site "9.2 GEN" chain "9.2 GEN"
+= Demo registry:received: site "12.8 GEN" chain "12.8 GEN"
 = Demo registry:held_now: site "0 GEN" chain "0 GEN"
-= Demo registry:claimed: site "9.2 GEN" chain "9.2 GEN"
-= dao:final as voted: site "6" chain "6"
-= dao:final deviates: site "1" chain "1"
-= dao:final unclear: site "1" chain "1"
-= dao:open checks: site "0" chain "0"
+= Demo registry:claimed: site "12.8 GEN" chain "12.8 GEN"
+= dao:final as voted: site "0" chain "0"
+= dao:final deviates: site "0" chain "0"
+= dao:final unclear: site "2" chain "2"
+= dao:open checks: site "6" chain "6"
 ```
 
 ## PASS · 375 px: no horizontal scroll on any page
@@ -173,11 +174,11 @@ missing: none; other addresses: none
 ## PASS · Vercel deployment live and green (site 200, patrol endpoint answers)
 
 ```
-GET / 200; /api/patrol dry run watched 9 Safes on 0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc
+GET / 200; /api/patrol dry run watched 8 Safes on 0x1C2891FE54a5CfE98436F439e40A3043050eFF44
 ```
 
-## PASS · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
+## FAIL · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
 
 ```
-commits touching key files: none; attribution in messages: none; working tree: clean
+commits touching key files: none; attribution in messages: none; working tree: dirty
 ```
