@@ -27,12 +27,12 @@ const SITE = "https://asvoted.vercel.app";
 
 // Hand-verified on chain and in the proposal text (tools/live.py pair ...).
 const WHY = {
-  "0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f": "CIP-48's 4M COW to the same Treasury counts too (round-4 rule)",
+  "0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f": "UNCLEAR because CIP-48 also pays the same Treasury, so code can't assign the payment to one proposal",
   "0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16": "the payment's line also says \"not\" (\"not enough COW\", round-4 rule)",
 };
 const NOTES = {
   "0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f":
-    "CIP-37 sends 6,000,000 COW to the Treasury Safe, the one amount on its line, and under CIP-37 alone the transfer is AUTHORIZED. Since round 4, a payment also counts with every other filing of the DAO that paid the same payee, under any proposal: CIP-48's 4,000,000 COW to the same Treasury (check #1) makes 10,000,000 COW against CIP-37's 6,000,000. The two rulings differ, so code cannot tell which proposal paid what, and the result is UNCLEAR. This rule is what stops a DAO from escaping a cap by switching proposals (r4_05). It was AS_VOTED on 7a74665.",
+    "UNCLEAR because CIP-48 also pays the same Treasury, so code can't assign the payment to one proposal. Under CIP-37 alone the 6,000,000 COW matches its stated amount; counted with CIP-48's 4,000,000 COW to the same Treasury Safe (check #1) it would be over. The round-4 rule (r4_05) makes that disagreement UNCLEAR. It was AS_VOTED on 7a74665.",
   "0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16":
     "CIP-48's line naming the Treasury Safe states the 4M COW transfer, but the same line goes on: \"In case it happens that there is not enough COW to cover the needs of the solver rewards program, a new CIP should be put in place\". Since round 4, a status or negation word anywhere in the payment's line or bullet subtree (\"rejected\", \"withdrawn\", \"cancelled\", \"not\", \"void\") leaves no cap, because code cannot tell what it negates. It was AS_VOTED on 7a74665.",
   "0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1":
