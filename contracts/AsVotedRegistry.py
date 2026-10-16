@@ -520,6 +520,8 @@ class Check:
     resp_ruling: str
     resp_summary: str
     resp_json: str
+    prior_all_json: str        # every other filing of the DAO that paid the same payees (any proposal)
+    appeal_by_dao: bool        # round 1 was filed by the listing's controller
 
 
 class AsVotedRegistry(gl.contract.Contract):
@@ -542,6 +544,7 @@ class AsVotedRegistry(gl.contract.Contract):
     check_by_tx: gl.storage.TreeMap[str, u64]
     pair_seen: gl.storage.TreeMap[str, u64]
     cid_checks: gl.storage.TreeMap[str, str]       # "dao_id|cid" -> comma-separated check ids filed under that proposal
+    payee_checks: gl.storage.TreeMap[str, str]     # "dao_id|payee" -> comma-separated check ids whose execution paid that address
     dao_check_n: gl.storage.TreeMap[u64, u64]
     dao_check_at: gl.storage.TreeMap[str, u64]
     counts: gl.storage.TreeMap[str, u64]
@@ -906,6 +909,7 @@ class AsVotedRegistry(gl.contract.Contract):
         if problem != "":
             return self._refuse(me, value, problem)
         prior = self._prior(int(d.dao_id), vote["cid"], int(ex["exec_id"]))
+        prior_all = self._prior_all(int(d.dao_id), ex)
         # --- writes (nothing below can refuse)
         cid = int(self.n_checks) + 1
         self.received_total = u256(int(self.received_total) + value)
@@ -922,6 +926,7 @@ class AsVotedRegistry(gl.contract.Contract):
             appeal_json="", final_verdict="", final_how="", final_at=u64(0), severity="", severity_bps=u64(0),
             pledge_at_filing=d.pledge, slash=u256(0), bounty_to="", settlement_json="", prior_json=_canon(prior),
             appeal_prior_json="[]", names_json=_canon(names), ens_unresolved=unresolved, appeal_names_json="{}",
+            prior_all_json=_canon(prior_all), appeal_by_dao=False,
             responder="", resp_bond=u256(0), resp_text="", resp_vote_id=u64(0), resp_cid="", resp_vote_sha="",
             resp_names_json="{}", resp_prior_json="[]", resp_deadline=u64(0), resp_ruling="", resp_summary="",
             resp_json="")
@@ -929,6 +934,9 @@ class AsVotedRegistry(gl.contract.Contract):
         self.cid_checks[ck] = str(self.cid_checks.get(ck) or "") + str(cid) + ","
         self.check_by_tx[txk] = u64(cid)
         self.pair_seen[txk + "|" + vote["cid"]] = u64(cid)
+        for pay in self._payees(ex):
+            pk = str(int(d.dao_id)) + "|" + pay
+            self.payee_checks[pk] = str(self.payee_checks.get(pk) or "") + str(cid) + ","
         n = int(self.dao_check_n.get(d.dao_id) or 0)
         self.dao_check_at[str(int(d.dao_id)) + "#" + str(n)] = u64(cid)
         self.dao_check_n[d.dao_id] = u64(n + 1)
@@ -940,20 +948,49 @@ class AsVotedRegistry(gl.contract.Contract):
         self._bump("status:" + ST_PROVISIONAL)
         return {"ok": True, "check_id": cid, "judge_deadline": now + int(self.judge_s)}
 
+    def _payees(self, ex: dict) -> list:
+        """Every address this execution moves value to."""
+        out = []
+        for a in ex.get("actions") or []:
+            k = a.get("kind")
+            if k in ("erc20_transfer", "erc20_transfer_from", "erc20_approve", "gas_refund", "native") and a.get("recipient"):
+                if a["recipient"] not in out:
+                    out.append(a["recipient"])
+            if int(a.get("value") or "0") > 0 and a.get("target") and a["target"] not in out:
+                out.append(a["target"])
+        return out
+
+    def _prior_all(self, dao_id: int, ex: dict) -> list:
+        """Execution ids of every other filing of this DAO that paid one of
+        this execution's payees, under any proposal of the space (one more
+        than PRIOR_MAX, so the judge can tell when the list is cut)."""
+        out = []
+        for pay in self._payees(ex):
+            raw = str(self.payee_checks.get(str(dao_id) + "|" + pay) or "")
+            for part in raw.split(","):
+                if part == "":
+                    continue
+                pc = self.checks.get(u64(int(part)))
+                if pc is None or int(pc.exec_id) == int(ex["exec_id"]) or int(pc.exec_id) in out:
+                    continue
+                out.append(int(pc.exec_id))
+        return out[:PRIOR_MAX + 1]
+
     def _names_for(self, vote: dict, ex: dict) -> dict:
         """The proposal's ENS names as resolved at the execution's L1 block
         (VoteReader.read_names_at), never later. A chain with no L1 block
         (Polygon) leaves them unresolved: the judge then never treats a name
         as naming nobody."""
         if len(vote.get("ens_names") or []) == 0:
-            return {"ens": {}, "unresolved": False}
+            return {"ens": {"ens": {}, "moved": {}, "unresolved": False}, "unresolved": False}
         l1 = int(ex.get("l1_block") or 0)
         if l1 <= 0:
-            return {"ens": {}, "unresolved": True}
+            return {"ens": {"ens": {}, "moved": {}, "unresolved": True}, "unresolved": True}
         nm = self._ext(self.vote_reader, "get_names_at", [int(vote["vote_id"]), l1])
         if not isinstance(nm, dict) or not nm.get("found"):
             return {"error": "READ_NAMES_AT_EXECUTION_BLOCK_" + str(l1) + "_FIRST"}
-        return {"ens": nm["ens"], "unresolved": False}
+        un = bool(nm.get("unresolved"))
+        return {"ens": {"ens": nm.get("ens") or {}, "moved": nm.get("moved") or {}, "unresolved": un}, "unresolved": un}
 
     def _round_vote(self, c: Check, rnd: int) -> list:
         """[vote_id, evidence sha, names json, prior json, counter-evidence]
@@ -981,9 +1018,12 @@ class AsVotedRegistry(gl.contract.Contract):
             return {"error": "SNAPSHOT_MISMATCH"}
         counter = rv[4]
         prior_ids = json.loads(rv[3])
-        # the names as of the execution, snapshotted when this round began
-        vote["ens"] = json.loads(rv[2])
-        vote["ens_unresolved"] = bool(c.ens_unresolved) and len(vote.get("ens_names") or []) > 0
+        # the names as voters saw them, and where any had moved by the
+        # execution: snapshotted when this round began
+        rec = json.loads(rv[2]) if rv[2] != "" else {}
+        vote["ens"] = rec.get("ens") or {}
+        vote["ens_moved"] = rec.get("moved") or {}
+        vote["ens_unresolved"] = bool(rec.get("unresolved")) and len(vote.get("ens_names") or []) > 0
         truncated = len(prior_ids) > PRIOR_MAX
         prior_ids = prior_ids[:PRIOR_MAX]
         prior = []
@@ -993,10 +1033,20 @@ class AsVotedRegistry(gl.contract.Contract):
                 return {"error": "READER_UNREADABLE"}
             prior.append({"exec_id": int(pid), "tx": pe["tx"], "actions": pe["actions"], "tokens": pe["tokens"],
                           "block_time": int(pe.get("block_time") or 0)})
+        all_ids = json.loads(c.prior_all_json) if c.prior_all_json != "" else []
+        all_trunc = len(all_ids) > PRIOR_MAX
+        prior_all = []
+        for pid in all_ids[:PRIOR_MAX]:
+            pe = self._ext(self.exec_reader, "get_execution", [int(pid)])
+            if not isinstance(pe, dict) or not pe.get("found"):
+                return {"error": "READER_UNREADABLE"}
+            prior_all.append({"exec_id": int(pid), "tx": pe["tx"], "actions": pe["actions"], "tokens": pe["tokens"],
+                              "block_time": int(pe.get("block_time") or 0)})
         sha = _sha(_canon({"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd,
-                           "prior_truncated": truncated}))
+                           "prior_truncated": truncated, "prior_all": prior_all, "prior_all_truncated": all_trunc}))
         return {"exec": ex, "vote": vote, "prior": prior, "counter_evidence": counter, "round": rnd,
-                "prior_truncated": truncated, "input_sha256": sha}
+                "prior_truncated": truncated, "prior_all": prior_all, "prior_all_truncated": all_trunc,
+                "input_sha256": sha}
 
     @gl.public.view
     def get_judge_input(self, check_id: int) -> typing.Any:
@@ -1076,8 +1126,9 @@ class AsVotedRegistry(gl.contract.Contract):
         c.appeal_ruling = verdict
         c.appeal_summary = str(j["summary"])
         c.appeal_json = doc
-        if verdict == V_DEV and c.ruling == V_AS:
-            # an appeal turned AS_VOTED into DEVIATES: the DAO gets its own
+        if verdict == V_DEV and (c.ruling == V_AS or not c.appeal_by_dao):
+            # an appeal turned AS_VOTED into DEVIATES, or someone other than
+            # the DAO appealed a DEVIATES and lost: the DAO gets its own
             # window to respond before anything is final
             c.status = ST_CONTESTABLE
             c.contest_deadline = u64(now + int(self.contest_s))
@@ -1111,26 +1162,38 @@ class AsVotedRegistry(gl.contract.Contract):
         d = None
         ex = None
         response = False
+        takeover = False
         if now <= 0:
             problem = "NO_CLOCK"
         elif value != APPEAL_BOND:
             problem = "BOND_MUST_BE_EXACTLY_" + str(APPEAL_BOND)
         elif c is None:
             problem = "NO_SUCH_CHECK"
+        elif c.status == ST_APPEALED and int(c.round) == 1 and not c.appeal_by_dao and c.ruling == V_DEV:
+            # The DAO's slot. On an unclaimed listing anyone but the filer may
+            # appeal a DEVIATES, but that appeal never uses up the DAO's turn:
+            # an admin who claims the listing within the window takes it over.
+            d0 = self.daos[c.dao_id]
+            if d0.controller == "" or me != d0.controller:
+                problem = "NOT_CONTESTABLE"
+            elif now > int(c.contest_deadline):
+                problem = "CONTEST_WINDOW_CLOSED_THE_DAO_ANSWERS_AFTER_THE_RULING"
+            else:
+                takeover = True
         elif c.status != ST_CONTESTABLE:
             problem = "NOT_CONTESTABLE"
         elif now > int(c.contest_deadline):
             problem = "CONTEST_WINDOW_CLOSED"
         if problem == "":
             d = self.daos[c.dao_id]
-            response = int(c.round) == 1
+            response = takeover or int(c.round) == 1
             if response:
-                if c.appeal_ruling != V_DEV:
+                # the DAO's answer is reserved for the listing's controller
+                # (on an unclaimed listing an admin claims it first)
+                if not takeover and c.appeal_ruling != V_DEV:
                     problem = "NOT_APPEALABLE"
-                elif d.controller != "" and me != d.controller:
+                elif d.controller == "" or me != d.controller:
                     problem = "ONLY_THE_DAOS_CONTROLLER_MAY_RESPOND"
-                elif d.controller == "" and (me == c.filer or me == c.appellant):
-                    problem = "ONLY_THE_DAO_SIDE_MAY_RESPOND"
             elif c.ruling == V_DEV:
                 if d.controller != "" and me != d.controller:
                     problem = "ONLY_THE_DAOS_CONTROLLER_MAY_APPEAL_DEVIATES"
@@ -1150,7 +1213,7 @@ class AsVotedRegistry(gl.contract.Contract):
         if problem == "" and alt < 0:
             problem = "BAD_ALT_VOTE_ID"
         if problem == "" and alt > 0:
-            answering_dev = (response and c.appeal_ruling == V_DEV) or (not response and c.ruling == V_DEV)
+            answering_dev = (response and (takeover or c.appeal_ruling == V_DEV)) or (not response and c.ruling == V_DEV)
             if not answering_dev or d.controller == "" or me != d.controller:
                 problem = "ONLY_THE_DAOS_CONTROLLER_ANSWERING_DEVIATES_MAY_NAME_ANOTHER_PROPOSAL"
         names = {}
@@ -1172,9 +1235,19 @@ class AsVotedRegistry(gl.contract.Contract):
         if problem != "":
             return self._refuse(me, value, problem)
         aprior = self._prior(int(d.dao_id), vote["cid"], int(c.exec_id)) if alt > 0 else []
+        ex_now = ex if isinstance(ex, dict) and ex.get("found") else self._ext(self.exec_reader, "get_execution", [int(c.exec_id)])
+        pall = self._prior_all(int(d.dao_id), ex_now) if isinstance(ex_now, dict) and ex_now.get("found") else \
+            (json.loads(c.prior_all_json) if c.prior_all_json != "" else [])
         # --- writes
         self.received_total = u256(int(self.received_total) + value)
         self.open_total = u256(int(self.open_total) + value)
+        if takeover:
+            # the stranger's appeal is set aside and its bond returned
+            bond0 = int(c.appeal_bond)
+            self.open_total = u256(int(self.open_total) - bond0)
+            self._credit(c.appellant, bond0)
+            c.appeal_bond = u256(0)
+            c.appeal_summary = "Set aside: the DAO's controller took the DAO's appeal; bond returned."
         if response:
             c.responder = me
             c.resp_bond = u256(value)
@@ -1190,6 +1263,7 @@ class AsVotedRegistry(gl.contract.Contract):
             deadline = int(c.resp_deadline)
         else:
             c.appellant = me
+            c.appeal_by_dao = d.controller != "" and me == d.controller
             c.appeal_prior_json = _canon(aprior)
             c.appeal_bond = u256(value)
             c.appeal_text = text
@@ -1201,9 +1275,11 @@ class AsVotedRegistry(gl.contract.Contract):
             c.round = u64(1)
             c.appeal_deadline = u64(now + int(self.appeal_s))
             deadline = int(c.appeal_deadline)
-        c.status = ST_APPEALED
-        self._drop("status:" + ST_CONTESTABLE)
-        self._bump("status:" + ST_APPEALED)
+        c.prior_all_json = _canon(pall)
+        if not takeover:
+            c.status = ST_APPEALED
+            self._drop("status:" + ST_CONTESTABLE)
+            self._bump("status:" + ST_APPEALED)
         return {"ok": True, "check_id": int(c.check_id), "round": int(c.round), "appeal_deadline": deadline}
 
     @gl.public.write
@@ -1259,7 +1335,7 @@ class AsVotedRegistry(gl.contract.Contract):
         if how == "EXPIRED_UNJUDGED":
             self._settle(c, d, V_UNCLEAR, how, now)
         elif how == "RESPONSE_EXPIRED":
-            self._settle(c, d, c.appeal_ruling, how, now)
+            self._settle(c, d, c.appeal_ruling if c.appeal_ruling in (V_AS, V_DEV, V_UNCLEAR) else c.ruling, how, now)
         else:
             self._settle(c, d, c.ruling, how, now)
         return {"ok": True, "check_id": int(c.check_id), "final": c.final_verdict, "how": how}
