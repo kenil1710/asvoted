@@ -834,7 +834,7 @@ def amount_flags(text: str, amts: list) -> list:
         sa = la if sa < 0 else sa + 2
         sb = low.find(". ", p, lb)
         sb = lb if sb < 0 else sb
-        neg = len([1 for w in NEG_WORDS if low[sa:sb].find(w) >= 0]) > 0
+        neg = len([1 for w in NEG_WORDS if low[sa:sb].find(w) >= 0]) > 0 or _whole_word(low[sa:sb], "not")
         stop = lb
         if k + 1 < len(amts) and amts[k + 1][0] < stop:
             stop = amts[k + 1][0]
@@ -867,7 +867,7 @@ def amount_flags(text: str, amts: list) -> list:
     return out
 
 
-NEG_WORDS = ("reject", "denied", "declined", "not approved", "instead of", "not be paid", "not be sent", "won't be")
+NEG_WORDS = ("reject", "denied", "declined", "instead of", "won't", "will not", "shall not", "rather than")
 NO_WORDS = ("no", "not", "against", "abstain", "reject", "oppose", "nay", "none", "nothing", "keep", "edits", "revise",
             "later")
 
@@ -883,21 +883,130 @@ def approving_choices(choices: list) -> list:
     return out
 
 
+NEST_DEPTH = 3
+
+
 def nested_addresses(words: list) -> list:
-    """Address-shaped words of a call nested in a bytes argument: they sit 4
-    bytes (a selector) off the 32-byte grid. Only full-width addresses (top
-    byte non-zero) count, so a shifted amount is never read as one."""
+    """Address-shaped words of calls nested in bytes arguments (multicall,
+    router sub-calls), recursively to NEST_DEPTH: each level of nesting puts
+    the inner words a 4-byte selector further off the 32-byte grid (4, 8, 12
+    bytes). Only full-width addresses (top byte non-zero) count, so a shifted
+    amount is never read as one."""
     blob = "".join([w[2:] if w.startswith("0x") else w for w in words])
     out = []
-    k = 8
-    while k + 64 <= len(blob):
-        win = blob[k:k + 64]
-        if win[:24] == "0" * 24 and win[24:26] != "00" and _is_hex(win[24:].lower(), 40):
-            a = "0x" + win[24:].lower()
-            if a not in out:
-                out.append(a)
-        k += 64
+    for depth in range(1, NEST_DEPTH + 1):
+        k = 8 * depth
+        while k + 64 <= len(blob):
+            win = blob[k:k + 64]
+            if win[:24] == "0" * 24 and win[24:26] != "00" and _is_hex(win[24:].lower(), 40):
+                a = "0x" + win[24:].lower()
+                if a not in out:
+                    out.append(a)
+            k += 64
     return out
+
+
+def _choice_key(label: str) -> str:
+    """What a choice is called in the text: "Yes, option A" -> "option a"."""
+    k = str(label).strip().lower()
+    for pre in ("yes,", "yes -", "yes:", "yes ", "approve,", "approve:", "approve ", "for:", "for "):
+        if k.startswith(pre) and len(k) > len(pre) + 2:
+            k = k[len(pre):].strip()
+            break
+    while len(k) > 0 and k[-1] in ".:!":
+        k = k[:-1]
+    return k
+
+
+def _starts_with_key(line: str, key: str) -> bool:
+    t = line.strip().lower()
+    while len(t) > 0 and t[0] in "#*->_`[( ":
+        t = t[1:]
+    return len(key) >= 3 and t.startswith(key)
+
+
+def choice_segments(text: str, choices: list, scores: list) -> dict:
+    """For a vote with several approving choices: the spans of text tied to
+    each choice (a heading's section or a paragraph that begins with the
+    choice's name), which choice won, and whether the winner's text was
+    found. {"multi": False} when at most one choice approves anything."""
+    appr = approving_choices(choices)
+    if len(appr) <= 1:
+        return {"multi": False}
+    best = -1
+    for i in range(len(choices)):
+        try:
+            v = float(scores[i])
+        except Exception:
+            v = -1.0
+        if best < 0 or v > float(scores[best]):
+            best = i
+    winner = str(choices[best]) if best >= 0 else ""
+    spans = {}
+    k = 0
+    while k < len(text):
+        la, lb = line_bounds(text, k)
+        line = text[la:lb]
+        for c in appr:
+            key = _choice_key(c)
+            if _starts_with_key(line, key):
+                sp = section_bounds(text, la) if _is_heading(line) else para_bounds(text, la)
+                spans.setdefault(c, []).append(sp)
+        k = lb + 1
+    return {"multi": True, "winner": winner, "found": winner in spans,
+            "losing": [sp for c in spans if c != winner for sp in spans[c]], "approving": appr}
+
+
+def strict_cap(who: str, fam: str, relevant: list, amts: list, owners: list, flags: list, text: str,
+               mentions: list) -> dict:
+    """The one amount that caps what `who` receives in token family `fam`:
+    stated in who's own line, list item or table row, with no other amount
+    for that family there. {"kind": "cap", "cap", "k"} | {"kind": "unclear",
+    "why"} | {"kind": "other", "others", "dollars"} | {"kind": "none"}."""
+    low = text.lower()
+    for p in mentions:
+        la, lb = line_bounds(text, p)
+        seg = low[la:lb]
+        if len([1 for w in NEG_WORDS if seg.find(w) >= 0]) > 0 or _whole_word(seg, "not"):
+            return {"kind": "unclear", "why": "the line naming " + who + " refuses or excludes something"}
+    mine = []
+    other = []
+    for k in range(len(amts)):
+        o = owners[k]
+        if who not in o["addrs"] or o["kind"] not in ("line", "shared", "item", "multi"):
+            continue
+        f = family(amts[k][3])
+        if f not in relevant:
+            continue
+        if f == fam:
+            mine.append(k)
+        else:
+            other.append(k)
+    if len(mine) == 0:
+        if len(other) == 0:
+            return {"kind": "none"}
+        dollars = len([k for k in other if amts[k][3] == "USD" or (family(amts[k][3]) == "USD" and flags[k]["value_of"])])
+        fams = []
+        for k in other:
+            if family(amts[k][3]) not in fams:
+                fams.append(family(amts[k][3]))
+        return {"kind": "other", "others": fams, "dollars": dollars == len(other)}
+    for k in mine:
+        if flags[k]["neg"]:
+            return {"kind": "unclear", "why": "the amount stated for " + who + " is refused or excluded in its sentence"}
+        if flags[k]["min"]:
+            return {"kind": "unclear", "why": "the proposal states only a minimum for " + who + ", not a cap"}
+        if owners[k]["kind"] == "multi":
+            return {"kind": "unclear", "why": "the amount near " + who + " is stated where several addresses are named; code cannot tell whose it is"}
+    vals = []
+    for k in mine:
+        v = [amts[k][1] * (10 ** (36 - amts[k][2])), flags[k]["period"], flags[k]["times"]]
+        if v not in vals:
+            vals.append(v)
+    if len(vals) > 1:
+        return {"kind": "unclear", "why": "the proposal states " + str(len(vals)) + " different amounts for " + who +
+                " (" + ", ".join([_fmt_cap(amts[k]) for k in mine[:4]]) + "); code cannot tell which one caps this payment"}
+    return {"kind": "cap", "cap": amts[mine[0]], "k": mine[0]}
 
 
 def amount_owners(text: str, amts: list, marks: list) -> list:
@@ -974,69 +1083,6 @@ def amount_owners(text: str, amts: list, marks: list) -> list:
     return out
 
 
-def cap_for(text: str, mentions: list, fam: str, relevant: list, doc_ok: bool, amts: list, owners: list = None,
-            who: str = "", flags: list = None) -> dict:
-    """The cap ladder. Returns {"level", "cap": [..] | None, "others": [...],
-    "cands": [...]}, {"level": "min"} when only minimums are stated near the
-    recipient, or {"level": ""} when no amount is. An amount whose owners are
-    other addresses is theirs, and is never borrowed."""
-    levels = (("line", line_bounds), ("paragraph", para_bounds), ("section", section_bounds))
-    saw_min = False
-
-    def usable(k: int) -> bool:
-        if owners is not None and len(owners[k]["addrs"]) > 0 and who not in owners[k]["addrs"]:
-            return False
-        return family(amts[k][3]) in relevant
-
-    for name, fn in levels:
-        spans = [fn(text, p) for p in mentions]
-        cands = []
-        for k in range(len(amts)):
-            a = amts[k]
-            if not usable(k):
-                continue
-            inside = len([1 for s in spans if s[0] <= a[0] < s[1]]) > 0
-            if not inside:
-                continue
-            if flags is not None and flags[k]["min"]:
-                saw_min = True
-                continue
-            cands.append(a + [k])
-        if len(cands) > 0:
-            return _pick(name, cands, fam, spans)
-        if saw_min:
-            return {"level": "min"}
-    if doc_ok:
-        cands = []
-        for k in range(len(amts)):
-            if usable(k):
-                if flags is not None and flags[k]["min"]:
-                    saw_min = True
-                    continue
-                cands.append(amts[k] + [k])
-        if len(cands) > 0:
-            return _pick("document", cands, fam, [(0, len(text))])
-    return {"level": "min"} if saw_min else {"level": ""}
-
-
-def _pick(level: str, cands: list, fam: str, spans: list) -> dict:
-    mine = [c for c in cands if family(c[3]) == fam]
-    others = []
-    for c in cands:
-        f = family(c[3])
-        if f != fam and f not in others:
-            others.append(f)
-    best = None
-    for c in mine:
-        if best is None or c[1] * (10 ** (36 - c[2])) > best[1] * (10 ** (36 - best[2])):
-            best = c
-    raw = []
-    for c in cands:
-        if family(c[3]) != fam and c[3] not in raw:
-            raw.append(c[3])
-    return {"level": level, "cap": best, "others": others, "others_raw": raw, "spans": spans, "cands": mine, "all": cands}
-
-
 def _snippet(text: str, pos: int) -> str:
     a, b = line_bounds(text, pos)
     s = collapse(text[a:b])
@@ -1059,10 +1105,32 @@ def code_rules(inp: dict) -> list:
     acts = ex["actions"]
     addrs = address_mentions(text)
     amts = amounts_in(without_link_targets(text))
+    # a vote with several approving choices: amounts in a losing choice's text
+    # never count; if the winner's own text cannot be found, nothing caps
+    seg = choice_segments(text, inp["vote"].get("choices") or [], inp["vote"].get("scores") or [])
+    multi_option = bool(seg.get("multi")) and not seg.get("found")
+    if seg.get("multi") and seg.get("found"):
+        amts = [a for a in amts if len([1 for sp in seg["losing"] if sp[0] <= a[0] < sp[1]]) == 0]
     flags = amount_flags(text, amts)
+    allow = (inp.get("allow") or {}).get(str(ex.get("chain", ""))) or {}
+    ens_unres = bool(inp["vote"].get("ens_unresolved"))
+
+    def ident_sym(token: str, tmap: dict) -> str:
+        """A token's symbol, only if the token is identified: on the judge's
+        token list, or named by address in the proposal. symbol() alone
+        never identifies a token."""
+        if token == "":
+            return str((tmap.get("") or {}).get("symbol", "ETH"))
+        if token in allow:
+            return str(allow[token])
+        if token in addrs or low.find(token[2:]) >= 0:
+            t = tmap.get(token)
+            return str(t.get("symbol", "")) if isinstance(t, dict) else ""
+        return ""
+
     exec_fams = ["USD"]
     for t in toks:
-        sy = toks[t].get("symbol", "")
+        sy = ident_sym(t, toks)
         if sy != "" and family(sy) not in exec_fams:
             exec_fams.append(family(sy))
     known = [safe, ZERO, SENTINEL_OWNER] + [t for t in toks if t != ""] + list(MULTISEND_ADDRS)
@@ -1077,11 +1145,14 @@ def code_rules(inp: dict) -> list:
             continue
         for ps in ens_positions(low, nm):
             marks.append((ps, ens[nm]))
+    # addresses written glued inside longer hex (quoted calldata) own amounts too
+    for a in acts:
+        for x in [a.get("recipient") or "", a.get("target") or "", a.get("from") or ""] + list(a.get("addr_args") or []):
+            if len(x) == 42 and x not in addrs and x not in known:
+                for ps in hex_positions(low, x):
+                    if (ps, x) not in marks:
+                        marks.append((ps, x))
     owners = amount_owners(text, amts, marks)
-    others = [a for a in addrs if a not in known]
-    for nm in ens:
-        if ens[nm] not in others and ens[nm] not in known:
-            others.append(ens[nm])
 
     def mentioned(a: str) -> bool:
         if a in addrs or (len(a) == 42 and low.find(a[2:]) >= 0):
@@ -1092,19 +1163,22 @@ def code_rules(inp: dict) -> list:
         return False
 
     def sym_of(token: str) -> str:
-        t = toks.get(token)
-        return t.get("symbol", "") if isinstance(t, dict) else ""
-
-    syms = ex.get("symbols") or {}
+        return ident_sym(token, toks)
 
     def named_by_symbol(a: str) -> bool:
-        """A token contract the proposal names by its on-chain symbol (read
-        at the pinned block): a token-like symbol (3+ characters, 2+
-        capitals) written in the proposal in that exact case, as a whole
-        word. "router" or "grant" never identify a contract."""
-        sy = sym_of(a) if a in toks else str(syms.get(a, ""))
-        caps = len([1 for ch in sy if ch.isupper()])
-        return len(sy) >= 3 and caps >= 2 and _whole_word(text, sy)
+        """A listed token the proposal names by its symbol (3+ characters,
+        written in that exact case, as a whole word). Only tokens on the
+        judge's token list: symbol() alone never identifies a contract."""
+        sy = str(allow.get(a, ""))
+        return len(sy) >= 3 and _whole_word(text, sy)
+
+    def unnamed(what: str) -> list:
+        """[outcome, reason suffix] for an address the proposal does not
+        name: NOT_AUTHORIZED, unless it names ENS names that could not be
+        resolved as of the execution (then it might be one of them)."""
+        if ens_unres:
+            return [A_UNCLEAR, what + ", unless it is one of the proposal's ENS names, which could not be resolved as of this execution"]
+        return [A_NOT, what]
 
     def dec_of(token: str) -> int:
         t = toks.get(token)
@@ -1120,7 +1194,7 @@ def code_rules(inp: dict) -> list:
             if k in ("erc20_transfer", "erc20_transfer_from", "gas_refund", "native") or int(a.get("value", "0")) > 0:
                 tok = a.get("token", "") if k != "native" and k in ("erc20_transfer", "erc20_transfer_from", "gas_refund") else ""
                 info = ptoks.get(tok) if isinstance(ptoks.get(tok), dict) else {}
-                sy = str(info.get("symbol", "")) if tok != "" else str((ptoks.get("") or {}).get("symbol", "ETH"))
+                sy = ident_sym(tok, ptoks)
                 dc = int(info.get("decimals", -1)) if tok != "" else 18
                 amt = int(a.get("amount") or 0) if k != "call" and k != "delegatecall" and k != "empty" else int(a.get("value", "0"))
                 to = a.get("recipient") if a.get("recipient") else a.get("target")
@@ -1202,8 +1276,6 @@ def code_rules(inp: dict) -> list:
             tk = lg[1] + "|" + fam
             exec_tot[tk] = exec_tot.get(tk, 0) + lg[3] * (10 ** (18 - dc))
     now_t = int(ex.get("block_time", 0))
-    approving = approving_choices(inp["vote"].get("choices") or [])
-    multi_option = len(approving) > 1
     truncated = bool(inp.get("prior_truncated"))
 
     def prior_of(who: str, fam: str, per: str) -> list:
@@ -1235,14 +1307,19 @@ def code_rules(inp: dict) -> list:
                 setr(i, A_AUTH, "moves value into the Safe itself")
             continue
         if not mentioned(r):
+            u = unnamed(("approves " if approval else "sends ") + "to " + r + ", an address the proposal does not mention")
             for x in g:
-                setr(x[0], A_NOT, ("approves " if approval else "sends ") + "to " + r +
-                     ", an address the proposal does not mention")
+                setr(x[0], u[0], u[1])
             continue
         decs = [dec_of(x[2]) if x[2] != "" else 18 for x in g]
-        if fam == "" or min(decs) < 0 or max(decs) > 18:
+        if fam == "":
             for i in idx:
-                setr(i, A_UNCLEAR, "the token's symbol or decimals could not be read")
+                setr(i, A_UNCLEAR, "the token " + g[0][2] + " is neither on the judge's token list nor named by address "
+                     "in the proposal, so code cannot tell which token it is")
+            continue
+        if min(decs) < 0 or max(decs) > 18:
+            for i in idx:
+                setr(i, A_UNCLEAR, "the token's decimals could not be read")
             continue
         # amounts in one scale (18 decimals), so USDC and DAI to one recipient add up
         gtotal = 0
@@ -1272,34 +1349,35 @@ def code_rules(inp: dict) -> list:
                          "", 10 ** 6)
             continue
         relevant = exec_fams
-        doc_ok = len([o for o in others if o != r]) == 0
-        c = cap_for(text, ms, fam, relevant, doc_ok, amts, owners, r, flags)
-        if c["level"] == "min":
+        if multi_option:
             for i in idx:
-                setr(i, A_UNCLEAR, "the proposal states no cap near " + r + ", only a minimum or an amount it refuses")
+                setr(i, A_UNCLEAR, "the vote offered several approving options (" + ", ".join(seg["approving"][:4]) +
+                     ") and the winning option's own text cannot be found; code cannot tell which amounts passed")
             continue
-        if c["level"] == "":
+        c = strict_cap(r, fam, relevant, amts, owners, flags, text, ms)
+        if c["kind"] == "unclear":
             for i in idx:
-                setr(i, A_UNCLEAR, "the proposal states no amount near " + r)
+                setr(i, A_UNCLEAR, c["why"], _snippet(text, ms[0]) if len(ms) > 0 else "", 0, "line")
             continue
-        if c["cap"] is None:
-            # dollar figures ("$500", "500 USD", "50,000 USDC worth of") are a
-            # valuation; a stablecoin amount stated plainly is a different token
-            dollars = [x for x in c["all"] if family(x[3]) != fam and
-                       (x[3] == "USD" or (family(x[3]) == "USD" and flags[x[4]]["value_of"]))]
-            if len(dollars) == len([x for x in c["all"] if family(x[3]) != fam]):
-                # Only dollar figures near the recipient, paid in another token:
-                # comparing them needs a price, which this contract never guesses.
+        if c["kind"] == "none":
+            for i in idx:
+                setr(i, A_UNCLEAR, "the proposal states no amount on the line, list item or table row naming " + r)
+            continue
+        if c["kind"] == "other":
+            if c["dollars"]:
+                # only dollar figures for the recipient, paid in another token:
+                # comparing them needs a price, which this contract never guesses
                 for i in idx:
-                    setr(i, A_UNCLEAR, "the proposal states amounts near " + r + " only in USD; " + sym +
-                         " cannot be compared without a price", "", 0, c["level"])
+                    setr(i, A_UNCLEAR, "the proposal states amounts for " + r + " only in USD; " + sym +
+                         " cannot be compared without a price", "", 0, "line")
             else:
                 for i in idx:
-                    setr(i, A_OVER, "the proposal states amounts near " + r + " only in " + ", ".join(c["others"]) +
-                         ", not in " + sym, "", 10 ** 6, c["level"])
+                    setr(i, A_OVER, "the proposal states amounts for " + r + " only in " + ", ".join(c["others"]) +
+                         ", not in " + sym, "", 10 ** 6, "line")
             continue
+        c["level"] = "line"
         cap = c["cap"]
-        ck = cap[4]
+        ck = c["k"]
         own = owners[ck]
         per = flags[ck]["period"]
         # whom the cap covers: one amount stated for several addresses on one
@@ -1322,34 +1400,11 @@ def code_rules(inp: dict) -> list:
             (", " + str(n_prior) + " of them in earlier executions checked against this proposal" if n_prior > 0 else "") + ")"
         q = _snippet(text, cap[0])
         if within:
-            if own["kind"] == "multi":
-                why = "the amount near " + r + " is stated where several addresses are named; code cannot tell whose it is"
-                for i in idx:
-                    setr(i, A_UNCLEAR, why, q, 0, c["level"])
-                continue
             if uncounted > 0 and not _cmp_cap(total + uncounted, 18, cap)[0]:
                 why = ("the stated amount repeats (" + ("per period" if per == "?" else "per calendar period") +
                        ") and earlier executions under this proposal sent more; code cannot date the period")
                 for i in idx:
                     setr(i, A_UNCLEAR, why, q, 0, c["level"])
-                continue
-            line = line_bounds(text, cap[0])
-            same = [x for x in c["cands"] if line_bounds(text, x[0]) == line]
-            if len(same) > 1:
-                small = same[0]
-                for x in same:
-                    if x[1] * (10 ** (36 - x[2])) < small[1] * (10 ** (36 - small[2])):
-                        small = x
-                if not _cmp_cap(total, 18, small)[0]:
-                    for i in idx:
-                        setr(i, A_UNCLEAR, sent + joined + " is within " + _fmt_cap(cap) + " but the line states several "
-                             "amounts (" + ", ".join([_fmt_cap(x) for x in same]) + "); code cannot tell which is for " + r,
-                             q, 0, c["level"])
-                    continue
-            if multi_option:
-                for i in idx:
-                    setr(i, A_UNCLEAR, "the vote offered several approving options (" + ", ".join(approving[:4]) +
-                         "); code cannot tell which option's amounts passed", q, 0, c["level"])
                 continue
             times = flags[ck]["times"]
             if times > 0:
@@ -1372,28 +1427,15 @@ def code_rules(inp: dict) -> list:
                 setr(i, A_AUTH, sent + joined + " to a recipient the proposal names, within the stated " +
                      _fmt_cap(cap) + per_txt, q, 0, c["level"])
             continue
-        # over the largest amount: several amounts stated for this recipient
-        # alone may add up (an audit fee and a reimbursement); only words can say
-        mine = [x for x in c["cands"] if owners[x[4]]["kind"] in ("line", "cell", "item", "para")
-                and owners[x[4]]["addrs"] == [r] and flags[x[4]]["period"] == ""]
-        if len(covered) == 1 and len(mine) > 1:
-            num = 0
-            for x in mine:
-                num += x[1] * (10 ** (36 - x[2]))
-            if total * BPS * (10 ** 18) <= num * (BPS + TOL_BPS):
-                for i in idx:
-                    setr(i, A_UNCLEAR, sent + joined + " is above the largest amount stated for " + r +
-                         " but within the " + str(len(mine)) + " amounts stated for it together; whether they add up "
-                         "needs the words", q, 0, c["level"])
-                continue
         for i in idx:
-            setr(i, A_OVER, sent + joined + " is above the largest amount the proposal states for this "
+            setr(i, A_OVER, sent + joined + " is above the amount the proposal states for this "
                  "recipient (" + _fmt_cap(cap) + ")", q, over, c["level"])
 
     for a in acts:
         fr = str(a.get("from") or "")
         if a["kind"] == "erc20_transfer_from" and a["i"] not in exact and fr != "" and fr != safe and not mentioned(fr):
-            setr(a["i"], A_NOT, "pulls tokens from " + fr + ", an address the proposal does not mention")
+            u = unnamed("pulls tokens from " + fr + ", an address the proposal does not mention")
+            setr(a["i"], u[0], u[1])
 
     for i in exact:
         setr(i, A_AUTH, "the proposal quotes this exact calldata, for a contract it names")
@@ -1411,28 +1453,34 @@ def code_rules(inp: dict) -> list:
             ident = named_by_symbol(tgt)
         if not ident:
             if k == "delegatecall":
-                setr(a["i"], A_NOT, "a DELEGATECALL to " + tgt + ", an address the proposal does not mention")
+                u = unnamed("a DELEGATECALL to " + tgt + ", an address the proposal does not mention")
             else:
-                setr(a["i"], A_NOT, "calls " + tgt + ", a contract the proposal does not identify")
+                u = unnamed("calls " + tgt + ", a contract the proposal does not identify")
+            setr(a["i"], u[0], u[1])
             continue
+
+        def fine(x: str) -> bool:
+            return x in (safe, tgt, ZERO, SENTINEL_OWNER) or (x in toks and sym_of(x) != "") or \
+                x in MULTISEND_ADDRS or mentioned(x) or named_by_symbol(x)
+
         bad = ""
         for x in a.get("addr_args") or []:
-            if x in (safe, tgt, ZERO, SENTINEL_OWNER) or x in toks or x in MULTISEND_ADDRS or mentioned(x) \
-                    or named_by_symbol(x):
-                continue
-            bad = x
-            break
+            if not fine(x):
+                bad = x
+                break
         if bad != "":
-            setr(a["i"], A_NOT, "passes the address " + bad + ", which the proposal does not mention")
+            u = unnamed("passes the address " + bad + ", which the proposal does not mention")
+            setr(a["i"], u[0], u[1])
             continue
         for x in nested_addresses(a.get("args") or []):
-            if x in (safe, tgt, ZERO, SENTINEL_OWNER) or x in toks or x in MULTISEND_ADDRS or mentioned(x) \
-                    or named_by_symbol(x):
-                continue
-            bad = x
-            break
+            if not fine(x):
+                bad = x
+                break
         if bad != "":
-            setr(a["i"], A_NOT, "passes the address " + bad + " inside nested calldata, which the proposal does not mention")
+            # an address inside a sub-call (multicall, router): code cannot
+            # tell what the sub-call does with it, so it is never AS_VOTED
+            setr(a["i"], A_UNCLEAR, "passes the address " + bad + " inside nested calldata, which the proposal does "
+                 "not name; code cannot tell what the inner call does with it")
             continue
         setr(a["i"], A_MODEL, "an identified contract; whether the proposal describes this call needs its words")
     return [res[a["i"]] for a in acts]
@@ -1630,13 +1678,39 @@ class Judgment:
     judged_by: Address
 
 
+def parse_token_list(raw: str) -> dict:
+    """{chain: {lowercase token address: SYMBOL}} from the constructor's JSON;
+    refuses anything malformed."""
+    doc = json.loads(raw) if str(raw).strip() != "" else {}
+    if not isinstance(doc, dict):
+        raise gl.vm.UserError("token list must be a JSON object")
+    out = {}
+    for ch in doc:
+        m = doc[ch]
+        if not isinstance(m, dict):
+            raise gl.vm.UserError("token list entry must be an object")
+        out[str(ch)] = {}
+        for a in m:
+            ad = _addr(a)
+            sy = str(m[a])
+            if ad == "" or len(sy) < 2 or len(sy) > 12:
+                raise gl.vm.UserError("bad token list entry " + str(a))
+            out[str(ch)][ad] = sy
+    return out
+
+
 class AsVotedJudge(gl.contract.Contract):
     n: u64
     judgments: gl.storage.TreeMap[str, Judgment]
     order: gl.storage.TreeMap[u64, str]
+    tokens_json: str
 
-    def __init__(self) -> None:
+    def __init__(self, tokens_json: str) -> None:
+        """tokens_json: the tokens this judge identifies by symbol, fixed at
+        deployment ({chain: {address: SYMBOL}}). Any other token counts only
+        if the proposal names its address."""
         self.n = u64(0)
+        self.tokens_json = _canon(parse_token_list(tokens_json))
 
     def _now(self) -> int:
         return _epoch_from_iso(gl.message.raw.get("datetime", ""))
@@ -1676,6 +1750,7 @@ class AsVotedJudge(gl.contract.Contract):
         # judge the proposal as voters saw it rendered (no HTML comments)
         inp["vote"] = dict(inp["vote"])
         inp["vote"]["text"] = visible_text(str(inp["vote"].get("text") or ""))
+        inp["allow"] = json.loads(self.tokens_json)
         base = code_rules(inp)
         nonce = in_sha[:16]
         if len([r for r in base if r["outcome"] == A_MODEL]) == 0:
@@ -1747,4 +1822,5 @@ class AsVotedJudge(gl.contract.Contract):
     def get_config(self) -> typing.Any:
         return {"version": VERSION, "contract": "AsVotedJudge", "tolerance_bps": TOL_BPS,
                 "usd_family": list(USD_FAMILY), "eth_family": list(ETH_FAMILY), "pol_family": list(POL_FAMILY),
-                "multipliers": MULT, "min_quote": MIN_QUOTE, "judgments": int(self.n)}
+                "multipliers": MULT, "min_quote": MIN_QUOTE, "judgments": int(self.n),
+                "token_list": json.loads(self.tokens_json)}
