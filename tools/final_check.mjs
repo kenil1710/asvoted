@@ -112,7 +112,7 @@ check("Demo registry drained to exactly 0 held", LD.held_now === "0" && LD.pledg
   const daos = await view(R, "get_daos", [0, 50]);
   const bad = [];
   for (const d of daos.daos) { const b = await view(dep.VoteReader.address, "get_binding", [d.bind_id]); if (!b.listed || b.safe !== d.safe || b.space !== d.space) bad.push(d.dao_id); }
-  check("Nobody acts for a DAO they don't control: listings proven by the space's own treasury setting; claims need a space admin/moderator; canonical has no demo seam", bad.length === 0 && cfg.demo_controllers.length === 0,
+  check("Nobody acts for a DAO they don't control: a listing needs the space's own treasury setting (unverified by Snapshot, so each listing is its own record); claims, pledges and DEVIATES appeals need a space admin/moderator; canonical has no demo seam", bad.length === 0 && cfg.demo_controllers.length === 0,
     `${daos.daos.length} canonical listings, each with a listed=true binding (bad: ${bad.join(",") || "none"}); canonical demo_controllers = []; demo log: "claim by a non-admin is refused"`);
 }
 // 9 tests: partial data, replay, model-never-decides, disagreement

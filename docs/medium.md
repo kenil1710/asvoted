@@ -30,7 +30,7 @@ I ran it on fifteen real Safe executions from six DAOs: CoW DAO, Velora (ParaSwa
 
 The AS VOTED cases are the boring, reassuring majority. Velora's Safe returned 40.203 WETH to Bybit after the February 2025 hack. The proposal names the address and the amount, and the execution matches to the wei. No model was involved.
 
-The two DEVIATES are the kind you'd expect, and neither is an accusation. In one, a CoW DAO batch did exactly what CIP-16 described (claim SAFE tokens and delegate them), with the calldata quoted in the proposal itself. It also made two calls to a contract the proposal never names. In the other, the SafeDAO Safe passed an address that no SafeDAO proposal mentions. The finding is narrow and dated: "Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention." Often that means the proposal should have named something, not that anyone did anything wrong.
+The two DEVIATES are the kind you'd expect, and neither is an accusation. In one, a CoW DAO batch did exactly what CIP-16 described (claim SAFE tokens and delegate them), with the calldata quoted in the proposal itself. It also made two calls to a contract the proposal never names. In the other, the SafeDAO Safe passed an address that no SafeDAO Snapshot proposal writes out. The finding is narrow and dated: "Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention." Often that means the proposal should have named something, not that anyone did anything wrong.
 
 The three UNCLEAR are honest gaps. One proposal names the treasury but no amount. One prices a grant at "$500 per epoch" and pays in PSP; the contract never fetches prices, so it won't compare them. One DAO votes with weighted voting, whose result the contract doesn't compute.
 
@@ -46,12 +46,12 @@ This is why AsVoted has appeals. On the demo registry I filed the transfer again
 
 ## Money behind it
 
-A DAO can post a pledge: "we execute only what passed". Anyone can file a check with a small stake. A final DEVIATES ruling slashes the pledge, by a severity table fixed in the contract, and pays it to whoever proved it. A final AS VOTED ruling adds the challenger's stake to the DAO's pledge. Every state has a deadline that anyone can close, and there is no owner or admin anywhere. Other contracts can ask a single question, `is_executing_as_voted`. A small demo contract refuses to act for a DAO with a final DEVIATES ruling in the last 30 days.
+A DAO can post a pledge: "we execute only what passed". Anyone can file a check with a small stake. A final DEVIATES ruling slashes the pledge, by a severity table fixed in the contract, and pays it to whoever proved it. A final AS VOTED ruling adds the challenger's stake to the DAO's pledge. Every state has a deadline that anyone can close, and there is no owner or admin anywhere. Other contracts can ask a single question, `is_executing_as_voted`. A small demo contract refuses to act for a DAO with a final DEVIATES ruling on an execution from the last 30 days.
 
 A patrol bot runs every fifteen minutes. It watches the listed Safes, matches each new execution to the latest passed proposal that names something it touches, and files the check. When no proposal names anything, it files nothing.
 
 ## What it can't do
 
-Some limits are built in. Vote totals come from the Snapshot hub; recomputing them would mean re-running every voting strategy. Executions through Safe modules (Reality, oSnap) aren't read. A standing mandate with a per-payment figure will flag later, larger payments. The choice of proposal is the filer's claim, which is what appeals are for. The README lists all of these, with the reason for each.
+Some limits are built in. Vote totals come from the Snapshot hub; recomputing them would mean re-running every voting strategy. Executions through Safe modules (Reality, oSnap) aren't read. A standing mandate with a per-payment figure will flag later, larger payments. The choice of proposal is the filer's claim, which is what the DAO's appeal is for. The README lists all of these, with the reason for each.
 
 AsVoted runs on GenLayer Studio Dev. The site is https://asvoted.vercel.app, and every number on it is read from the contracts. The code is at https://github.com/kenil1710/asvoted.

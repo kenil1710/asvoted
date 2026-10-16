@@ -21,7 +21,7 @@ Fixes found while preparing seeds (before the first deployment, recorded for com
 
 ## Round 3: the code-first matching
 
-Round 3 attacked only how code reads amounts and addresses out of the proposal: amounts and addresses on different lines, tables, bullet lists, "up to" / "max" / "per month", one address named for two purposes, ENS and hex for one recipient, number formats, tokens of different decimals, payments split across many transactions, approve against transfer, and an address that appears only inside a link. 33 tests; 17 failed on the deployed code ([first run](research/attacks_r3_first_run.txt)). The fixes are in `0b1281a`. Running the new code offline on the 15 real seeds and the 7 demo checks changes none of their rulings.
+Round 3 attacked only how code reads amounts and addresses out of the proposal: amounts and addresses on different lines, tables, bullet lists, "up to" / "max" / "per month", one address named for two purposes, ENS and hex for one recipient, number formats, tokens of different decimals, payments split across many transactions, approve against transfer, and an address that appears only inside a link. 30 tests at first (33 with three added while fixing); 17 failed on the deployed code ([first run](research/attacks_r3_first_run.txt)). The fixes are in `0b1281a`; everything from round 3 is deployed from `829e156`. Running the new code offline on the 15 real seeds and the 7 demo checks changes none of their rulings.
 
 | # | Severity | Attack | What happened on `93d5be9` | Fix | Test |
 |---|---|---|---|---|---|
@@ -39,6 +39,32 @@ Round 3 attacked only how code reads amounts and addresses out of the proposal: 
 | M5 | Medium | **"50,000 USDC worth of COW"**, paid in COW. | DEVIATES (read as the wrong token). | A stablecoin figure followed by "worth", "equivalent", "valued" or "denominated" is a valuation: UNCLEAR, as for "$". A plainly stated other token is still OVER. | `r3_15` |
 | M6 | Medium | **Space-grouped thousands** "1 000 000 USDC". | DEVIATES: read as "000 USDC", a cap of 0. | Groups after spaces (two or more), no-break or thin spaces are thousands. A single plain-space group ("5 000") is no amount. | `r3_22`, `r3_23` |
 | L2 | Low | **Dot-grouped thousands** "1.000.000 USDC", "1.250.000,50 USDC". | UNCLEAR: no amount read. | Two dot groups, or dot groups with a decimal comma, are thousands. One group ("50.000") is still the smaller reading. | `r3_20`, `r3_21`, `r3_24` |
+
+A second attacker attacked the same deployed code in parallel: decoding, binding, pairing, money and docs. Their full report with each attack is [ATTACK_REPORT_R3.md](ATTACK_REPORT_R3.md); 20 tests, `r3_50`–`r3_69`, all failing on `93d5be9`. Fixed in `b733e9e`:
+
+| # | Severity | Finding | Fix | Test |
+|---|---|---|---|---|
+| 1 | High | ETH attached to a token call was not counted | Native value on any action is a value leg to its target | `r3_50` |
+| 2 | High | A stranger appeals a correct AS_VOTED, names an unrelated proposal, gets a final DEVIATES and the bounty | Only an appeal of a DEVIATES ruling may name another proposal | `r3_64` |
+| 3 | High | An expired check hid its payment from the cap | Every other filing under the proposal counts, whatever its outcome | `r3_60` |
+| 4 | High | Address inside nested calldata (`multicall(bytes[])`) never checked | Full-width addresses 4 bytes off the grid are checked like arguments | `r3_52` |
+| 5 | High | Largest number near the recipient was the cap ("from the 2,000,000 USDC treasury"; "request … rejected") | Several amounts on the cap's line: only the smallest authorizes, above it UNCLEAR; refused amounts are not caps | `r3_57`, `r3_58` |
+| 6 | High | The losing option set the cap | A vote with several approving options: within-cap is UNCLEAR | `r3_59` |
+| 7 | High | Two recipients, two amounts on one line | Fixed in `0b1281a` (UNCLEAR) | `r3_56` |
+| 8 | Medium | Recipient repoints an ENS name and turns a correct payment into DEVIATES | Names on Ethereum spaces resolve at the vote's snapshot block only | `r3_61` |
+| 9 | Medium | `transferFrom`'s source never checked | Source must be the Safe or mentioned | `r3_51` |
+| 10 | Medium | Vanity addresses below 2^120 not treated as addresses | Bound lowered to 2^96 | `r3_53` |
+| 11 | Medium | Any contract whose `symbol()` is a word of the proposal counts as named | Symbol matches need a token-like symbol (2+ capitals) in its exact case | `r3_54` |
+| 12 | Medium | Any space can list any Safe | **By design**, kept: a rogue listing is its own record and can't touch the real one (README, Known limitations) | `r3_62` (rewritten to pin that) |
+| 13 | Medium | The DAO switches checks off by dropping the Safe from its settings | Filings are bound to the listing | `r3_63`, `a32` |
+| 14 | Medium | Pledge leaves before a late execution can be filed | Withdrawals wait a late window after the unlock (6 h canonical) | `r3_65` |
+| 15 | Medium | 1 h canonical contest window | 72 h | `r3_68` |
+| 16 | Low | Quoted calldata accepted on any mentioned contract | The quote's own paragraph must name the target | `r3_55` |
+| 17 | Low | Newer checks push a blocking check out of the 500-check scan | A counter set at the request and moved by every filing and closing | `r3_66` |
+| 18 | Low | Standing dated by the ruling, not the execution | `last_deviates_at` is the execution time | `r3_67` |
+| 19 | Low | README named the superseded commit | Fixed | `r3_69` |
+
+Two test changes follow from the fixes, not from relaxing them. `r3_65` now expects the early withdrawal to be refused, then the slash to land. `r3_62` pins the by-design behavior. Tests that waited only the old withdrawal delay now also wait the late window. All 171 tests pass. Running the new code offline on the 15 real seeds and 7 demo checks changes no ruling.
 
 Controls that already held: "up to" and "max" are caps (`r3_11`), suffixes k / M / million and decimals (`r3_25`), USDC and DAI at different decimals add up (`r3_26`), twenty legs in one batch are summed (`r3_30`), ENS and hex for one recipient are one recipient (`r3_08`, `r3_09`).
 

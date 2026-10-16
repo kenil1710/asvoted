@@ -1,5 +1,7 @@
 # Attack report, round 3 (second attacker)
 
+**Status:** every finding is fixed in `b733e9e` and deployed from `829e156`, except #12, which is kept by design (README, Known limitations). The table of fixes is in [ATTACK_REPORT.md](ATTACK_REPORT.md). The text below is the report as written against `93d5be9`.
+
 Attacked: the deployed code (contracts identical to `93d5be9`). Every finding is a failing test in `test/test_attacks_r3.py` (`test_r3_50`–`test_r3_69`). Amount-matching attacks already in that file from a parallel round (`test_r3_01`–`test_r3_43`: list items, table columns, approve + transfer, "at least", per month, number formats, the prior-execution limit) are not repeated here.
 
 ```
