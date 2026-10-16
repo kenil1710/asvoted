@@ -47,6 +47,7 @@ const TX = {
   cip19: ["0x1fd579d7bbb8e7e8b8a6e2816f679ca55dddf36728615420d5a7f21c87d4870f", 9, COW], cip37: ["0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f", 22, COW],
   cip29: ["0xaa412db50fb9cb384d56ddec01a00997d686927d332f13ddf93e7644a5f47c29", 17, COW],
   cip24: ["0x1af684f90ded18dcd55438f8c1acc64c427c8aa2cfa223d56a6d043d7f8e67f7", 13, COW],
+  cip30: ["0x6b5e48e34bedc27312c5d3fb726d0764af95e62ff23b49e0c3d16f069bbccbaa", 18, COW],
 };
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const results = [];
@@ -154,7 +155,7 @@ if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "r
 }
 
 // --- file everything
-D.asv = await file("filer", "cip48", "cip48", "demo: as voted");
+D.asv = await file("filer", "cip30", "cip30", "demo: as voted");
 D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
 D.won = await file("filer2", "cip37", "cip30", "demo: filed against the wrong proposal");
 D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
@@ -164,9 +165,9 @@ D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
 D.gate = await file("filer", "bal200k", "cip69", "demo: a recent execution against a proposal that does not cover it, for GrantGate");
 log("checks", JSON.stringify(D));
 {
-  const [tx, , safe] = TX.cip48;
+  const [tx, , safe] = TX.cip30;
   const e = Number(await v("er", "get_execution_id", ["ethereum", safe, tx]));
-  const vid = await freshVote(CID.cip48, safe);
+  const vid = await freshVote(CID.cip30, safe);
   const out = await w("appellant", "rg", "file_check", [cow, e, vid, "duplicate"], STAKE);
   expect("duplicate filing is refused (stake credited back)", out.r?.ok === false && /DUPLICATE/.test(out.r?.reason ?? ""), out.r?.reason);
   const bad = await w("appellant", "rg", "file_check", [cow, e, vid, "wrong stake"], STAKE + 1n);
@@ -192,7 +193,7 @@ for (const k of ["won", "lost", "aexp", "asv", "dev", "unc", "gate"]) {
 }
 const R = {};
 for (const k of Object.keys(D)) R[k] = await v("rg", "get_check", [D[k]]);
-expect("CIP-48 is AS_VOTED", R.asv.ruling === "AS_VOTED", R.asv.ruling_summary);
+expect("CIP-30 is AS_VOTED", R.asv.ruling === "AS_VOTED", R.asv.ruling_summary);
 expect("appeals were filed inside the window", R.won.status === "APPEALED" && R.lost.status === "APPEALED" && R.aexp.status === "APPEALED", `${R.won.status} ${R.lost.status} ${R.aexp.status}`);
 expect("CIP-16 batch is DEVIATES", R.dev.ruling === "DEVIATES", R.dev.ruling_summary);
 expect("6,000,000 COW against CIP-30 is DEVIATES (CIP-30 never names the Treasury)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
