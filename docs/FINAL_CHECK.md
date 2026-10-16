@@ -1,6 +1,6 @@
 # Final check
 
-Run 2026-10-16T09:41:07.807Z by `tools/final_check.mjs` against commit `a4e8fab1d3`, the live site and Studio Dev. **22/23 PASS.**
+Run 2026-10-16T09:46:50.431Z by `tools/final_check.mjs` against commit `3e7071fa74`, the live site and Studio Dev. **23/23 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
@@ -91,7 +91,7 @@ Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mev
 ## PASS · All offline tests pass
 
 ```
-Ran 187 tests in 12.603s  OK
+Ran 187 tests in 12.630s  OK
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
@@ -177,8 +177,8 @@ missing: none; other addresses: none
 GET / 200; /api/patrol dry run watched 8 Safes on 0x1C2891FE54a5CfE98436F439e40A3043050eFF44
 ```
 
-## FAIL · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
+## PASS · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
 
 ```
-commits touching key files: none; attribution in messages: none; working tree: dirty
+commits touching key files: none; attribution in messages: none; working tree: clean
 ```
