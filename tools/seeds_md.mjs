@@ -26,7 +26,12 @@ const GL = "https://explorer-studio-dev.genlayer.com";
 const SITE = "https://asvoted.vercel.app";
 
 // Hand-verified on chain and in the proposal text (tools/live.py pair ...).
+const WHY = {
+  "0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16": "the payment's line also says \"not\" (\"not enough COW\", round-4 rule)",
+};
 const NOTES = {
+  "0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16":
+    "CIP-48's line naming the Treasury Safe states the 4M COW transfer, but the same line goes on: \"In case it happens that there is not enough COW to cover the needs of the solver rewards program, a new CIP should be put in place\". Since round 4, a status or negation word anywhere in the payment's line or bullet subtree (\"rejected\", \"withdrawn\", \"cancelled\", \"not\", \"void\") leaves no cap, because code cannot tell what it negates. It was AS_VOTED on 7a74665.",
   "0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1":
     "A four-call batch. Two calls (claim and delegate SAFE) are quoted calldata-for-calldata in CIP-16 and are authorized by code. The other two call 0xc0fde70a65c7569fe919be57492228dee8cdb585, a SAFE-token contract that CIP-16 never names. Searched: all 90 proposals of the cow.eth Snapshot space that the hub returns (created 2022-03-01 to 2026-09-30, every state), in title, body, discussion link and choices, case-insensitive, for the full address (and in the body for its first and last 8 hex digits). None names it (`tools/scan_space_mentions.mjs`, output in `docs/research/space_mentions.txt`, run 2026-10-16). This is an address search only; a proposal that described the contract without writing its address would not be found. In the site's words: the execution includes an action proposal CIP-16 does not cover. The DAO can appeal with the proposal that covers it.",
   "0x59a5c685bb44798f287fda67b3df30ddb310dd234e3876a6e4d80298b16547b1":
@@ -43,7 +48,7 @@ const NOTES = {
     "Krause House votes with weighted voting, whose result the contract does not compute, so it cannot say the proposal passed. (Its one transfer is also UNCLEAR now: the wallet's own line states no amount.)",
 };
 
-const BEFORE = Object.fromEntries(JSON.parse(readFileSync(root + "docs/superseded/93d5be9/seed-canonical.json", "utf8")).checks.map((c) => [c.tx, c.final || c.ruling]));
+const BEFORE = Object.fromEntries(JSON.parse(readFileSync(root + "docs/superseded/7a74665/seed-canonical.json", "utf8")).checks.map((c) => [c.tx, c.final || c.ruling]));
 const st = await view(dep.AsVotedRegistry.address, "get_stats");
 const out = [];
 for (let off = 0; off < st.checks; off += 25) {
@@ -69,10 +74,10 @@ const md = [
   "How they were chosen: every Snapshot space whose settings list a Safe as a treasury on Ethereum, Arbitrum, Optimism, Base or Polygon (`tools/scan_known.mjs`), their executed Safe transactions (Safe Transaction Service, used only to find candidates), and for each the most recent passed proposal of the space that ended before it and names an address it touches (`tools/match.mjs`). Pairs where a different proposal was the right one were corrected by hand (the 67 WETH transfer is CIP-28, not CIP-43). No verdict was chosen; each row is what the contracts ruled.", "",
   "| # | DAO | Chain | Execution | Actions | Proposal (ended) | Ruling | Status |", "|---|---|---|---|---|---|---|---|",
   ...rows.map((r) => `| [${r.check_id}](${SITE}/check/${r.check_id}) | ${r.space} | ${r.chain} | [\`${r.tx.slice(0, 10)}…\`](${EXPL[r.chain]}/tx/${r.tx}) ${r.exec_date} | ${r.actions} | [${r.proposal.replace(/\|/g, "/").slice(0, 70)}](https://ipfs.snapshot.box/ipfs/${r.cid}) (${r.proposal_end}) | **${(r.final || r.ruling).replace("_", " ")}** | ${r.status.toLowerCase()} |`),
-  "", "## Before and after round 3", "",
-  "Before: the canonical run on `93d5be9` (`docs/superseded/93d5be9/seed-canonical.json`). After: this run.", "",
+  "", "## Before and after round 4", "",
+  "Before: the canonical run on `7a74665` (`docs/superseded/7a74665/seed-canonical.json`). After: this run. Every change is explained below.", "",
   "| # | Execution | Proposal | Before | After | Why it changed |", "|---|---|---|---|---|---|",
-  ...rows.map((r) => { const b = BEFORE[r.tx] ?? "—"; const a = (r.final || r.ruling); return `| ${r.check_id} | \`${r.tx.slice(0, 10)}…\` | ${r.proposal.replace(/\|/g, "/").slice(0, 50)} | ${b.replace("_", " ")} | ${a.replace("_", " ")} | ${b === a ? "same" : "no single cap on the recipient's own line (below)"} |`; }),
+  ...rows.map((r) => { const b = BEFORE[r.tx] ?? "—"; const a = (r.final || r.ruling); return `| ${r.check_id} | \`${r.tx.slice(0, 10)}…\` | ${r.proposal.replace(/\|/g, "/").slice(0, 50)} | ${b.replace("_", " ")} | ${a.replace("_", " ")} | ${b === a ? "same" : (WHY[r.tx] ?? "see below")} |`; }),
   "", "## Every DEVIATES and UNCLEAR, explained", "",
   ...rows.filter((r) => (r.final || r.ruling) !== "AS_VOTED").map((r) => `- **#${r.check_id} ${r.space}, ${(r.final || r.ruling).replace("_", " ")}.** ${r.summary} ${NOTES[r.tx] ?? ""}`),
   "", "## Rulings, verbatim", "", "As stored on chain. The site shows a DEVIATES sentence as \"includes an action proposal <id> does not cover\": the check compares with the one proposal the filer named, and the DAO can appeal with another.", "",

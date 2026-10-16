@@ -1,0 +1,366 @@
+{
+  "registry": "0x8B904F094F5b2A25C5004Ab09301dc9041c17B7a",
+  "checks": {
+    "asv": 1,
+    "dev": 2,
+    "won": 9,
+    "lost": 3,
+    "unc": 4,
+    "exp": 5,
+    "aexp": 6,
+    "gate": 7,
+    "refile": 8
+  },
+  "results": [
+    {
+      "name": "listing a Safe the space does not list is refused",
+      "ok": true,
+      "detail": "REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "claim by a non-admin is refused",
+      "ok": true,
+      "detail": "REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "demo controller claims both listings",
+      "ok": true,
+      "proved": "resumed pass"
+    },
+    {
+      "name": "pledge by a non-controller is credited back, ok:false",
+      "ok": true,
+      "detail": "ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "GrantGate carries out a request while the DAO is in good standing",
+      "ok": true,
+      "proved": "first pass",
+      "detail": " (passed in the first pass; the resumed pass re-checked a step already done)"
+    },
+    {
+      "name": "duplicate filing is refused (stake credited back)",
+      "ok": true,
+      "detail": "DUPLICATE_OF_CHECK_1",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "wrong stake is refused (credited back)",
+      "ok": true,
+      "detail": "STAKE_MUST_BE_EXACTLY_100000000000000000",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "CIP-48 is AS_VOTED",
+      "ok": true,
+      "detail": "Every action in execution 0xf4631cc0\u2026 on 2024-07-29 is named in the proposal of 2024-07-24.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "appeals were filed inside the window",
+      "ok": true,
+      "detail": "checks #3, #6 and #9 each carry an appeal filed in their contest window (final_how APPEAL_RULED / APPEAL_EXPIRED / APPEAL_RULED)",
+      "proved": "chain"
+    },
+    {
+      "name": "CIP-16 batch is DEVIATES",
+      "ok": true,
+      "detail": "Execution 0x408905df\u2026 on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "6,000,000 COW against CIP-30 is DEVIATES (CIP-30 never names the Treasury)",
+      "ok": true,
+      "detail": "Execution 0xbcdb6b99\u2026 on 2024-02-14 includes an action the proposal of 2023-08-17 does not mention.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "CIP-69 Treasury call is DEVIATES",
+      "ok": true,
+      "detail": "Execution 0x5b453427\u2026 on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "CIP-19 is UNCLEAR and FINAL at once",
+      "ok": true,
+      "detail": "Execution 0x1fd579d7\u2026 on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "CIP-29 is AS_VOTED",
+      "ok": true,
+      "detail": "Every action in execution 0xaa412db5\u2026 on 2023-08-18 is named in the proposal of 2023-08-17.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "appeal naming CIP-37 wins: AS_VOTED, bond refunded",
+      "ok": true,
+      "detail": "Every action in execution 0xbcdb6b99\u2026 on 2024-02-14 is named in the proposal of 2024-02-14.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "appeal with words only loses: DEVIATES stands, bond to the filer",
+      "ok": true,
+      "detail": "[[\"stake refunded\",\"0xf9469ea4a318403492e230ff60e397aa33319bf2\",\"100000000000000000\"],[\"appeal bond to the filer\",\"0xf9469ea4a318403492e230ff60e397aa33319bf2\",\"100000000000000000\"],[\"pledge slashed, bounty\",\"0xf9469ea4a318403492e230ff60e397aa33319bf2\",\"200000000000000000\"]]",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "AS_VOTED final: stake to the DAO pledge",
+      "ok": true,
+      "detail": "[[\"stake to the DAO pledge\",\"dao#1\",\"100000000000000000\"]]",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "DEVIATES final: pledge slashed, bounty to the filer",
+      "ok": true,
+      "detail": "slash 500000000000000000 severity MINOR",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "recent 200,000 BAL transfer against CIP-69 is DEVIATES, final",
+      "ok": true,
+      "detail": "Execution 0xa85e7333\u2026 on 2026-10-15 includes an action the proposal of 2025-06-23 does not mention.",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "GrantGate refuses after a final DEVIATES on a recent execution",
+      "ok": true,
+      "detail": "[\"a FINAL DEVIATES ruling (check #7) on an execution from the last 30 days\"]",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "never judged: expire -> FINAL UNCLEAR, stake refunded",
+      "ok": true,
+      "proved": "first pass",
+      "detail": " (passed in the first pass; the resumed pass re-checked a step already done)"
+    },
+    {
+      "name": "an expired check can be refiled and ruled",
+      "ok": true,
+      "detail": "check #5 expired unjudged; the same execution and proposal were refiled as check #8, ruled AS_VOTED and finalized",
+      "proved": "chain"
+    },
+    {
+      "name": "appeal never judged: expire -> ruling stands, bond refunded",
+      "ok": true,
+      "proved": "resumed pass"
+    },
+    {
+      "name": "ledger invariant holds",
+      "ok": true,
+      "detail": "{\"balance_minus_held\":\"12600000000000000002\",\"claimable\":\"0\",\"claimed\":\"12600000000000000002\",\"held_now\":\"200000000000000000\",\"invariant_holds\":true,\"note\":\"claim() posts a value transfer; on Studio Dev those are queued and not delivered, so on_chain_balance can exceed held_now by up to the claimed total.\",\"on_chain_balance\":\"12800000000000000002\",\"open\":\"0\",\"pledges\":\"200000000000000000\",\"received\":\"12800000000000000002\",\"recomputed\":{\"claimable\":\"0\",\"claimed\":\"12600000000000000002\",\"open\":\"0\",\"pledges\":\"200000000000000000\"},\"views_match_storage\":true}",
+      "proved": "resumed pass"
+    },
+    {
+      "name": "demo drains to exactly 0 held (pledges, open stakes, claimable)",
+      "ok": true,
+      "detail": "after the finish step: held_now 0, pledges 0, open 0, claimable 0",
+      "proved": "chain"
+    }
+  ],
+  "ledger": {
+    "balance_minus_held": "12800000000000000002",
+    "claimable": "0",
+    "claimed": "12800000000000000002",
+    "held_now": "0",
+    "invariant_holds": true,
+    "note": "claim() posts a value transfer; on Studio Dev those are queued and not delivered, so on_chain_balance can exceed held_now by up to the claimed total.",
+    "on_chain_balance": "12800000000000000002",
+    "open": "0",
+    "pledges": "0",
+    "received": "12800000000000000002",
+    "recomputed": {
+      "claimable": "0",
+      "claimed": "12800000000000000002",
+      "open": "0",
+      "pledges": "0"
+    },
+    "views_match_storage": true
+  },
+  "stats": {
+    "checks": 9,
+    "claimable_total": "0",
+    "claimed_total": "12600000000000000002",
+    "daos": 2,
+    "final:AS_VOTED": 4,
+    "final:DEVIATES": 3,
+    "final:UNCLEAR": 2,
+    "how:APPEAL_EXPIRED": 1,
+    "how:APPEAL_RULED": 2,
+    "how:EXPIRED_UNJUDGED": 1,
+    "how:NO_APPEAL": 4,
+    "how:RULED_UNCLEAR": 1,
+    "open_total": "0",
+    "pledges_total": "200000000000000000",
+    "received_total": "12800000000000000002",
+    "status:APPEALED": 0,
+    "status:CONTESTABLE": 0,
+    "status:FINAL": 9,
+    "status:PROVISIONAL": 0
+  },
+  "final": {
+    "asv": {
+      "check_id": 1,
+      "ruling": "AS_VOTED",
+      "appeal_ruling": "",
+      "final": "AS_VOTED",
+      "how": "NO_APPEAL",
+      "summary": "Every action in execution 0xf4631cc0\u2026 on 2024-07-29 is named in the proposal of 2024-07-24.",
+      "settlement": [
+        [
+          "stake to the DAO pledge",
+          "dao#1",
+          "100000000000000000"
+        ]
+      ]
+    },
+    "dev": {
+      "check_id": 2,
+      "ruling": "DEVIATES",
+      "appeal_ruling": "",
+      "final": "DEVIATES",
+      "how": "NO_APPEAL",
+      "summary": "Execution 0x408905df\u2026 on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention.",
+      "settlement": [
+        [
+          "stake refunded",
+          "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
+          "100000000000000000"
+        ],
+        [
+          "pledge slashed, bounty",
+          "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
+          "500000000000000000"
+        ]
+      ]
+    },
+    "won": {
+      "check_id": 9,
+      "ruling": "DEVIATES",
+      "appeal_ruling": "AS_VOTED",
+      "final": "AS_VOTED",
+      "how": "APPEAL_RULED",
+      "summary": "Every action in execution 0xbcdb6b99\u2026 on 2024-02-14 is named in the proposal of 2024-02-14.",
+      "settlement": [
+        [
+          "appeal bond refunded",
+          "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d",
+          "100000000000000000"
+        ],
+        [
+          "stake to the DAO pledge",
+          "dao#1",
+          "100000000000000000"
+        ]
+      ]
+    },
+    "lost": {
+      "check_id": 3,
+      "ruling": "DEVIATES",
+      "appeal_ruling": "DEVIATES",
+      "final": "DEVIATES",
+      "how": "APPEAL_RULED",
+      "summary": "Execution 0x5b453427\u2026 on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention.",
+      "settlement": [
+        [
+          "stake refunded",
+          "0xf9469ea4a318403492e230ff60e397aa33319bf2",
+          "100000000000000000"
+        ],
+        [
+          "appeal bond to the filer",
+          "0xf9469ea4a318403492e230ff60e397aa33319bf2",
+          "100000000000000000"
+        ],
+        [
+          "pledge slashed, bounty",
+          "0xf9469ea4a318403492e230ff60e397aa33319bf2",
+          "200000000000000000"
+        ]
+      ]
+    },
+    "unc": {
+      "check_id": 4,
+      "ruling": "UNCLEAR",
+      "appeal_ruling": "",
+      "final": "UNCLEAR",
+      "how": "RULED_UNCLEAR",
+      "summary": "Execution 0x1fd579d7\u2026 on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled.",
+      "settlement": [
+        [
+          "stake refunded",
+          "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
+          "100000000000000000"
+        ]
+      ]
+    },
+    "exp": {
+      "check_id": 8,
+      "ruling": "AS_VOTED",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "Every action in execution 0x1af684f9\u2026 on 2023-03-29 is named in the proposal of 2023-03-27.",
+      "settlement": []
+    },
+    "aexp": {
+      "check_id": 6,
+      "ruling": "AS_VOTED",
+      "appeal_ruling": "",
+      "final": "AS_VOTED",
+      "how": "APPEAL_EXPIRED",
+      "summary": "Every action in execution 0xaa412db5\u2026 on 2023-08-18 is named in the proposal of 2023-08-17.",
+      "settlement": [
+        [
+          "appeal bond refunded",
+          "0x55020dff7d5fa3d4422e3bbe56d99c88763687a8",
+          "100000000000000000"
+        ],
+        [
+          "stake to the DAO pledge",
+          "dao#1",
+          "100000000000000000"
+        ]
+      ]
+    },
+    "gate": {
+      "check_id": 7,
+      "ruling": "DEVIATES",
+      "appeal_ruling": "",
+      "final": "DEVIATES",
+      "how": "NO_APPEAL",
+      "summary": "Execution 0xa85e7333\u2026 on 2026-10-15 includes an action the proposal of 2025-06-23 does not mention.",
+      "settlement": [
+        [
+          "stake refunded",
+          "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
+          "100000000000000000"
+        ],
+        [
+          "pledge slashed, bounty",
+          "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
+          "500000000000000000"
+        ]
+      ]
+    },
+    "refile": {
+      "check_id": 8,
+      "ruling": "AS_VOTED",
+      "appeal_ruling": "",
+      "final": "AS_VOTED",
+      "how": "NO_APPEAL",
+      "summary": "Every action in execution 0x1af684f9\u2026 on 2023-03-29 is named in the proposal of 2023-03-27.",
+      "settlement": [
+        [
+          "stake to the DAO pledge",
+          "dao#1",
+          "100000000000000000"
+        ]
+      ]
+    }
+  },
+  "note": "Two passes and a finish step, all logged in docs/demo-run.log. The first pass refused the original CIP-43 pairing (that vote ended after the execution) and lost one finalize to rate limiting; the resumed pass filed CIP-37 against CIP-30 and finished the rest; the finish step withdrew and claimed a 0.2 GEN pledge credited after the run's withdrawal."
+}
