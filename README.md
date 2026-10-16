@@ -51,6 +51,17 @@ The model sees the proposal text (fenced, defanged, untrusted) and a description
 - **Observed on chain:** during the demo run, `ExecReader.read_execution` of CoW CIP-19 ended UNDETERMINED (tx `0x7b62c9110234be83d4a427b2664d7daea398668881d2a668ca7f4369e9d6c9e0`); no record was written, and the next read of the same execution succeeded.
 - **Judge:** the leader asks the model twice and keeps a verdict per action only where both agree (else UNCLEAR). Each validator re-runs the code part and its own two model answers and accepts only an identical per-action verdict list (quotes may differ but must each be a substring). If not, the transaction ends UNDETERMINED and **nothing is written**: the check stays PROVISIONAL (or APPEALED), anyone may call `judge` again, and after the deadline anyone may call `expire`, which records UNCLEAR and refunds. A disagreement is never recorded as a verdict.
 
+## Which proposal is an execution checked against?
+
+The filer names one proposal, and the check compares the execution with that proposal and nothing else. DEVIATES means exactly "this execution includes an action the named proposal does not cover". It does not mean that no proposal covers it, or that anyone did wrong.
+
+If another proposal does cover the action, the DAO appeals and names it. A fresh panel judges the same execution against that proposal. That happened on chain in the demo: the 67.0123 WETH transfer was filed against CIP-43 and ruled DEVIATES. The DAO appealed naming CIP-28, and the ruling became AS_VOTED (demo registry, check #3; appeal tx [`0xbe24ca57…`](https://explorer-studio-dev.genlayer.com/tx/0xbe24ca57343a23fb385a4abeaaa3e5db7789753086134ba1565af0e3a1f9b8ff); on the site, switch the header to **Demo** and open `/check/3`).
+
+Economics of a wrong pairing:
+- The challenger staked 0.1 GEN to file. When the appeal turns the ruling to AS_VOTED, that stake goes to the DAO's pledge, so naming the wrong proposal costs the challenger their stake.
+- The DAO's 0.1 GEN appeal bond comes back when it wins. It goes to the challenger when the proposal it named doesn't cover the action either, so appeals cost something too.
+- No slash happens unless DEVIATES is final, so the DAO's pledge is never touched by a pairing that an appeal corrects.
+
 ## Money, lifecycle and who may do what
 
 - Filing stake 0.1 GEN (exact). Appeal bond 0.1 GEN (exact). Pledge ≥ 0.1 GEN.

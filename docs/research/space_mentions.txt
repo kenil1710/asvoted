@@ -1,0 +1,7 @@
+run 2026-10-16T05:01Z against https://hub.snapshot.org/graphql
+cow.eth 90 proposals 2022-03-01 to 2026-09-30 states {"closed":90}
+  0xc0fde70a65c7569fe919be57492228dee8cdb585 full: none partial: 0
+  0x03916d54cd6287325b6cf6a9a02a12f79676266c full: none partial: 0
+safe.eth 56 proposals 2022-10-17 to 2026-09-23 states {"closed":56}
+  0xc0fde70a65c7569fe919be57492228dee8cdb585 full: [SEP #22] Unpause SAFE Token Contract (Enabling Transferability) (2024-04-15, closed) partial: 1
+  0x03916d54cd6287325b6cf6a9a02a12f79676266c full: none partial: 0

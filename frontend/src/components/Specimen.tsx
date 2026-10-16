@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { getExecution, getProposal } from "@/lib/contract";
 import type { Check } from "@/lib/types";
 import { formatUnits, isoDate, shortAddress } from "@/lib/format";
+import { verdictSentence } from "@/lib/verdict";
 import { Stamp } from "./ui";
 
 /** The hero picture: a real check from the registry, ballot over receipt. */
@@ -19,7 +20,7 @@ export function Specimen({ checks }: { checks: Check[] | undefined }) {
   const tok = ex.data.tokens[a?.token ?? ""] ?? ex.data.tokens[""];
   const line = a && a.amount ? `${a.kind === "erc20_approve" ? "approve" : "transfer"} ${formatUnits(a.amount, tok?.decimals ?? 18)} ${tok?.symbol ?? ""}` : (a?.fn || a?.selector || "call");
   return (
-    <Link href={`/check/${pick.check_id}`} className="group relative hidden h-80 lg:block" aria-label={`Check #${pick.check_id}: ${pick.ruling_summary}`}>
+    <Link href={`/check/${pick.check_id}`} className="group relative hidden h-80 lg:block" aria-label={`Check #${pick.check_id}: ${verdictSentence(pick, vote.data)}`}>
       <div className="absolute left-0 top-0 w-[62%] -rotate-2 rounded-md border border-rule bg-sheet p-5 shadow-sm transition-transform group-hover:-rotate-3">
         <p className="text-xs text-ink-3">The ballot, {vote.data.space}, closed {isoDate(vote.data.end)}</p>
         <p className="mt-2 line-clamp-4 font-serif text-[15px] font-semibold leading-snug">{vote.data.title}</p>

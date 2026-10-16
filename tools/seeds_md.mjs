@@ -28,9 +28,9 @@ const SITE = "https://asvoted.vercel.app";
 // Hand-verified on chain and in the proposal text (tools/live.py pair ...).
 const NOTES = {
   "0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1":
-    "A four-call batch. Two calls (claim and delegate SAFE) are quoted calldata-for-calldata in CIP-16 and are authorized by code. The other two call 0xc0fd…b585, a SAFE-token contract that CIP-16 never names (no CoW proposal in the hub mentions it). The proposal does not name an address the execution uses.",
+    "A four-call batch. Two calls (claim and delegate SAFE) are quoted calldata-for-calldata in CIP-16 and are authorized by code. The other two call 0xc0fde70a65c7569fe919be57492228dee8cdb585, a SAFE-token contract that CIP-16 never names. Searched: all 90 proposals of the cow.eth Snapshot space that the hub returns (created 2022-03-01 to 2026-09-30, every state), in title, body, discussion link and choices, case-insensitive, for the full address (and in the body for its first and last 8 hex digits). None names it (`tools/scan_space_mentions.mjs`, output in `docs/research/space_mentions.txt`, run 2026-10-16). This is an address search only; a proposal that described the contract without writing its address would not be found. In the site's words: the execution includes an action proposal CIP-16 does not cover. The DAO can appeal with the proposal that covers it.",
   "0x59a5c685bb44798f287fda67b3df30ddb310dd234e3876a6e4d80298b16547b1":
-    "Eight months after SEP #22 the SafeDAO Safe called 0xc0fd…b585 (a module SEP #22 discusses) passing 0x0391…266c as an argument. Neither SEP #22 nor any other SafeDAO proposal in the hub names that address.",
+    "Eight months after SEP #22 the SafeDAO Safe called 0xc0fd…b585 (a module SEP #22 names and discusses) passing 0x03916d54cd6287325b6cf6a9a02a12f79676266c as an argument. Searched: all 56 proposals of the safe.eth Snapshot space that the hub returns (created 2022-10-17 to 2026-09-23, every state), in title, body, discussion link and choices, case-insensitive, for the full address (and in the body for its first and last 8 hex digits). None names it, SEP #22 included (`tools/scan_space_mentions.mjs`, output in `docs/research/space_mentions.txt`, run 2026-10-16). This is an address search only; a proposal that described the argument without writing the address would not be found. In the site's words: the execution includes an action proposal SEP #22 does not cover. The DAO can appeal with the proposal that covers it.",
   "0x1fd579d7bbb8e7e8b8a6e2816f679ca55dddf36728615420d5a7f21c87d4870f":
     "CIP-19 names the treasury Safe that received COW, GNO and ETH but states no amount for it, so the transfers cannot be compared with anything.",
   "0x8a6a840af3c35e320106b4d44b6144d16e17c95b3aaabe6eb2a5c5ddaee08908":
@@ -66,7 +66,7 @@ const md = [
   ...rows.map((r) => `| [${r.check_id}](${SITE}/check/${r.check_id}) | ${r.space} | ${r.chain} | [\`${r.tx.slice(0, 10)}…\`](${EXPL[r.chain]}/tx/${r.tx}) ${r.exec_date} | ${r.actions} | [${r.proposal.replace(/\|/g, "/").slice(0, 70)}](https://ipfs.snapshot.box/ipfs/${r.cid}) (${r.proposal_end}) | **${(r.final || r.ruling).replace("_", " ")}** | ${r.status.toLowerCase()} |`),
   "", "## Every DEVIATES and UNCLEAR, explained", "",
   ...rows.filter((r) => (r.final || r.ruling) !== "AS_VOTED").map((r) => `- **#${r.check_id} ${r.space}, ${(r.final || r.ruling).replace("_", " ")}.** ${r.summary} ${NOTES[r.tx] ?? ""}`),
-  "", "## Rulings, verbatim", "",
+  "", "## Rulings, verbatim", "", "As stored on chain. The site shows a DEVIATES sentence as \"includes an action proposal <id> does not cover\": the check compares with the one proposal the filer named, and the DAO can appeal with another.", "",
   ...rows.map((r) => `- #${r.check_id}: ${r.summary}`), "",
 ];
 writeFileSync(root + "docs/SEEDS.md", md.join("\n"));

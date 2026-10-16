@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { getAddress } from "viem";
 import type { Action, Check, Execution, Proposal, RuledAction } from "@/lib/types";
 import { CHAIN_LABEL, chainUrl, formatUnits, ipfsUrl, isoDate, shortAddress } from "@/lib/format";
+import { verdictSentence } from "@/lib/verdict";
 import { Addr, OutcomeChip, Stamp, TxLink } from "./ui";
 
 /* ── the ballot: proposal text with the passages the ruling relied on marked ── */
@@ -243,7 +244,7 @@ export function Receipt({ ex, ruled }: { ex: Execution; ruled: RuledAction[] | n
 
 export function VerdictBanner({ check, ex, vote, animate }: { check: Check; ex?: Execution; vote?: Proposal; animate?: boolean }) {
   const verdict = (check.final_verdict || check.appeal_ruling || check.ruling) as Check["ruling"];
-  const summary = check.appeal_summary || check.ruling_summary;
+  const summary = verdictSentence(check, vote);
   const counts = (check.appeal_detail ?? check.ruling_detail)?.counts;
   const tone = verdict === "AS_VOTED" ? "border-ok bg-ok-soft" : verdict === "DEVIATES" ? "border-dev bg-dev-soft" : verdict ? "border-unclear bg-unclear-soft" : "border-rule bg-sheet";
   return (
@@ -253,7 +254,7 @@ export function VerdictBanner({ check, ex, vote, animate }: { check: Check; ex?:
         <p className="font-serif text-lg leading-snug sm:text-xl">{summary || "Filed and waiting for the validators to judge it."}</p>
         <p className="mt-2 text-sm text-ink-2">
           {check.final_verdict ? "Final" : check.status === "CONTESTABLE" ? "Provisional, open to one appeal" : check.status === "APPEALED" ? "Under appeal" : "Awaiting judgment"}
-          {counts && <> · {counts.authorized} authorized, {counts.not_authorized} not in the proposal, {counts.over_amount} over amount, {counts.unclear} unclear</>}
+          {counts && <> · {counts.authorized} authorized, {counts.not_authorized} not covered by the proposal, {counts.over_amount} over amount, {counts.unclear} unclear</>}
           {ex && vote && <> · {ex.actions.length} actions on {CHAIN_LABEL[ex.chain] ?? ex.chain}, proposal in {vote.space}</>}
         </p>
       </div>
