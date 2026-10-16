@@ -75,7 +75,7 @@ export default function DaosPage() {
   return (
     <div>
       <h1 className="mt-10 font-serif text-4xl font-semibold">DAOs</h1>
-      <p className="mt-2 max-w-2xl text-ink-2">Each row is a Snapshot space and the Safe its settings list as a treasury; the pair is the DAO. Verified: the space&apos;s ENS owner is the Safe or one of its owners. Counts are final rulings.</p>
+      <p className="mt-2 max-w-2xl text-ink-2">Each row is a Snapshot space and the Safe its settings list as a treasury; the pair is the DAO. Verified: the Safe itself owns the space&apos;s ENS name. Counts are final rulings.</p>
       <Section title="Listed">
         {daos.error ? <ErrorNote error={daos.error} retry={() => void daos.mutate()} /> : !daos.data ? <Skeleton className="h-48 w-full" /> : daos.data.daos.length === 0 ? (
           <p className="text-sm text-ink-2">No DAO is listed on this registry yet.</p>

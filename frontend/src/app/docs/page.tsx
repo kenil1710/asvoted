@@ -7,7 +7,7 @@ import { Section, Skeleton, useView } from "@/components/ui";
 
 const CONTRACTS = [
   ["ExecReader", "Reads one Safe execution from two RPCs that must agree, at a finalized block the leader names. Recomputes the Safe transaction hash and requires the Safe's own ExecutionSuccess for it. Decodes every action, including every inner call of a MultiSend batch."],
-  ["VoteReader", "Fetches the Snapshot proposal by IPFS CID and hashes the bytes against the CID in the contract. Requires the hub to report the same proposal, closed, with final scores. Computes from the scores whether it passed. Records whether the Safe is listed in the space's treasuries, and resolves ENS names at two blocks."],
+  ["VoteReader", "Fetches the Snapshot proposal by IPFS CID and hashes the bytes against the CID in the contract. Requires the hub to report the same proposal, closed, with final scores. Computes from the scores whether it passed. Records whether the Safe is listed in the space's treasuries. Resolves the proposal's ENS names as voters saw them, at the Ethereum block of the vote's snapshot (mapped from the space's own network), and notes where any had moved by the execution."],
   ["AsVotedJudge", "Rules on every action: code first for every address and amount, the model only for calls the proposal describes in words, with a verbatim quote that code checks."],
   ["AsVotedRegistry", "DAO listings, pledges, checks, appeals, deadlines and money. Holds the stakes and pays by pull balances."],
   ["DaoStanding + GrantGate", "One question another contract can ask: has this DAO (a Snapshot space and its Safe) a final DEVIATES ruling on an execution from the last 30 days? GrantGate refuses to act for a DAO that has."],
@@ -34,14 +34,32 @@ export default function Docs() {
       </Section>
 
       <Section title="Per action, in this order">
-        <ol className="list-decimal space-y-3 pl-5 text-ink-2">
-          <li><strong className="text-ink">The action list is the calldata.</strong> No model chooses which actions exist. A DELEGATECALL to anything that is not a known MultiSend stays in the list as a DELEGATECALL; unknown function selectors stay as raw calls; a gas refund the Safe paid is an action too.</li>
-          <li><strong className="text-ink">Value sent to an address the proposal never mentions</strong> (as 0x… or as an ENS name that resolved the same way at the vote and now) is <em>not in the proposal</em>.</li>
-          <li><strong className="text-ink">Amounts.</strong> Code reads the amounts stated next to the recipient (same line, then paragraph, then section). All transfers to that recipient in one token family are summed, so splitting a payment does not get under the cap. More than the largest stated amount plus 0.5% is <em>over amount</em>. Amounts stated there only in other tokens also count as over. No amount stated at all is <em>unclear</em>.</li>
-          <li><strong className="text-ink">Calls.</strong> A call to a contract the proposal does not identify, or one that passes an address the proposal does not mention, is <em>not in the proposal</em>. A DELEGATECALL to an unnamed address is the most severe case.</li>
-          <li><strong className="text-ink">Words.</strong> Only what is left, an identified contract called with mentioned arguments, goes to the model, which answers authorized, not authorized or unclear, with a quote. The quote must appear in the proposal text, and two answers must agree; otherwise the action is unclear.</li>
+        <p className="text-ink-2">When code cannot decide with certainty, the action is <em>unclear</em>, decided by code. The model is never asked.</p>
+        <ol className="mt-3 list-decimal space-y-3 pl-5 text-ink-2">
+          <li><strong className="text-ink">The action list is the calldata</strong> of one Safe transaction (or, for a relayed SafeL2 Safe, its own SafeMultiSigTransaction log), bound to the Safe&apos;s ExecutionSuccess. No model chooses which actions exist. A DELEGATECALL to anything that is not a known MultiSend stays a DELEGATECALL; unknown selectors stay raw calls; a gas refund is an action too.</li>
+          <li><strong className="text-ink">Quoted calldata.</strong> An action whose exact calldata the proposal quotes, in a paragraph that names its target, is <em>authorized</em>.</li>
+          <li><strong className="text-ink">Wrapping.</strong> Wrapping or unwrapping ETH with a listed WETH keeps the value in the Safe: <em>neutral</em>, a conversion, not a payment.</li>
+          <li><strong className="text-ink">Who is paid.</strong> Every call&apos;s ETH value is a transfer to the call&apos;s target, and token transfers, transferFroms, approvals and gas refunds are payments. A payee (and a transferFrom&apos;s source) must be named in the proposal, by address or by an ENS name as it resolved when voters voted (at the Ethereum block of the vote&apos;s snapshot, on every network). A payee the proposal never names is <em>not in the proposal</em>. If a name had moved by the time the Safe paid, paying the address voters saw is fine, and paying the new address is <em>unclear</em>. If names cannot be resolved, an unnamed payee is <em>unclear</em>.</li>
+          <li><strong className="text-ink">Tokens.</strong> A token counts only if it is on the judge&apos;s token list, fixed at deployment, or the proposal names its address. Its symbol() alone never identifies it; an unidentified token is <em>unclear</em>.</li>
+          <li><strong className="text-ink">The cap.</strong> The cap is the one amount for that token on the payee&apos;s own line, list item or table row. These make the payment <em>unclear</em>, never authorized:
+            <ul className="mt-1 list-disc pl-5">
+              <li>no amount there, or two different ones;</li>
+              <li>only a minimum;</li>
+              <li>a refusal in the amount&apos;s sentence;</li>
+              <li>a status word such as rejected, withdrawn, cancelled, not or void anywhere in its line or bullet subtree;</li>
+              <li>a later paragraph that names the payee or amends a figure for that token with a different amount;</li>
+              <li>an amount on a line that names several addresses ambiguously.</li>
+            </ul>
+            Text under a losing choice&apos;s heading or paragraph (Against, No, or another option) never sets a cap. If several choices approve something and the winner&apos;s own text cannot be found, nothing caps.</li>
+          <li><strong className="text-ink">Totals.</strong> Payments to the payee in that token family are summed: within the execution, and across every other filing under the same proposal, whatever its outcome (per calendar period for &quot;per month&quot; amounts).
+            <ul className="mt-1 list-disc pl-5">
+              <li>Above the cap plus 0.5% is <em>over amount</em>. Amounts stated only in another token are also over. Dollar figures paid in another token are <em>unclear</em>, because no prices are used.</li>
+              <li>The same payment is also counted with every filing of the DAO that paid this payee under any of its proposals. If that changes the ruling, the action is <em>unclear</em>, so switching proposals cannot reset a total.</li>
+            </ul></li>
+          <li><strong className="text-ink">Calls.</strong> These are <em>not in the proposal</em>: a DELEGATECALL to an unnamed address, a call to a contract the proposal does not identify, and a call that passes an unnamed address argument (a word at least 2^96 and below 2^160). Calls nested in bytes arguments (multicall, router sub-calls) are read through the ABI to three levels. An unnamed address there is <em>unclear</em>, and so is anything nested deeper.</li>
+          <li><strong className="text-ink">Words.</strong> Only what is left, an identified contract called with named arguments, goes to the model. It answers authorized, not authorized or unclear, with a quote. The quote must appear in the proposal and two answers must agree; otherwise the action is <em>unclear</em>.</li>
         </ol>
-        <p className="mt-4 text-ink-2">Overall, by code: <strong className="text-ok">as voted</strong> if every action is authorized and the vote passed; <strong className="text-dev">deviates</strong> if any action is not in the proposal or over amount; <strong className="text-unclear">unclear</strong> otherwise. The wording is always dated and neutral, and says only what it establishes about the one proposal the filer named: &quot;Execution X on date includes an action proposal CIP-16 (closed date) does not cover.&quot; If a different proposal covers it, the DAO appeals by naming that proposal.</p>
+        <p className="mt-4 text-ink-2">Overall, by code: <strong className="text-ok">as voted</strong> if every action is authorized or neutral and the vote passed; <strong className="text-dev">deviates</strong> if any action is not in the proposal or over amount; <strong className="text-unclear">unclear</strong> otherwise, with no slash and no bounty. The wording is always dated and neutral, and says only what it establishes about the one proposal the filer named: &quot;Execution X on date includes an action proposal CIP-16 (closed date) does not cover.&quot;</p>
       </Section>
 
       <Section title="What the model is never allowed to decide">
@@ -81,10 +99,11 @@ export default function Docs() {
 
       <Section title="Who can do what">
         <ul className="list-disc space-y-1.5 pl-5 text-ink-2">
-          <li>Anyone can list a DAO, but only if the space&apos;s own Snapshot settings name the Safe as a treasury on that chain, read within the last hour.</li>
+          <li>Anyone can list a DAO, but only if the space&apos;s own Snapshot settings name the Safe as a treasury on that chain, read within the last hour. A DAO is the pair (space, Safe). A listing is <em>verified</em> only when the Safe itself owns the space&apos;s ENS name, so no single signer can earn the badge.</li>
           <li>Only an admin or moderator of the space, read from the hub, can claim a listing; only the controller can pledge or withdraw.</li>
           <li>Anyone can file a check. One check per execution; an execution and proposal pair is never filed twice.</li>
-          <li>A DEVIATES ruling is appealed by the DAO&apos;s controller, who may name the proposal the execution really implements; an AS_VOTED ruling by anyone but the controller.</li>
+          <li>A DEVIATES ruling is the DAO&apos;s to answer. Its controller may appeal and may name the proposal the execution really implements; nobody else may name another proposal. On an unclaimed listing anyone but the filer may appeal a DEVIATES, but that never uses up the DAO&apos;s turn. An admin who claims within the window takes the appeal over, and if the stranger&apos;s appeal loses, the window reopens for the controller.</li>
+          <li>An AS_VOTED ruling can be appealed by anyone but the controller. If the fresh panel says DEVIATES, the DAO gets its own window to answer before anything is final.</li>
           <li>There is no owner, admin or setter in any contract.</li>
         </ul>
       </Section>

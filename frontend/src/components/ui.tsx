@@ -28,6 +28,7 @@ const OUTCOME: Record<ActionOutcome, { label: string; cls: string }> = {
   NOT_AUTHORIZED: { label: "Not in proposal", cls: "bg-dev-soft text-dev" },
   OVER_AMOUNT: { label: "Over amount", cls: "bg-dev-soft text-dev" },
   UNCLEAR: { label: "Unclear", cls: "bg-unclear-soft text-unclear" },
+  NEUTRAL: { label: "Neutral", cls: "bg-ok-soft text-ink-2" },
 };
 
 export function OutcomeChip({ outcome }: { outcome: ActionOutcome }) {

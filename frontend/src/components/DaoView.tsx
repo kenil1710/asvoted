@@ -57,8 +57,8 @@ export function DaoView({ id }: { id: number }) {
     <div>
       <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-4xl font-semibold">{d.space}{d.verified && <span className="ml-3 align-middle rounded border border-ok px-2 py-0.5 font-sans text-sm font-semibold text-ok" title="The space's ENS owner is the Safe or one of its owners">verified</span>}</h1>
-          <p className="mt-1 text-ink-2">Snapshot space <strong>{d.space}</strong> with the Safe <Addr value={d.safe} chain={d.chain} size={6} /> on {CHAIN_LABEL[d.chain]}. This pair is the DAO: another space listing the same Safe is another record. Listed {isoDate(d.listed_at)} by <Addr value={d.lister} />{d.verified ? "; the space's ENS owner is the Safe or one of its owners." : "; Snapshot does not prove who controls a Safe, and this space's ENS owner is not one of its owners."}</p>
+          <h1 className="font-serif text-4xl font-semibold">{d.space}{d.verified && <span className="ml-3 align-middle rounded border border-ok px-2 py-0.5 font-sans text-sm font-semibold text-ok" title="The Safe itself owns the space's ENS name">verified</span>}</h1>
+          <p className="mt-1 text-ink-2">Snapshot space <strong>{d.space}</strong> with the Safe <Addr value={d.safe} chain={d.chain} size={6} /> on {CHAIN_LABEL[d.chain]}. This pair is the DAO: another space listing the same Safe is another record. Listed {isoDate(d.listed_at)} by <Addr value={d.lister} />{d.verified ? "; the Safe itself owns the space's ENS name, so only its signers together control the space." : "; not verified: Snapshot does not prove who controls a Safe, and the Safe does not own this space's ENS name."}</p>
         </div>
         <div className={`rounded-lg border-2 px-4 py-3 ${stand.data?.ok ? "border-ok bg-ok-soft" : "border-dev bg-dev-soft"}`}>
           <p className={`font-semibold ${stand.data?.ok ? "text-ok" : "text-dev"}`}>{stand.data ? (stand.data.ok ? "Executing as voted" : "Not in good standing") : "Reading standing"}</p>

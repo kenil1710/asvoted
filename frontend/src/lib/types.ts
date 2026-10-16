@@ -1,5 +1,5 @@
 export type Verdict = "AS_VOTED" | "DEVIATES" | "UNCLEAR";
-export type ActionOutcome = "AUTHORIZED" | "NOT_AUTHORIZED" | "OVER_AMOUNT" | "UNCLEAR";
+export type ActionOutcome = "AUTHORIZED" | "NOT_AUTHORIZED" | "OVER_AMOUNT" | "UNCLEAR" | "NEUTRAL";
 export type CheckStatus = "PROVISIONAL" | "CONTESTABLE" | "APPEALED" | "FINAL";
 
 export interface Action {

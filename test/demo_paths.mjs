@@ -4,7 +4,7 @@
  *
  *   refusals   list_dao of a Safe the space does not list; claim_dao by a
  *              non-admin; duplicate filing; payable call with a wrong amount
- *   AS_VOTED   CoW CIP-48                                -> finalize, stake to pledge
+ *   AS_VOTED   CoW CIP-30 (oSnap)                        -> finalize, stake to pledge
  *   DEVIATES   CoW CIP-16 batch                          -> finalize, pledge slashed, bounty
  *   appeal won CoW 6,000,000 COW to the Treasury (CIP-37) filed against CIP-30 (wrong: oSnap)
  *              -> DAO appeals naming CIP-37 -> AS_VOTED
