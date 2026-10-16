@@ -1,0 +1,222 @@
+FF.FFFF....F.FFF.F...FF.F.FF.F
+======================================================================
+FAIL: test_r3_40_html_comment_is_not_part_of_the_proposal (test_attacks_r3.Hidden.test_r3_40_html_comment_is_not_part_of_the_proposal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 199, in test_r3_40_html_comment_is_not_part_of_the_proposal
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(MALLORY, U(9_000))), "DEVIATES")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'DEVIATES'
+- AS_VOTED
++ DEVIATES
+
+
+======================================================================
+FAIL: test_r3_41_html_comment_cannot_carry_an_amount (test_attacks_r3.Hidden.test_r3_41_html_comment_cannot_carry_an_amount)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 203, in test_r3_41_html_comment_cannot_carry_an_amount
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(9_000))), "DEVIATES")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'DEVIATES'
+- AS_VOTED
++ DEVIATES
+
+
+======================================================================
+FAIL: test_r3_43_amount_inside_a_link_target_is_not_an_amount (test_attacks_r3.Hidden.test_r3_43_amount_inside_a_link_target_is_not_an_amount)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 213, in test_r3_43_amount_inside_a_link_target_is_not_an_amount
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(9_000))), "DEVIATES")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'DEVIATES'
+- AS_VOTED
++ DEVIATES
+
+
+======================================================================
+FAIL: test_r3_20_dot_grouped_thousands (test_attacks_r3.Numbers.test_r3_20_dot_grouped_thousands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 133, in test_r3_20_dot_grouped_thousands
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(1_000_000))), "AS_VOTED")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'UNCLEAR' != 'AS_VOTED'
+- UNCLEAR
++ AS_VOTED
+
+
+======================================================================
+FAIL: test_r3_21_european_decimal_comma (test_attacks_r3.Numbers.test_r3_21_european_decimal_comma)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 137, in test_r3_21_european_decimal_comma
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(1_250_000))), "AS_VOTED")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'UNCLEAR' != 'AS_VOTED'
+- UNCLEAR
++ AS_VOTED
+
+
+======================================================================
+FAIL: test_r3_22_space_grouped_thousands (test_attacks_r3.Numbers.test_r3_22_space_grouped_thousands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 143, in test_r3_22_space_grouped_thousands
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(1_000_000))), "AS_VOTED", repr(sep))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'DEVIATES' != 'AS_VOTED'
+- DEVIATES
++ AS_VOTED
+ : ' '
+
+======================================================================
+FAIL: test_r3_01_list_item_keeps_its_own_amount (test_attacks_r3.Ownership.test_r3_01_list_item_keeps_its_own_amount)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 43, in test_r3_01_list_item_keeps_its_own_amount
+    self.assertEqual(self.ruling(self.LIST, to=USDC, data=F.transfer(ALICE, U(9_000))), "DEVIATES")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'DEVIATES'
+- AS_VOTED
++ DEVIATES
+
+
+======================================================================
+FAIL: test_r3_03_table_column_keeps_its_own_amount (test_attacks_r3.Ownership.test_r3_03_table_column_keeps_its_own_amount)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 50, in test_r3_03_table_column_keeps_its_own_amount
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(9_000))), "DEVIATES")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'DEVIATES'
+- AS_VOTED
++ DEVIATES
+
+
+======================================================================
+FAIL: test_r3_04_unattributable_amount_is_not_a_cap (test_attacks_r3.Ownership.test_r3_04_unattributable_amount_is_not_a_cap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 56, in test_r3_04_unattributable_amount_is_not_a_cap
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(9_000))), "UNCLEAR")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'UNCLEAR'
+- AS_VOTED
++ UNCLEAR
+
+
+======================================================================
+FAIL: test_r3_05_one_amount_for_two_recipients_is_shared (test_attacks_r3.Ownership.test_r3_05_one_amount_for_two_recipients_is_shared)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 61, in test_r3_05_one_amount_for_two_recipients_is_shared
+    self.assertEqual(self.ruling(body, txs=txs), "DEVIATES")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'DEVIATES'
+- AS_VOTED
++ DEVIATES
+
+
+======================================================================
+FAIL: test_r3_07_same_address_two_purposes_is_not_a_deviation (test_attacks_r3.Ownership.test_r3_07_same_address_two_purposes_is_not_a_deviation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 74, in test_r3_07_same_address_two_purposes_is_not_a_deviation
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(8_000))), "UNCLEAR")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'DEVIATES' != 'UNCLEAR'
+- DEVIATES
++ UNCLEAR
+
+
+======================================================================
+FAIL: test_r3_31_dust_checks_cannot_push_real_ones_out_of_view (test_attacks_r3.Splitting.test_r3_31_dust_checks_cannot_push_real_ones_out_of_view)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 185, in test_r3_31_dust_checks_cannot_push_real_ones_out_of_view
+    self.assertNotEqual(out[-1], "AS_VOTED", out)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' == 'AS_VOTED' : ['AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED', 'AS_VOTED']
+
+======================================================================
+FAIL: test_r3_32_approve_and_transfer_to_one_recipient_add_up (test_attacks_r3.Splitting.test_r3_32_approve_and_transfer_to_one_recipient_add_up)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 189, in test_r3_32_approve_and_transfer_to_one_recipient_add_up
+    self.assertEqual(self.ruling("Send 5,000 USDC to " + ALICE, txs=txs), "DEVIATES")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'AS_VOTED' != 'DEVIATES'
+- AS_VOTED
++ DEVIATES
+
+
+======================================================================
+FAIL: test_r3_10_a_minimum_is_not_a_cap (test_attacks_r3.Wording.test_r3_10_a_minimum_is_not_a_cap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 99, in test_r3_10_a_minimum_is_not_a_cap
+    self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(1_000_000))), "UNCLEAR")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'DEVIATES' != 'UNCLEAR'
+- DEVIATES
++ UNCLEAR
+
+
+======================================================================
+FAIL: test_r3_12_per_month_resets_each_calendar_month (test_attacks_r3.Wording.test_r3_12_per_month_resets_each_calendar_month)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 113, in test_r3_12_per_month_resets_each_calendar_month
+    self.assertEqual(self.series(body, legs), ["AS_VOTED", "AS_VOTED", "DEVIATES"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['AS_VOTED', 'DEVIATES', 'DEVIATES'] != ['AS_VOTED', 'AS_VOTED', 'DEVIATES']
+
+First differing element 1:
+'DEVIATES'
+'AS_VOTED'
+
+- ['AS_VOTED', 'DEVIATES', 'DEVIATES']
+?               ^^ ^^  ^
+
++ ['AS_VOTED', 'AS_VOTED', 'DEVIATES']
+?               ^^^ ^  ^
+
+
+======================================================================
+FAIL: test_r3_13_unknown_period_with_earlier_payments_is_unclear (test_attacks_r3.Wording.test_r3_13_unknown_period_with_earlier_payments_is_unclear)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 118, in test_r3_13_unknown_period_with_earlier_payments_is_unclear
+    self.assertEqual(self.series(body, legs), ["AS_VOTED", "UNCLEAR"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['AS_VOTED', 'DEVIATES'] != ['AS_VOTED', 'UNCLEAR']
+
+First differing element 1:
+'DEVIATES'
+'UNCLEAR'
+
+- ['AS_VOTED', 'DEVIATES']
+?               ^ -- ^^^
+
++ ['AS_VOTED', 'UNCLEAR']
+?               ^^^^  ^
+
+
+======================================================================
+FAIL: test_r3_15_dollar_figure_in_a_stablecoin_paid_in_a_volatile_token (test_attacks_r3.Wording.test_r3_15_dollar_figure_in_a_stablecoin_paid_in_a_volatile_token)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/kenilvakariya/dev/asvoted/test/test_attacks_r3.py", line 127, in test_r3_15_dollar_figure_in_a_stablecoin_paid_in_a_volatile_token
+    self.assertEqual(self.ruling(body, to=COW, data=F.transfer(ALICE, 10_000_000 * GEN)), "UNCLEAR")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'DEVIATES' != 'UNCLEAR'
+- DEVIATES
++ UNCLEAR
+
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.637s
+
+FAILED (failures=17)
