@@ -88,6 +88,7 @@ A_NOT = "NOT_AUTHORIZED"
 A_OVER = "OVER_AMOUNT"
 A_UNCLEAR = "UNCLEAR"
 A_MODEL = "MODEL"            # internal: code could not settle it
+A_NEUTRAL = "NEUTRAL"        # a conversion that keeps the value in the Safe (wrapping ETH): not a payment
 
 V_AS = "AS_VOTED"
 V_DEV = "DEVIATES"
@@ -884,26 +885,61 @@ def approving_choices(choices: list) -> list:
 
 
 NEST_DEPTH = 3
+NEST_ADDR_MIN = 1 << 96      # the top-level rule: a word below 2^160 and at least 2^96 is address-like
 
 
-def nested_addresses(words: list) -> list:
-    """Address-shaped words of calls nested in bytes arguments (multicall,
-    router sub-calls), recursively to NEST_DEPTH: each level of nesting puts
-    the inner words a 4-byte selector further off the 32-byte grid (4, 8, 12
-    bytes). Only full-width addresses (top byte non-zero) count, so a shifted
-    amount is never read as one."""
-    blob = "".join([w[2:] if w.startswith("0x") else w for w in words])
+def _inner_calls(b: bytes) -> list:
+    """Calls nested in ABI `bytes` values of an argument blob: a 32-byte
+    aligned length L (4 + 32k, at least 36) followed by a non-zero selector,
+    L bytes of data and its zero padding. ABI encoding puts every inner call
+    on the 32-byte grid of its own data, so its words are read aligned and a
+    shifted amount is never mistaken for an address."""
     out = []
-    for depth in range(1, NEST_DEPTH + 1):
-        k = 8 * depth
-        while k + 64 <= len(blob):
-            win = blob[k:k + 64]
-            if win[:24] == "0" * 24 and win[24:26] != "00" and _is_hex(win[24:].lower(), 40):
-                a = "0x" + win[24:].lower()
-                if a not in out:
-                    out.append(a)
-            k += 64
+    q = 0
+    while q + 32 <= len(b):
+        n = int.from_bytes(b[q:q + 32], "big")
+        e = q + 32 + n
+        if 36 <= n <= len(b) and (n - 4) % 32 == 0 and e + 28 <= len(b) and b[q + 32:q + 36] != bytes(4) and \
+                b[e:e + 28] == bytes(28):
+            out.append(b[q + 32:e])
+        q += 32
     return out
+
+
+def nested_scan(words: list) -> dict:
+    """{"addrs": address-shaped words (12 zero high bytes, then a tail of at
+    least 2^96, not 2^k - 1) of every call nested in the arguments, at any
+    depth up to NEST_DEPTH, including addresses that start with 0x00;
+    "too_deep": a call is nested deeper than NEST_DEPTH}."""
+    try:
+        blob = bytes.fromhex("".join([w[2:] if w.startswith("0x") else w for w in words]))
+    except Exception:
+        return {"addrs": [], "too_deep": True}
+    out = []
+    deep = False
+    todo = [[blob, 1]]
+    seen = 0
+    while len(todo) > 0 and seen < 64:
+        cur, depth = todo[0][0], todo[0][1]
+        todo = todo[1:]
+        seen += 1
+        for inner in _inner_calls(cur):
+            if depth > NEST_DEPTH:
+                deep = True
+                continue
+            args = inner[4:]
+            k = 0
+            while k + 32 <= len(args):
+                v = int.from_bytes(args[k:k + 32], "big")
+                if v >> 160 == 0 and v >= NEST_ADDR_MIN and (v + 1) & v != 0:
+                    a = "0x" + args[k + 12:k + 32].hex()
+                    if a not in out:
+                        out.append(a)
+                k += 32
+            todo.append([args, depth + 1])
+    if len(todo) > 0:
+        deep = True
+    return {"addrs": out, "too_deep": deep}
 
 
 def _choice_key(label: str) -> str:
@@ -919,20 +955,27 @@ def _choice_key(label: str) -> str:
 
 
 def _starts_with_key(line: str, key: str) -> bool:
-    t = line.strip().lower()
+    """A heading that begins with the choice's name, or a line that begins
+    with it followed by ":" / "-" / ")" / "." ("Option A: ...", "## Against")."""
+    raw = line.strip()
+    heading = raw.startswith("#")
+    t = raw.lower()
     while len(t) > 0 and t[0] in "#*->_`[( ":
         t = t[1:]
-    return len(key) >= 3 and t.startswith(key)
+    if len(key) < 3 or not t.startswith(key):
+        return False
+    rest = t[len(key):]
+    while len(rest) > 0 and rest[0] in "*_`]":
+        rest = rest[1:]
+    return heading or rest == "" or rest[0] in ":-).\u2014"
 
 
 def choice_segments(text: str, choices: list, scores: list) -> dict:
-    """For a vote with several approving choices: the spans of text tied to
-    each choice (a heading's section or a paragraph that begins with the
-    choice's name), which choice won, and whether the winner's text was
-    found. {"multi": False} when at most one choice approves anything."""
-    appr = approving_choices(choices)
-    if len(appr) <= 1:
-        return {"multi": False}
+    """The text tied to each choice (a heading's section, or a paragraph that
+    begins with the choice's name), for every vote: For / Against / Abstain
+    as much as Option A / Option B. "losing": the spans of every choice but
+    the winner (amounts there never cap). "multi": several choices approve
+    something; "found": the winner's own text was found."""
     best = -1
     for i in range(len(choices)):
         try:
@@ -947,14 +990,52 @@ def choice_segments(text: str, choices: list, scores: list) -> dict:
     while k < len(text):
         la, lb = line_bounds(text, k)
         line = text[la:lb]
-        for c in appr:
-            key = _choice_key(c)
+        for c in choices:
+            key = _choice_key(str(c))
             if _starts_with_key(line, key):
                 sp = section_bounds(text, la) if _is_heading(line) else para_bounds(text, la)
-                spans.setdefault(c, []).append(sp)
+                spans.setdefault(str(c), []).append(sp)
         k = lb + 1
-    return {"multi": True, "winner": winner, "found": winner in spans,
+    appr = approving_choices(choices)
+    return {"multi": len(appr) > 1, "winner": winner, "found": winner in spans,
             "losing": [sp for c in spans if c != winner for sp in spans[c]], "approving": appr}
+
+
+STATUS_WORDS = ("rejected", "withdrawn", "cancelled", "canceled", "void", "voided", "rescinded", "revoked", "not",
+                "denied", "declined", "superseded", "paused", "on hold")
+AMEND_WORDS = ("amend", "amended", "amendment", "reduce", "reduced", "increase", "increased", "revise", "revised",
+               "update", "updated", "correction", "corrected", "change", "changed", "instead", "replace", "replaced",
+               "above", "lowered", "raised", "restated")
+
+
+def item_span(text: str, pos: int) -> tuple:
+    """The list item holding `pos` with all its sub-bullets, or the line."""
+    la, lb = line_bounds(text, pos)
+    k = la
+    start = -1
+    ind = _indent(text[la:lb])
+    while True:
+        ka, kb = line_bounds(text, k)
+        ln = text[ka:kb]
+        if _list_marker(ln) and _indent(ln) <= ind:
+            start = ka
+            break
+        if ka == 0 or ln.strip() == "":
+            break
+        k = ka - 1
+    if start < 0:
+        return (la, lb)
+    si = _indent(text[start:line_bounds(text, start)[1]])
+    end = len(text)
+    k = lb + 1
+    while k < len(text):
+        ka, kb = line_bounds(text, k)
+        ln = text[ka:kb]
+        if ln.strip() == "" or (_list_marker(ln) and _indent(ln) <= si) or (not _list_marker(ln) and _indent(ln) <= si):
+            end = ka
+            break
+        k = kb + 1
+    return (start, end)
 
 
 def strict_cap(who: str, fam: str, relevant: list, amts: list, owners: list, flags: list, text: str,
@@ -1000,7 +1081,29 @@ def strict_cap(who: str, fam: str, relevant: list, amts: list, owners: list, fla
     if len(vals) > 1:
         return {"kind": "unclear", "why": "the proposal states " + str(len(vals)) + " different amounts for " + who +
                 " (" + ", ".join([_fmt_cap(amts[k]) for k in mine[:4]]) + "); code cannot tell which one caps this payment"}
-    return {"kind": "cap", "cap": amts[mine[0]], "k": mine[0]}
+    k0 = mine[0]
+    low = text.lower()
+    # a status word anywhere in the payment's bullet subtree (or its line)
+    sa, sb = item_span(text, amts[k0][0])
+    seg = low[sa:sb]
+    for w in STATUS_WORDS:
+        if _whole_word(seg, w):
+            return {"kind": "unclear", "why": "the bullet or line stating the amount for " + who + " also says \"" + w + "\""}
+    # a later paragraph that restates or amends an amount of this token
+    pa, pb = para_bounds(text, amts[k0][0])
+    for j in range(len(amts)):
+        if j == k0 or family(amts[j][3]) != fam or amts[j][0] < pb:
+            continue
+        if amts[j][1] * (10 ** (36 - amts[j][2])) == amts[k0][1] * (10 ** (36 - amts[k0][2])) and \
+                flags[j]["period"] == flags[k0]["period"]:
+            continue            # the same figure again leaves the cap certain
+        qa, qb = para_bounds(text, amts[j][0])
+        names_who = len([1 for m in mentions if qa <= m < qb]) > 0
+        amends = len([1 for w in AMEND_WORDS if _whole_word(low[qa:qb], w)]) > 0
+        if names_who or amends:
+            return {"kind": "unclear", "why": "a later paragraph states " + _fmt_cap(amts[j]) + (" for " + who if names_who else
+                    " as an amendment") + "; code cannot tell which amount stands"}
+    return {"kind": "cap", "cap": amts[k0], "k": k0}
 
 
 def amount_owners(text: str, amts: list, marks: list) -> list:
@@ -1103,11 +1206,12 @@ def code_rules(inp: dict) -> list:
     # never count; if the winner's own text cannot be found, nothing caps
     seg = choice_segments(text, inp["vote"].get("choices") or [], inp["vote"].get("scores") or [])
     multi_option = bool(seg.get("multi")) and not seg.get("found")
-    if seg.get("multi") and seg.get("found"):
-        amts = [a for a in amts if len([1 for sp in seg["losing"] if sp[0] <= a[0] < sp[1]]) == 0]
+    # amounts under a losing choice's heading or paragraph never cap anything
+    amts = [a for a in amts if len([1 for sp in seg["losing"] if sp[0] <= a[0] < sp[1]]) == 0]
     flags = amount_flags(text, amts)
     allow = (inp.get("allow") or {}).get(str(ex.get("chain", ""))) or {}
     ens_unres = bool(inp["vote"].get("ens_unresolved"))
+    moved = inp["vote"].get("ens_moved") or {}      # name -> where it pointed when the Safe acted, if not where voters saw
 
     def ident_sym(token: str, tmap: dict) -> str:
         """A token's symbol, only if the token is identified: on the judge's
@@ -1166,10 +1270,15 @@ def code_rules(inp: dict) -> list:
         sy = str(allow.get(a, ""))
         return len(sy) >= 3 and _whole_word(text, sy)
 
-    def unnamed(what: str) -> list:
-        """[outcome, reason suffix] for an address the proposal does not
-        name: NOT_AUTHORIZED, unless it names ENS names that could not be
-        resolved as of the execution (then it might be one of them)."""
+    def unnamed(what: str, who: str = "") -> list:
+        """[outcome, reason] for an address the proposal does not name:
+        NOT_AUTHORIZED, unless one of its ENS names had moved to this address
+        by the time the Safe acted (voters saw another address), or its names
+        could not be resolved: then UNCLEAR, never a code-settled slash."""
+        for nm in moved:
+            if moved[nm] == who and who != "":
+                return [A_UNCLEAR, what + "; but " + nm + " pointed to it when the Safe acted, while voters saw " +
+                        str(ens.get(nm, "another address")) + ", so code cannot tell which one the proposal meant"]
         if ens_unres:
             return [A_UNCLEAR, what + ", unless it is one of the proposal's ENS names, which could not be resolved as of this execution"]
         return [A_NOT, what]
@@ -1221,10 +1330,21 @@ def code_rules(inp: dict) -> list:
                 exact[a["i"]] = True
             f = lowc.find(blob, f + 1)
 
+    # Wrapping ETH into a listed WETH (deposit(), WETH credited to the Safe)
+    # or unwrapping it (withdraw(uint256), ETH back to the Safe) keeps the
+    # value in the Safe: a neutral conversion, not a payment.
+    neutral = {}
+    for a in acts:
+        tg = a.get("target", "")
+        if a.get("kind") == "call" and a.get("op", "CALL") == "CALL" and family(str(allow.get(tg, ""))) == "ETH" and \
+                str(allow.get(tg, "")) != "ETH" and ((a.get("selector") == "0xd0e30db0" and int(a.get("data_len", 0)) == 4) or
+                                                     (a.get("selector") == "0x2e1a7d4d" and int(a.get("value", "0")) == 0)):
+            neutral[a["i"]] = True
+
     # value legs: (action index, recipient, token ("" native), raw amount, is_approval)
     legs = []
     for a in acts:
-        if a["i"] in exact:
+        if a["i"] in exact or a["i"] in neutral:
             continue
         k = a["kind"]
         if k in ("erc20_transfer", "erc20_transfer_from", "gas_refund"):
@@ -1301,7 +1421,7 @@ def code_rules(inp: dict) -> list:
                 setr(i, A_AUTH, "moves value into the Safe itself")
             continue
         if not mentioned(r):
-            u = unnamed(("approves " if approval else "sends ") + "to " + r + ", an address the proposal does not mention")
+            u = unnamed(("approves " if approval else "sends ") + "to " + r + ", an address the proposal does not mention", r)
             for x in g:
                 setr(x[0], u[0], u[1])
             continue
@@ -1428,15 +1548,19 @@ def code_rules(inp: dict) -> list:
     for a in acts:
         fr = str(a.get("from") or "")
         if a["kind"] == "erc20_transfer_from" and a["i"] not in exact and fr != "" and fr != safe and not mentioned(fr):
-            u = unnamed("pulls tokens from " + fr + ", an address the proposal does not mention")
+            u = unnamed("pulls tokens from " + fr + ", an address the proposal does not mention", fr)
             setr(a["i"], u[0], u[1])
 
     for i in exact:
         setr(i, A_AUTH, "the proposal quotes this exact calldata, for a contract it names")
+    for i in neutral:
+        r0 = res[i]
+        r0["outcome"] = A_NEUTRAL
+        r0["reason"] = "wraps or unwraps ETH with a listed WETH; the value stays in the Safe, so this is a conversion, not a payment"
 
     # 2. calls: identification and address arguments
     for a in acts:
-        if a["i"] in exact:
+        if a["i"] in exact or a["i"] in neutral:
             continue
         k = a["kind"]
         if k not in ("call", "delegatecall", "empty"):
@@ -1447,9 +1571,9 @@ def code_rules(inp: dict) -> list:
             ident = named_by_symbol(tgt)
         if not ident:
             if k == "delegatecall":
-                u = unnamed("a DELEGATECALL to " + tgt + ", an address the proposal does not mention")
+                u = unnamed("a DELEGATECALL to " + tgt + ", an address the proposal does not mention", tgt)
             else:
-                u = unnamed("calls " + tgt + ", a contract the proposal does not identify")
+                u = unnamed("calls " + tgt + ", a contract the proposal does not identify", tgt)
             setr(a["i"], u[0], u[1])
             continue
 
@@ -1463,10 +1587,15 @@ def code_rules(inp: dict) -> list:
                 bad = x
                 break
         if bad != "":
-            u = unnamed("passes the address " + bad + ", which the proposal does not mention")
+            u = unnamed("passes the address " + bad + ", which the proposal does not mention", bad)
             setr(a["i"], u[0], u[1])
             continue
-        for x in nested_addresses(a.get("args") or []):
+        ns = nested_scan(a.get("args") or [])
+        if ns["too_deep"] or "ARGS_TRUNCATED_IN_VIEW" in (a.get("flags") or []):
+            setr(a["i"], A_UNCLEAR, "nests calls deeper than " + str(NEST_DEPTH) + " levels (or its arguments are cut "
+                 "off), so code cannot see every address it passes")
+            continue
+        for x in ns["addrs"]:
             if not fine(x):
                 bad = x
                 break
@@ -1611,7 +1740,7 @@ def finish(inp: dict, base: list, model: dict) -> dict:
         acts.append(x)
     n_not = len([a for a in acts if a["outcome"] == A_NOT])
     n_over = len([a for a in acts if a["outcome"] == A_OVER])
-    n_auth = len([a for a in acts if a["outcome"] == A_AUTH])
+    n_auth = len([a for a in acts if a["outcome"] in (A_AUTH, A_NEUTRAL)])
     passed = vote.get("outcome") == "PASSED"
     if n_not + n_over > 0:
         overall = V_DEV
@@ -1635,8 +1764,35 @@ def finish(inp: dict, base: list, model: dict) -> dict:
         summary = ("Execution " + tx + " on " + ed + " could not be fully matched to the proposal of " + pd + ": " +
                    str(n_auth) + " of " + str(len(acts)) + " actions settled.")
     return {"overall": overall, "summary": summary, "actions": acts, "n_model": len(model),
-            "counts": {"authorized": n_auth, "not_authorized": n_not, "over_amount": n_over,
+            "counts": {"authorized": n_auth, "neutral": len([a for a in acts if a["outcome"] == A_NEUTRAL]),
+                       "not_authorized": n_not, "over_amount": n_over,
                        "unclear": len(acts) - n_auth - n_not - n_over}}
+
+
+def with_every_payment(inp: dict) -> list:
+    """code_rules against the filings under the named proposal, and again
+    against every filing of this DAO that paid the same payees, under any of
+    its proposals. A payment counts against every proposal that names its
+    payee, so switching proposals cannot reset a running total: where the two
+    disagree, the action is UNCLEAR (never AS_VOTED)."""
+    base = code_rules(inp)
+    if "prior_all" not in inp:
+        return base
+    alt = dict(inp)
+    alt["prior"] = inp.get("prior_all") or []
+    alt["prior_truncated"] = bool(inp.get("prior_truncated")) or bool(inp.get("prior_all_truncated"))
+    wide = code_rules(alt)
+    out = []
+    for k in range(len(base)):
+        x = dict(base[k])
+        y = wide[k]
+        if y["outcome"] != x["outcome"]:
+            x["outcome"] = A_UNCLEAR
+            x["reason"] = ("counted with every payment to this payee filed under any of the DAO's proposals, the "
+                           "ruling would be " + y["outcome"] + " (" + y["reason"][:160] + "); under this proposal "
+                           "alone it is " + base[k]["outcome"] + ", so code cannot tell which proposal paid what")
+        out.append(x)
+    return out
 
 
 def strip_quotes(j: dict) -> str:
@@ -1738,14 +1894,16 @@ class AsVotedJudge(gl.contract.Contract):
             raise gl.vm.UserError("REFUSED: ALREADY_JUDGED")
         in_sha = _sha(_canon({"exec": inp["exec"], "vote": inp["vote"], "prior": inp.get("prior") or [],
                               "counter_evidence": inp.get("counter_evidence", ""), "round": rnd,
-                              "prior_truncated": bool(inp.get("prior_truncated"))}))
+                              "prior_truncated": bool(inp.get("prior_truncated")),
+                              "prior_all": inp.get("prior_all") or [],
+                              "prior_all_truncated": bool(inp.get("prior_all_truncated"))}))
         if in_sha != inp.get("input_sha256"):
             raise gl.vm.UserError("REFUSED: EVIDENCE_HASH_MISMATCH")
         # judge the proposal as voters saw it rendered (no HTML comments)
         inp["vote"] = dict(inp["vote"])
         inp["vote"]["text"] = visible_text(str(inp["vote"].get("text") or ""))
         inp["allow"] = json.loads(self.tokens_json)
-        base = code_rules(inp)
+        base = with_every_payment(inp)
         nonce = in_sha[:16]
         if len([r for r in base if r["outcome"] == A_MODEL]) == 0:
             result = finish(inp, base, {})
