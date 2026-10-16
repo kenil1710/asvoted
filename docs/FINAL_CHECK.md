@@ -1,6 +1,6 @@
 # Final check
 
-Run 2026-10-16T02:19:32.501Z by `tools/final_check.mjs` against commit `c8fe01329d`, the live site and Studio Dev. **20/23 PASS.**
+Run 2026-10-16T02:29:28.895Z by `tools/final_check.mjs` against commit `cdf7098741`, the live site and Studio Dev. **23/23 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
@@ -60,7 +60,7 @@ VoteReader.read_space                    first write L1244 self.binds[u64(bid)] 
 ## PASS · Views read storage only (no writes, no web/model calls in any view); get_ledger recomputation matches counters
 
 ```
-Ran 4 tests in 0.322s  OK
+Ran 4 tests in 0.316s  OK
 ```
 
 ## PASS · Evidence bound at filing to (chain, Safe, tx, proposal CID, block) and snapshotted (reader evidence hashes match every check)
@@ -90,7 +90,7 @@ Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mev
 ## PASS · All offline tests pass
 
 ```
-Ran 118 tests in 1.375s  OK
+Ran 118 tests in 1.394s  OK
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
@@ -158,16 +158,16 @@ missing: none; flagged words: none
 = dao:open checks: site "0" chain "0"
 ```
 
-## FAIL · 375 px: no horizontal scroll on any page
+## PASS · 375 px: no horizontal scroll on any page
 
 ```
-/ 375, /daos 375, /dao/1 375, /check/1 424, /file 375, /patrol 375, /docs 375, /verify 375
+/ 375, /daos 375, /dao/1 375, /check/1 375, /check/7 375, /check/9 375, /check/11 375, /file 375, /patrol 375, /docs 375, /verify 375
 ```
 
-## FAIL · One set of addresses everywhere (deployments.json, site, ADDRESSES.md, SUBMISSION)
+## PASS · One set of addresses everywhere (deployments.json, site, ADDRESSES.md, SUBMISSION)
 
 ```
-missing: none; other addresses: 0x614881c554aa58727a51966dfd34cb8f42332b37,0xbadcd1aec3ae56fc351c80e34d2c12f0913f5e62,0x04c4c0daf7a61aa425fe402d1d43695b8bbf4ab9,0xb9824ec1b057ef1b713a85e3dde9640ae0d6b69b,0x55db51e8a8aec3006a824e46ec7f4f70a12a68ff,0x88fe8ab95e561a57ce2dd375355858a0893d5d2d,0x62f1b05c8d6c28cb3c81a1d509663b44847fa188,0x252977af942a64541256321aea5c60179ac7bd2c,0xdc47be3939b7c53cb092258a2cffb6b7d2ff0178,0xcd320ade189e92a45ce7818cb3370bf71f34703a
+missing: none; other addresses: none
 ```
 
 ## PASS · Vercel deployment live and green (site 200, patrol endpoint answers)
@@ -176,8 +176,8 @@ missing: none; other addresses: 0x614881c554aa58727a51966dfd34cb8f42332b37,0xbad
 GET / 200; /api/patrol dry run watched 9 Safes on 0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc
 ```
 
-## FAIL · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
+## PASS · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
 
 ```
-commits touching key files: none; attribution in messages: none; working tree: dirty
+commits touching key files: none; attribution in messages: none; working tree: clean
 ```
