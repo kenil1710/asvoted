@@ -32,7 +32,7 @@ Code extracts from the proposal text, deterministically: every address (`0x` + 4
 3. **Calls.** A DELEGATECALL to an address the proposal does not mention → NOT_AUTHORIZED. A call that passes an address-like argument the proposal does not mention, or to a contract the proposal does not identify (by address, resolved ENS name, or the token's on-chain symbol as a whole word) → NOT_AUTHORIZED.
 4. **Words, only for what is left**: an identified contract called with mentioned arguments. The model answers AUTHORIZED / NOT_AUTHORIZED / UNCLEAR with a verbatim quote. Code keeps the answer only if the quote is an exact substring of the proposal text (whitespace-normalised, at least 12 characters) and the leader's two answers agree; otherwise UNCLEAR.
 
-**Overall (code):** AS_VOTED if every action is AUTHORIZED and the vote PASSED; DEVIATES if any action is NOT_AUTHORIZED or OVER_AMOUNT; otherwise UNCLEAR. Wording is neutral and dated: *"Execution 0x2d3d227c… on 2024-05-25 includes an action the proposal of 2024-04-12 does not mention."* or *"…sends more than the proposal of … states."* Never an accusation.
+**Overall (code):** AS_VOTED if every action is AUTHORIZED and the vote PASSED; DEVIATES if any action is NOT_AUTHORIZED or OVER_AMOUNT; otherwise UNCLEAR. Wording is neutral and dated: *"Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention."* (canonical check #7), or *"…sends more than the proposal of … states."* Never an accusation.
 
 ## What the model is never allowed to decide
 
@@ -48,6 +48,7 @@ The model sees the proposal text (fenced, defanged, untrusted) and a description
 ## When validators disagree (exactly as it behaves on chain)
 
 - **ExecReader / VoteReader:** the leader's record is accepted only if byte-identical to the validator's own read at the same pinned block. A validator also rejects a leader block that is not final for it, or more than 30 minutes older than its own finalized block. If they differ, the transaction is not accepted and nothing is written; anyone can read again.
+- **Observed on chain:** during the demo run, `ExecReader.read_execution` of CoW CIP-19 ended UNDETERMINED (tx `0x7b62c9110234be83d4a427b2664d7daea398668881d2a668ca7f4369e9d6c9e0`); no record was written, and the next read of the same execution succeeded.
 - **Judge:** the leader asks the model twice and keeps a verdict per action only where both agree (else UNCLEAR). Each validator re-runs the code part and its own two model answers and accepts only an identical per-action verdict list (quotes may differ but must each be a substring). If not, the transaction ends UNDETERMINED and **nothing is written**: the check stays PROVISIONAL (or APPEALED), anyone may call `judge` again, and after the deadline anyone may call `expire`, which records UNCLEAR and refunds. A disagreement is never recorded as a verdict.
 
 ## Money, lifecycle and who may do what

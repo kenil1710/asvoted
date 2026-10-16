@@ -206,7 +206,7 @@ expect("AS_VOTED final: stake to the DAO pledge", R.asv.final_verdict === "AS_VO
 expect("DEVIATES final: pledge slashed, bounty to the filer", R.dev.final_verdict === "DEVIATES" && BigInt(R.dev.slash) > 0n && R.dev.bounty_to === who("filer"), `slash ${R.dev.slash} severity ${R.dev.severity}`);
 {
   const g = await w("demo", "gate", "request_grant", [cow, "release tranche 2"]);
-  expect("GrantGate refuses after a final DEVIATES", g.r?.carried_out === false, JSON.stringify(g.r?.reasons));
+  { const log = J(await C.demo.gate.view("get_requests", [0, 5])); const last = log.requests[0]; expect("GrantGate refuses after a final DEVIATES", last?.carried_out === false, JSON.stringify(last?.reasons)); }
 }
 
 // --- expiries (600 s)

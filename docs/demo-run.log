@@ -139,3 +139,58 @@ Details: exec)
 23:21:36 PASS  AS_VOTED final: stake to the DAO pledge  [["stake to the DAO pledge","dao#1","100000000000000000"]]
 23:21:36 PASS  DEVIATES final: pledge slashed, bounty to the filer  slash 500000000000000000 severity MINOR
 23:21:36 → demo request_grant [1,"release tranche 2"]
+23:21:57   OK ACCEPTED 22s 0x88e8865e0ad82adf43f32dce8ea6ec177951ef8b39390a8c568f0a329b328a62 "{\"carried_out\":false\"reasons\":[\"a FINAL DEVIATES ruling (check #2) within the last 30 days\",]\"request_id\":2}"
+23:21:57 FAIL  GrantGate refuses after a final DEVIATES  
+23:21:59 … waiting 145s for check #5 judge deadline
+23:24:24 → filer expire [5]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:24:36   OK ACCEPTED 12s 0x7c7fc1f86b118194b8be2253548cbcec8c23773b396531a23d7d631f513b870c {"check_id":5,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+23:24:38 … waiting 208s for check #6 appeal deadline
+23:28:06 → filer expire [6]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:28:17   OK ACCEPTED 11s 0xabc02ce464429cc3cc37b73e2f34269d10ca1e9eff3176a29728f6899c3a4041 {"check_id":6,"final":"AS_VOTED","how":"APPEAL_EXPIRED","ok":true}
+23:28:26 PASS  never judged: expire -> FINAL UNCLEAR, stake refunded  
+23:28:26 PASS  appeal never judged: expire -> ruling stands, bond refunded  
+23:28:28 → dao request_withdrawal [1,"4800000000000000000"]
+23:28:39   OK ACCEPTED 11s 0x5a55ee343e85d21d7e7bbf0e9cc66544fbbf4f6f009beec4ee9276861a856186 {"ok":true,"unlocks_at":1792107002}
+23:28:41 → dao request_withdrawal [2,"1800000000000000000"]
+23:29:00   OK ACCEPTED 19s 0xfbc743425d8202ab679022de814b01b3a1515a1555ff84c09baac650b977809a {"ok":true,"unlocks_at":1792107015}
+23:29:01 … waiting 66s for dao #1 withdrawal delay
+23:30:07 → filer execute_withdrawal [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for execute_withdrawal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:30:20   OK ACCEPTED 13s 0xe3e1daab21522dd995085174134d4376e9df1a59ead0a8c2074d24911706aac0 {"ok":true,"to":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","withdrawn":"4800000000000000000"}
+23:30:21 → filer execute_withdrawal [2]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for execute_withdrawal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+23:30:35   OK ACCEPTED 14s 0xa91c54503f5c9dd7998c79debc635f1c83698ce5b53c40a3a139a6f68c2ebc06 {"ok":true,"to":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","withdrawn":"1800000000000000000"}
+23:30:38 → filer claim []
+GenLayer RPC error (eth_sendRawTransaction): NonceTooLow(expected=209,actual=208)
+23:30:45   REVERTED UNSETTLED 7s null submit failed — Invalid parameters were provided to the RPC method.
+Double check you have provided the correct parameters.
+
+Details: NonceTooLow(expected=209,ac
+23:30:46 → filer2 claim []
+23:30:58   OK ACCEPTED 12s 0x7c17c2b62132082594e51b8ae6c1153165ae56f17ffe5ff746c089c719ab14e9 {"claimed":"400000000000000000","ok":true}
+23:31:04 → dao claim []
+23:31:16   OK ACCEPTED 12s 0x25ead8cd584e28d1e862f75046835d9176b73052019a95c6d1d56a8a2b0cbcd1 {"claimed":"6700000000000000000","ok":true}
+23:31:17 → appellant claim []
+23:31:30   OK ACCEPTED 13s 0x8111e4e189621fd7dd5e22b83fe0f39a1c27a60a1ff4c06e005217b342945921 {"claimed":"300000000000000001","ok":true}
+23:31:31 PASS  ledger invariant holds  {"balance_minus_held":"7400000000000000001","claimable":"1700000000000000000","claimed":"7400000000000000001","held_now":"1700000000000000000","invariant_holds":true,"note":"claim() posts a value transfer; on Studio Dev those are queued and not delivered, so on_chain_balance can exceed held_now by up to the claimed total.","on_chain_balance":"9100000000000000001","open":"0","pledges":"0","received":"9100000000000000001","recomputed":{"claimable":"1700000000000000000","claimed":"7400000000000000001","open":"0","pledges":"0"},"views_match_storage":true}
+23:31:31 FAIL  demo drains to exactly 0 held (pledges, open stakes, claimable)  held_now 1700000000000000000
+23:31:33 
+20/23 demo expectations passed
