@@ -1,0 +1,162 @@
+{
+ "name": "asvoted",
+ "voice": "Samantha",
+ "rate": 182,
+ "out_dir": ".",
+ "segments": [
+  {
+   "id": "intro",
+   "action": {
+    "goto": "https://asvoted.vercel.app/",
+    "waitFn": "() => document.querySelector('[data-k=\"checks\"]') && /\\d/.test(document.querySelector('[data-k=\"checks\"]').textContent)"
+   },
+   "say": "Most DAOs vote on Snapshot, off chain, and a Safe multisig carries out the result on chain. Nothing checks that what the signers executed is what token holders voted for. This is AsVoted, running on GenLayer. Every figure on this page is read from the contracts: fifteen real executions checked, ten as voted, two that deviate, three unclear.",
+   "then": {
+    "scrollTo": "section[aria-label='Registry figures']",
+    "offset": 160
+   }
+  },
+  {
+   "id": "bybit",
+   "action": {
+    "goto": "https://asvoted.vercel.app/check/9",
+    "wait": "article[aria-label='The execution as decoded'] ol li"
+   },
+   "say": "Here is one check. On the left, the ballot: the Velora proposal to return 40.203 wrapped ether to Bybit after the hack, fetched by its IPFS hash and verified inside the contract. On the right, the receipt: the Safe execution, read from two independent RPCs that must agree, decoded action by action.",
+   "then": {
+    "scrollTo": "article[aria-label='The execution as decoded']",
+    "offset": 80
+   }
+  },
+  {
+   "id": "bybit2",
+   "action": {
+    "scrollTo": "article[aria-label='The execution as decoded'] ol",
+    "offset": 200
+   },
+   "say": "The recipient and the amount are both written in the proposal, so code settles this action. No model is involved. The verdict is as voted."
+  },
+  {
+   "id": "deviates",
+   "action": {
+    "goto": "https://asvoted.vercel.app/check/7",
+    "wait": "article[aria-label='The execution as decoded'] ol li"
+   },
+   "say": "Check seven is a CoW DAO batch of four calls. Two of them are quoted in the proposal, calldata for calldata, and code authorizes them. The other two call a contract that CIP-16 never names. The ruling is worded neutrally and dated: the execution includes an action the proposal does not mention.",
+   "then": {
+    "scrollTo": "article[aria-label='The execution as decoded'] ol",
+    "offset": 120
+   }
+  },
+  {
+   "id": "unclear",
+   "action": {
+    "goto": "https://asvoted.vercel.app/check/10",
+    "wait": "article[aria-label='The execution as decoded'] ol li"
+   },
+   "say": "When the data cannot settle it, the answer is unclear, never a guess. This ParaSwap grant was set at five hundred dollars per epoch and paid in PSP. The contract never fetches prices, so it does not compare them.",
+   "then": {
+    "scrollTo": "article[aria-label='The execution as decoded'] ol",
+    "offset": 160
+   }
+  },
+  {
+   "id": "model",
+   "action": {
+    "goto": "https://asvoted.vercel.app/docs",
+    "wait": "h1"
+   },
+   "then": {
+    "scrollBy": 900
+   },
+   "say": "Code decides first: every address, every amount summed across transfers, every delegate call. A model only reads calls the proposal describes in words, it must quote the proposal verbatim, and two answers must agree. It never decides an address, an amount, a chain fact, or the verdict."
+  },
+  {
+   "id": "demo_switch",
+   "action": {
+    "goto": "https://asvoted.vercel.app/",
+    "wait": "[data-k='checks']",
+    "click": "button[aria-pressed]:has-text('Demo')"
+   },
+   "say": "The demo registry runs the same code with ninety second windows, so every path can be shown end to end."
+  },
+  {
+   "id": "appeal",
+   "action": {
+    "goto": "https://asvoted.vercel.app/check/3",
+    "wait": "article[aria-label='The execution as decoded'] ol li"
+   },
+   "say": "A real story from choosing seeds. CoW DAO sent 67 wrapped ether to its treasury. Filed against CIP-43, which states 60 ether, it ruled deviates. But the transfer went to the treasury, not from it. The DAO appealed with a bond and named CIP-28, the mandate to send profits to the treasury. A fresh validator panel ruled as voted, and the bond was refunded.",
+   "then": {
+    "scrollBy": 1500
+   }
+  },
+  {
+   "id": "slash",
+   "action": {
+    "goto": "https://asvoted.vercel.app/check/2",
+    "wait": "article[aria-label='The execution as decoded'] ol li"
+   },
+   "then": {
+    "scrollBy": 1700
+   },
+   "say": "When a deviates ruling becomes final, the DAO's pledge is slashed by a frozen severity table, and the slash is paid to whoever proved it. Every state has a deadline and an exit anyone can call. There is no owner."
+  },
+  {
+   "id": "gate",
+   "action": {
+    "goto": "https://asvoted.vercel.app/dao/1",
+    "wait": "[data-k='dao:final deviates']"
+   },
+   "then": {
+    "scrollBy": 1800
+   },
+   "say": "Other contracts can ask one question: is this DAO executing as voted? This small consumer refused to act after the final deviates ruling, and logged why."
+  },
+  {
+   "id": "patrol",
+   "action": {
+    "goto": "https://asvoted.vercel.app/",
+    "wait": "[data-k='checks']",
+    "click": "button[aria-pressed]:has-text('Canonical')"
+   },
+   "say": "Back on the canonical registry."
+  },
+  {
+   "id": "patrol2",
+   "action": {
+    "goto": "https://asvoted.vercel.app/patrol",
+    "wait": "h1"
+   },
+   "say": "A patrol bot runs every fifteen minutes. It watches every listed Safe, matches each new execution to the latest passed proposal that names something it touches, files the check, and closes its own filings after their deadlines."
+  },
+  {
+   "id": "verify",
+   "action": {
+    "goto": "https://asvoted.vercel.app/verify",
+    "wait": "table",
+    "click": "button:has-text('Compare')"
+   },
+   "then": {
+    "scrollBy": 700
+   },
+   "say": "Anyone can verify the deployment. This page reads each contract's code back from Studio Dev and hashes it against the deploy commit on GitHub, in your browser. The books balance on both registries, and the demo has drained to exactly zero."
+  },
+  {
+   "id": "explorer",
+   "action": {
+    "goto": "https://explorer-studio-dev.genlayer.com/address/0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc",
+    "wait": "body"
+   },
+   "say": "Every filing, ruling and payout is a transaction on the GenLayer explorer."
+  },
+  {
+   "id": "outro",
+   "action": {
+    "goto": "https://asvoted.vercel.app/",
+    "wait": "[data-k='checks']"
+   },
+   "say": "AsVoted. The ballot and the receipt, read by the chain, held side by side, with money behind the answer."
+  }
+ ]
+}

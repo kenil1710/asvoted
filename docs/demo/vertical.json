@@ -1,0 +1,49 @@
+{
+ "name": "asvoted-vertical",
+ "voice": "Samantha",
+ "rate": 185,
+ "out_dir": ".",
+ "vertical": true,
+ "segments": [
+  {
+   "id": "hook",
+   "action": {
+    "goto": "https://asvoted.vercel.app/",
+    "waitFn": "() => document.querySelector('[data-k=\"checks\"]') && /\\d/.test(document.querySelector('[data-k=\"checks\"]').textContent)"
+   },
+   "say": "Token holders vote on Snapshot. A Safe multisig executes the result. Nothing checks that they match. AsVoted does, on GenLayer."
+  },
+  {
+   "id": "dev",
+   "action": {
+    "goto": "https://asvoted.vercel.app/check/7",
+    "wait": "article[aria-label='The execution as decoded'] ol li"
+   },
+   "then": {
+    "scrollTo": "article[aria-label='The execution as decoded'] ol",
+    "offset": 60
+   },
+   "say": "Every action is decoded from the calldata. Two calls here are quoted in the proposal. Two go to a contract it never names, so the verdict is: deviates."
+  },
+  {
+   "id": "ok",
+   "action": {
+    "goto": "https://asvoted.vercel.app/check/9",
+    "wait": "article[aria-label='The execution as decoded'] ol li"
+   },
+   "then": {
+    "scrollTo": "article[aria-label='The execution as decoded'] ol",
+    "offset": 60
+   },
+   "say": "Velora returned exactly 40.203 wrapped ether to Bybit, as voted. Code settled it, no model needed."
+  },
+  {
+   "id": "out",
+   "action": {
+    "goto": "https://asvoted.vercel.app/docs",
+    "wait": "h1"
+   },
+   "say": "Code decides first. A model only reads the words, and must quote them. DAOs pledge a bond, anyone can file a check, and there is no admin. Fifteen real executions, all on chain at asvoted dot vercel dot app."
+  }
+ ]
+}
