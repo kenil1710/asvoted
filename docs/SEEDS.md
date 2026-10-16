@@ -1,15 +1,15 @@
 # Seeds: real DAO executions on the canonical registry
 
-Registry [`0x1C2891FE54a5CfE98436F439e40A3043050eFF44`](https://explorer-studio-dev.genlayer.com/address/0x1C2891FE54a5CfE98436F439e40A3043050eFF44) (CANONICAL, 6 h contest window), deployed from commit `7a746655da`. Every row below is read back from the chain by `tools/seeds_md.mjs`; nothing in this table is typed by hand except the explanations, each checked by hand against the execution on its block explorer and the pinned proposal text.
+Registry [`0x4Ec22423528e64B4f1d41B7F647c0BD42464a30C`](https://explorer-studio-dev.genlayer.com/address/0x4Ec22423528e64B4f1d41B7F647c0BD42464a30C) (CANONICAL, 6 h contest window), deployed from commit `07ff3a3d2a`. Every row below is read back from the chain by `tools/seeds_md.mjs`; nothing in this table is typed by hand except the explanations, each checked by hand against the execution on its block explorer and the pinned proposal text.
 
-**15 checks: 8 AS_VOTED, 2 DEVIATES, 5 UNCLEAR.** DAOs: cow.eth, paraswap-dao.eth, banklessvault.eth, morpho.eth, safe.eth, krausehouse.eth. Chains: ethereum, optimism, base.
+**15 checks: 6 AS_VOTED, 2 DEVIATES, 7 UNCLEAR.** DAOs: cow.eth, paraswap-dao.eth, banklessvault.eth, morpho.eth, safe.eth, krausehouse.eth. Chains: ethereum, optimism, base.
 
 How they were chosen: every Snapshot space whose settings list a Safe as a treasury on Ethereum, Arbitrum, Optimism, Base or Polygon (`tools/scan_known.mjs`), their executed Safe transactions (Safe Transaction Service, used only to find candidates), and for each the most recent passed proposal of the space that ended before it and names an address it touches (`tools/match.mjs`). Pairs where a different proposal was the right one were corrected by hand (the 67 WETH transfer is CIP-28, not CIP-43). No verdict was chosen; each row is what the contracts ruled.
 
 | # | DAO | Chain | Execution | Actions | Proposal (ended) | Ruling | Status |
 |---|---|---|---|---|---|---|---|
-| [1](https://asvoted.vercel.app/check/1) | cow.eth | ethereum | [`0xf4631cc0…`](https://etherscan.io/tx/0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16) 2024-07-29 | 1 | [CIP-48: title: Solver rewards budget renewal and update of CoW DAO bon](https://ipfs.snapshot.box/ipfs/bafkreigatik76cmd2amxbkav55jzrexyygnebausjg7isbb2akbnevw4xq) (2024-07-24) | **AS VOTED** | contestable |
-| [2](https://asvoted.vercel.app/check/2) | cow.eth | ethereum | [`0xbcdb6b99…`](https://etherscan.io/tx/0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f) 2024-02-14 | 1 | [CIP-37:  Increasing liquidity for the COW token via Programmatic Order](https://ipfs.snapshot.box/ipfs/bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam) (2024-02-14) | **AS VOTED** | contestable |
+| [1](https://asvoted.vercel.app/check/1) | cow.eth | ethereum | [`0xf4631cc0…`](https://etherscan.io/tx/0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16) 2024-07-29 | 1 | [CIP-48: title: Solver rewards budget renewal and update of CoW DAO bon](https://ipfs.snapshot.box/ipfs/bafkreigatik76cmd2amxbkav55jzrexyygnebausjg7isbb2akbnevw4xq) (2024-07-24) | **UNCLEAR** | final |
+| [2](https://asvoted.vercel.app/check/2) | cow.eth | ethereum | [`0xbcdb6b99…`](https://etherscan.io/tx/0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f) 2024-02-14 | 1 | [CIP-37:  Increasing liquidity for the COW token via Programmatic Order](https://ipfs.snapshot.box/ipfs/bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam) (2024-02-14) | **UNCLEAR** | final |
 | [3](https://asvoted.vercel.app/check/3) | cow.eth | ethereum | [`0xaa412db5…`](https://etherscan.io/tx/0xaa412db50fb9cb384d56ddec01a00997d686927d332f13ddf93e7644a5f47c29) 2023-08-18 | 1 | [CIP-29: Renewal of the solver rewards program](https://ipfs.snapshot.box/ipfs/bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu) (2023-08-17) | **AS VOTED** | contestable |
 | [4](https://asvoted.vercel.app/check/4) | cow.eth | ethereum | [`0x2d3d227c…`](https://etherscan.io/tx/0x2d3d227cc11bb047e4b221e2a1d1c6077ce3534b798659258b08a05e28c9baba) 2024-05-25 | 1 | [CIP 28 - Should CoW DAO send its profits to the CoW Treasury Core unit](https://ipfs.snapshot.box/ipfs/bafkreie2zitrxqwtmz6ehbompehqnhy2duddhhp4z2udmw645dcbpt3i4m) (2023-08-02) | **UNCLEAR** | final |
 | [5](https://asvoted.vercel.app/check/5) | cow.eth | ethereum | [`0x1af684f9…`](https://etherscan.io/tx/0x1af684f90ded18dcd55438f8c1acc64c427c8aa2cfa223d56a6d043d7f8e67f7) 2023-03-29 | 1 | [CIP-24: Continued funding for development services - Service Agreement](https://ipfs.snapshot.box/ipfs/bafkreidsqpnzeomzl5kyaashogdq3mztw7yhkoim35ndc7xysmuflq4xcm) (2023-03-27) | **AS VOTED** | contestable |
@@ -24,16 +24,16 @@ How they were chosen: every Snapshot space whose settings list a Safe as a treas
 | [14](https://asvoted.vercel.app/check/14) | safe.eth | ethereum | [`0x59a5c685…`](https://etherscan.io/tx/0x59a5c685bb44798f287fda67b3df30ddb310dd234e3876a6e4d80298b16547b1) 2024-12-05 | 1 | [[SEP #22] Unpause SAFE Token Contract (Enabling Transferability)](https://ipfs.snapshot.box/ipfs/bafkreicsvcmymy5ibl2jkk4mvm2bldqluuhqgxxggwn2ihdgqeqg6j4vqi) (2024-04-15) | **DEVIATES** | contestable |
 | [15](https://asvoted.vercel.app/check/15) | krausehouse.eth | ethereum | [`0x06a19d45…`](https://etherscan.io/tx/0x06a19d459f77e109287002cd3b702fb432b9ee6f1a20607f623faf2aea65d846) 2023-08-16 | 1 | [2nd Annual Krause House x Guatemala Tournament](https://ipfs.snapshot.box/ipfs/bafkreieoy6qzsfqg5hjqbqrdk4nzuthkcrzvchgd3sgf7ooqjiarenmwz4) (2023-07-30) | **UNCLEAR** | final |
 
-## Before and after round 3
+## Before and after round 4
 
-Before: the canonical run on `93d5be9` (`docs/superseded/93d5be9/seed-canonical.json`). After: this run.
+Before: the canonical run on `7a74665` (`docs/superseded/7a74665/seed-canonical.json`). After: this run. Every change is explained below.
 
 | # | Execution | Proposal | Before | After | Why it changed |
 |---|---|---|---|---|---|
-| 1 | `0xf4631cc0…` | CIP-48: title: Solver rewards budget renewal and u | AS VOTED | AS VOTED | same |
-| 2 | `0xbcdb6b99…` | CIP-37:  Increasing liquidity for the COW token vi | AS VOTED | AS VOTED | same |
+| 1 | `0xf4631cc0…` | CIP-48: title: Solver rewards budget renewal and u | AS VOTED | UNCLEAR | the payment's line also says "not" ("not enough COW", round-4 rule) |
+| 2 | `0xbcdb6b99…` | CIP-37:  Increasing liquidity for the COW token vi | AS VOTED | UNCLEAR | CIP-48's 4M COW to the same Treasury counts too (round-4 rule) |
 | 3 | `0xaa412db5…` | CIP-29: Renewal of the solver rewards program | AS VOTED | AS VOTED | same |
-| 4 | `0x2d3d227c…` | CIP 28 - Should CoW DAO send its profits to the Co | AS VOTED | UNCLEAR | no single cap on the recipient's own line (below) |
+| 4 | `0x2d3d227c…` | CIP 28 - Should CoW DAO send its profits to the Co | UNCLEAR | UNCLEAR | same |
 | 5 | `0x1af684f9…` | CIP-24: Continued funding for development services | AS VOTED | AS VOTED | same |
 | 6 | `0x6b5e48e3…` | CIP-30: Implementing oSnap for Optimistic Governan | AS VOTED | AS VOTED | same |
 | 7 | `0x408905df…` | CIP-16: Claim and Delegate SAFE Tokens | DEVIATES | DEVIATES | same |
@@ -42,12 +42,14 @@ Before: the canonical run on `93d5be9` (`docs/superseded/93d5be9/seed-canonical.
 | 10 | `0x8a6a840a…` | PIP-43 - Decentralized governance - End of trial p | UNCLEAR | UNCLEAR | same |
 | 11 | `0xea8e4391…` | Gas Refunds distribution for Epoch 35 | AS VOTED | AS VOTED | same |
 | 12 | `0xb204790c…` | Season 9 Seasonal Funding | AS VOTED | AS VOTED | same |
-| 13 | `0xc2e1137c…` | MIP79 - Credit Guild Acqui-hire | AS VOTED | UNCLEAR | no single cap on the recipient's own line (below) |
+| 13 | `0xc2e1137c…` | MIP79 - Credit Guild Acqui-hire | UNCLEAR | UNCLEAR | same |
 | 14 | `0x59a5c685…` | [SEP #22] Unpause SAFE Token Contract (Enabling Tr | DEVIATES | DEVIATES | same |
 | 15 | `0x06a19d45…` | 2nd Annual Krause House x Guatemala Tournament | UNCLEAR | UNCLEAR | same |
 
 ## Every DEVIATES and UNCLEAR, explained
 
+- **#1 cow.eth, UNCLEAR.** Execution 0xf4631cc0… on 2024-07-29 could not be fully matched to the proposal of 2024-07-24: 0 of 1 actions settled. CIP-48's line naming the Treasury Safe states the 4M COW transfer, but the same line goes on: "In case it happens that there is not enough COW to cover the needs of the solver rewards program, a new CIP should be put in place". Since round 4, a status or negation word anywhere in the payment's line or bullet subtree ("rejected", "withdrawn", "cancelled", "not", "void") leaves no cap, because code cannot tell what it negates. It was AS_VOTED on 7a74665.
+- **#2 cow.eth, UNCLEAR.** Execution 0xbcdb6b99… on 2024-02-14 could not be fully matched to the proposal of 2024-02-14: 0 of 1 actions settled. CIP-37 sends 6,000,000 COW to the Treasury Safe, the one amount on its line, and under CIP-37 alone the transfer is AUTHORIZED. Since round 4, a payment also counts with every other filing of the DAO that paid the same payee, under any proposal: CIP-48's 4,000,000 COW to the same Treasury (check #1) makes 10,000,000 COW against CIP-37's 6,000,000. The two rulings differ, so code cannot tell which proposal paid what, and the result is UNCLEAR. This rule is what stops a DAO from escaping a cap by switching proposals (r4_05). It was AS_VOTED on 7a74665.
 - **#4 cow.eth, UNCLEAR.** Execution 0x2d3d227c… on 2024-05-25 could not be fully matched to the proposal of 2023-08-02: 0 of 1 actions settled. CIP-28 is a standing mandate: send idle (W)ETH from the solver rewards Safe to the treasury Safe monthly. Its lines naming the treasury state no amount; its figures ("Send 213 ETH and 237 WETH") are an example on another line. Under the round-3 rule a cap must be the single amount on the recipient's own line, list item or table row, so the 67.0123 WETH cannot be compared with anything. It was AS_VOTED on 93d5be9 against the 237 WETH figure.
 - **#7 cow.eth, DEVIATES.** Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention. A four-call batch. Two calls (claim and delegate SAFE) are quoted calldata-for-calldata in CIP-16 and are authorized by code. The other two call 0xc0fde70a65c7569fe919be57492228dee8cdb585, a SAFE-token contract that CIP-16 never names. Searched: all 90 proposals of the cow.eth Snapshot space that the hub returns (created 2022-03-01 to 2026-09-30, every state), in title, body, discussion link and choices, case-insensitive, for the full address (and in the body for its first and last 8 hex digits). None names it (`tools/scan_space_mentions.mjs`, output in `docs/research/space_mentions.txt`, run 2026-10-16). This is an address search only; a proposal that described the contract without writing its address would not be found. In the site's words: the execution includes an action proposal CIP-16 does not cover. The DAO can appeal with the proposal that covers it.
 - **#8 cow.eth, UNCLEAR.** Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled. CIP-19 names the treasury Safe that received COW, GNO and ETH but states no amount for it, so the transfers cannot be compared with anything.
@@ -60,8 +62,8 @@ Before: the canonical run on `93d5be9` (`docs/superseded/93d5be9/seed-canonical.
 
 As stored on chain. The site shows a DEVIATES sentence as "includes an action proposal <id> does not cover": the check compares with the one proposal the filer named, and the DAO can appeal with another.
 
-- #1: Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24.
-- #2: Every action in execution 0xbcdb6b99… on 2024-02-14 is named in the proposal of 2024-02-14.
+- #1: Execution 0xf4631cc0… on 2024-07-29 could not be fully matched to the proposal of 2024-07-24: 0 of 1 actions settled.
+- #2: Execution 0xbcdb6b99… on 2024-02-14 could not be fully matched to the proposal of 2024-02-14: 0 of 1 actions settled.
 - #3: Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17.
 - #4: Execution 0x2d3d227c… on 2024-05-25 could not be fully matched to the proposal of 2023-08-02: 0 of 1 actions settled.
 - #5: Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27.

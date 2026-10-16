@@ -26,19 +26,19 @@ Only what code cannot settle goes to an AI model. That means a call to a contrac
 
 ## Fifteen real executions
 
-I ran it on fifteen real Safe executions from six DAOs: CoW DAO, Velora (ParaSwap), Bankless, Morpho, SafeDAO and Krause House, on Ethereum, Optimism and Base. Eight came back AS VOTED, two DEVIATES and five UNCLEAR.
+I ran it on fifteen real Safe executions from six DAOs: CoW DAO, Velora (ParaSwap), Bankless, Morpho, SafeDAO and Krause House, on Ethereum, Optimism and Base. Six came back AS VOTED, two DEVIATES and seven UNCLEAR.
 
 The AS VOTED cases are the boring, reassuring majority. Velora's Safe returned 40.203 WETH to Bybit after the February 2025 hack. The proposal names the address and the amount, and the execution matches to the wei. No model was involved.
 
 The two DEVIATES are the kind you'd expect, and neither is an accusation. In one, a CoW DAO batch did exactly what CIP-16 described (claim SAFE tokens and delegate them), with the calldata quoted in the proposal itself. It also made two calls to a contract the proposal never names. In the other, the SafeDAO Safe passed an address that no SafeDAO Snapshot proposal writes out. The finding is narrow and dated: "Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention." Often that means the proposal should have named something, not that anyone did anything wrong.
 
-The five UNCLEAR are honest gaps. Two proposals name the receiving Safe without putting a figure on its line: CIP-28 is a standing mandate with a sample amount elsewhere, and MIP79 sends "half" of a total stated on another line. A cap has to be the one amount on the recipient's own line, so the contract won't guess. One proposal names the treasury but no amount at all. One prices a grant at "$500 per epoch" and pays in PSP; the contract never fetches prices, so it won't compare them. One DAO votes with weighted voting, whose result the contract doesn't compute.
+The seven UNCLEAR are honest gaps, and every one is code saying it cannot be certain. Two CoW payments to the treasury Safe are each fine under their own proposal, but counted together under every proposal that names the treasury they exceed one cap: code cannot tell which proposal paid what, and that rule is what stops a DAO from escaping a cap by switching proposals. CIP-48's payment line also says "not" ("not enough COW"), which leaves no cap. Two proposals name the receiving Safe without putting a figure on its line: CIP-28 is a standing mandate with a sample amount elsewhere, and MIP79 sends "half" of a total stated on another line. A cap has to be the one amount on the recipient's own line, so the contract won't guess. One proposal names the treasury but no amount at all. One prices a grant at "$500 per epoch" and pays in PSP; the contract never fetches prices, so it won't compare them. One DAO votes with weighted voting, whose result the contract doesn't compute.
 
 ## The wrong proposal, and the answer
 
 A check compares one execution with the one proposal its filer names. That makes pairing the weak point, so it is where appeals live.
 
-On 14 February 2024, CoW DAO's main Safe sent 6,000,000 COW to its treasury Safe. That is CIP-37, a plan to add COW liquidity through programmatic orders, and judged against CIP-37 the transfer is AS VOTED. On the demo registry I filed it against CIP-30 on purpose. CIP-30 sets up oSnap and never names the treasury, so against CIP-30 the transfer is DEVIATES: it sends to an address the proposal does not mention.
+On 14 February 2024, CoW DAO's main Safe sent 6,000,000 COW to its treasury Safe. That is CIP-37, a plan to add COW liquidity through programmatic orders, and judged against CIP-37 alone the transfer is AS VOTED. On the demo registry I filed it against CIP-30 on purpose. CIP-30 sets up oSnap and never names the treasury, so against CIP-30 the transfer is DEVIATES: it sends to an address the proposal does not mention.
 
 The DAO's controller then appealed with a 0.1 GEN bond, naming CIP-37. A fresh panel of validators read CIP-37, ruled AS VOTED, and the bond went back. The filer's stake went to the DAO's pledge.
 
