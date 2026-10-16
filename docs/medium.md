@@ -16,10 +16,10 @@ The second contract, VoteReader, fetches the Snapshot proposal by its IPFS CID a
 
 ## Code first, words last
 
-Then the judge rules on each action. Code does almost all of it:
+Then the judge rules on each action. Code does almost all of it, and when it cannot tell, it says UNCLEAR rather than guess:
 
-- Was the recipient's address, or an ENS name that resolved to it at the vote and still does, written anywhere in the proposal? If not, the action is not in the proposal.
-- What amounts does the proposal state next to that recipient? All transfers to them in that token are added up, across the batch and across earlier executions under the same proposal. Splitting a payment in two doesn't get under the cap. More than the largest stated amount plus half a percent is over.
+- Was the recipient's address, or an ENS name that resolved to it both at the vote and when the Safe acted, written anywhere in the proposal? If not, the action is not in the proposal.
+- What amount does the proposal state for that recipient? Only the single amount on the recipient's own line, list item or table row counts. Two different figures, a figure that is refused in its sentence, or a budget stated somewhere else is no cap at all. All transfers to them in that token are added up, across the batch and across every other execution filed under the same proposal. Splitting a payment in two doesn't get under the cap. More than the stated amount plus half a percent is over.
 - A DELEGATECALL to an address the proposal never names is the most serious finding there is.
 
 Only what code cannot settle goes to an AI model. That means a call to a contract the proposal names, with arguments it names, where only the words can say whether this function call is what was meant. The model has to quote the proposal word for word, and two of its answers have to agree. Otherwise the action is unclear. The model never decides an address, an amount, a chain fact, whether the vote passed, or the verdict.
@@ -34,15 +34,15 @@ The two DEVIATES are the kind you'd expect, and neither is an accusation. In one
 
 The three UNCLEAR are honest gaps. One proposal names the treasury but no amount. One prices a grant at "$500 per epoch" and pays in PSP; the contract never fetches prices, so it won't compare them. One DAO votes with weighted voting, whose result the contract doesn't compute.
 
-## The 67 WETH story
+## The wrong proposal, and the answer
 
-The example I keep coming back to happened while I was choosing seeds.
+A check compares one execution with the one proposal its filer names. That makes pairing the weak point, so it is where appeals live.
 
-On 25 May 2024, CoW DAO's main Safe sent 67.0123 WETH to its treasury Safe. My matching script found CIP-43 that same week: "Transfer 60 ETH (ca. 180k USD equivalent)… to the CoW DAO Ops Safe." It names the treasury Safe, so the match looked right. Judged against CIP-43, the transfer is over the stated 60 ETH by about 12%. On a first read, that's a deviation.
+On 14 February 2024, CoW DAO's main Safe sent 6,000,000 COW to its treasury Safe. That is CIP-37, a plan to add COW liquidity through programmatic orders, and judged against CIP-37 the transfer is AS VOTED. On the demo registry I filed it against CIP-43 on purpose. CIP-43 renews the Ops Safe and talks about the treasury only in ETH and dollars. Against CIP-43 the transfer is DEVIATES: the proposal states amounts for that Safe only in other tokens.
 
-Read CIP-43 again, though. The treasury is where the 60 ETH comes *from*. The transfer went *to* it. It was a different operation: CIP-28, the standing mandate for CoW DAO to send its profits to the treasury. Judged against CIP-28, the same transfer is AS VOTED.
+The DAO's controller then appealed with a 0.1 GEN bond, naming CIP-37. A fresh panel of validators read CIP-37, ruled AS VOTED, and the bond went back. The filer's stake went to the DAO's pledge.
 
-This is why AsVoted has appeals. On the demo registry I filed the transfer against CIP-43 on purpose, and it came back DEVIATES. The DAO's controller then appealed with a 0.1 GEN bond, naming CIP-28 as the proposal this execution actually implements. A fresh panel of validators read CIP-28, ruled AS VOTED, and the bond went back. The wrong match was corrected without anyone having to trust anyone's word.
+Two rules keep this from being turned around. Only the DAO may name a different proposal; nobody else can pair a correct execution with an unrelated proposal to manufacture a deviation. And no DEVIATES becomes final until the DAO has had one chance to answer. If a stranger appeals an AS VOTED ruling and the new panel says DEVIATES, the DAO gets its own window before anything is final.
 
 ## Money behind it
 
