@@ -21,7 +21,7 @@ Fixes found while preparing seeds (before the first deployment, recorded for com
 
 ## Round 3: the code-first matching
 
-Round 3 attacked only how code reads amounts and addresses out of the proposal: amounts and addresses on different lines, tables, bullet lists, "up to" / "max" / "per month", one address named for two purposes, ENS and hex for one recipient, number formats, tokens of different decimals, payments split across many transactions, approve against transfer, and an address that appears only inside a link. 30 tests at first (33 with three added while fixing); 17 failed on the deployed code ([first run](research/attacks_r3_first_run.txt)). The fixes are in `0b1281a`; everything from round 3 is deployed from `829e156`. Running the new code offline on the 15 real seeds and the 7 demo checks changes none of their rulings.
+Round 3 attacked only how code reads amounts and addresses out of the proposal: amounts and addresses on different lines, tables, bullet lists, "up to" / "max" / "per month", one address named for two purposes, ENS and hex for one recipient, number formats, tokens of different decimals, payments split across many transactions, approve against transfer, and an address that appears only inside a link. 30 tests at first (33 with three added while fixing); 17 failed on the deployed code ([first run](research/attacks_r3_first_run.txt)). The fixes are in `0b1281a`; the second pass below is deployed from `7a74665`. Running the new code offline on the 15 real seeds and the 7 demo checks changes none of their rulings.
 
 | # | Severity | Attack | What happened on `93d5be9` | Fix | Test |
 |---|---|---|---|---|---|
@@ -65,6 +65,40 @@ A second attacker attacked the same deployed code in parallel: decoding, binding
 | 19 | Low | README named the superseded commit | Fixed | `r3_69` |
 
 Two test changes follow from the fixes, not from relaxing them. `r3_65` now expects the early withdrawal to be refused, then the slash to land. `r3_62` pins the by-design behavior. Tests that waited only the old withdrawal delay now also wait the late window. All 171 tests pass. Running the new code offline on the 15 real seeds and 7 demo checks changes no ruling.
+
+### Second pass: the required design
+
+The fixes above were then replaced or tightened to a fixed design, and redeployed from `7a74665` (the `829e156` deployment and its stopped run are in `docs/superseded/829e156/`):
+
+| Finding | Design | Change | Tests |
+|---|---|---|---|
+| ETH with a token call (H, #1) | Every call's native value is its own transfer to the call's target, whatever the calldata, in caps and recipient checks | unchanged from `b733e9e` | `r3_50` |
+| Weaponised appeals (H, #2) | Only the DAO may switch the proposal; any DEVIATES produced on appeal opens a DAO response window before FINAL | Only the listing's controller, answering a DEVIATES, may name another proposal (unclaimed listings: nobody). An appeal that turns AS_VOTED into DEVIATES puts the check back to CONTESTABLE for the DAO side only (round 2). Bonds settle three ways | `r3_64`, `r3_70`–`r3_74` |
+| Caps from records (H, #3) | Earlier payments counted whatever the outcome; an expired check can be refiled | Every other filing counts; a check that expired unjudged no longer blocks refiling the same pair | `r3_60`, `r3_75` |
+| Nested calldata (H, #4) | Any unnamed address in sub-calls (recursive, depth limit) blocks AS_VOTED: UNCLEAR unless code proves a NOT_AUTHORIZED payment | Full-width addresses at 4, 8 and 12 bytes off the grid (three levels) → UNCLEAR. Top-level address arguments keep the stricter, code-settled NOT_AUTHORIZED | `r3_52` (assertion now UNCLEAR), `r3_83` |
+| Ambiguous caps (H, #5, #7) | A cap only in the recipient's own line / bullet / table row with no other amount for that token; negation or more than one candidate → UNCLEAR | The paragraph, section and document levels are gone. Negation is per sentence ("rejected", "not", "instead of", "rather than", "will not") | `r3_01`–`r3_09`, `r3_56`–`r3_58`; `r2_01`, `r2_03`, `r3_03`, `r3_07` changed to UNCLEAR (below) |
+| Losing option (H, #6) | Only the winning choice's text and choice-independent text count; ambiguous → UNCLEAR | Paragraphs or sections that begin with a losing choice's name are dropped; if the winner's text is not found, nothing caps | `r3_59`, `r3_76`, `r3_77` |
+| ENS repointing (M, #8) | Resolved at the execution block, never later | `VoteReader.read_names_at(vote, l1_block)`, snapshotted at filing. ExecReader records each execution's Ethereum block (the block; OP-stack L1 attributes deposit; Arbitrum `l1BlockNumber`). A name counts only if it also matches the vote's snapshot (keeps `a21`) | `r3_61`, `a20`–`a22`, `r3_80` |
+| `transferFrom` source (M, #9) | Must be the Safe or named | unchanged from `b733e9e` | `r3_51` |
+| Vanity addresses (M, #10) | Leading zeros recognised | 2^96 bound | `r3_53` |
+| Symbol spoofing (M, #11) | Tokens by address (named, or a fixed token list), never by `symbol()` alone | Judge constructor takes a token list (`test/token_list.json`, symbols read on chain); other tokens need their address in the proposal, else UNCLEAR | `r3_54`, `r3_78`, `r3_79` |
+| Rogue listings (M, #12) | DAO = (space, Safe); standing keyed by the pair; the UI shows the space; a verified badge | `is_executing_as_voted_for(space, chain, safe)`; VoteReader reads the space's ENS owner (NameWrapper aware) and the Safe's owners; `verified` on the listing | `r3_62`, `r3_81`, `r3_82` |
+| Treasury removed later (M, #13) | Listing snapshotted at registration | unchanged from `b733e9e` | `r3_63`, `a32` |
+| Pledge leaves early (M, #14) | Delay covers filing + contest for earlier executions | Canonical: 6 h delay + 6 h filing window; demo 90 s + 120 s; blocking counter | `r3_65`, `r3_66` |
+| Contest window (M, #15) | 6 h canonical, demo 90 s | 6 h | `r3_68` (assertion now ≥ 6 h) |
+| Standing (L, #18) | From the execution time | unchanged from `b733e9e` | `r3_67` |
+| Relayed executions (Known limitation) | cheap | SafeL2 `SafeMultiSigTransaction` log decoded, nonce checked, bound to `ExecutionSuccess` | `r3_84`, `r3_85` |
+
+Assertions changed, and why:
+- **`r2_01`, `r2_03`** (amount on the next line; a section budget): AS_VOTED → UNCLEAR. Under the required design a cap must sit on the recipient's own line, bullet or row.
+- **`r3_03`** (table, header addresses, amounts below): DEVIATES / AS_VOTED → UNCLEAR for both. A column below a header is not the recipient's own row, so the attack is still never AS_VOTED.
+- **`r3_07`** (one address, two amounts): UNCLEAR / DEVIATES / AS_VOTED → UNCLEAR for all three. Two candidates means no cap.
+- **`r3_52`**: NOT_AUTHORIZED → UNCLEAR. That is the design for nested calldata.
+- **`r3_68`**: ≥ 24 h → ≥ 6 h. That is the design.
+- **`test_ens_resolved_as_at_the_vote`** now resolves as of the execution.
+- **`test_windows_and_no_seam`** expects 6 h.
+
+187 tests pass.
 
 Controls that already held: "up to" and "max" are caps (`r3_11`), suffixes k / M / million and decimals (`r3_25`), USDC and DAI at different decimals add up (`r3_26`), twenty legs in one batch are summed (`r3_30`), ENS and hex for one recipient are one recipient (`r3_08`, `r3_09`).
 
