@@ -1,0 +1,92 @@
+[
+ {
+  "id": "intro",
+  "start": 0,
+  "end": 20.83,
+  "say": "Most DAOs vote on Snapshot, off chain, and a Safe multisig carries out the result on chain. Nothing checks that what the signers executed is what token holders voted for. This is AsVoted, running on GenLayer. Every figure on this page is read from the contracts: fifteen real executions checked, ten as voted, two that deviate, three unclear."
+ },
+ {
+  "id": "bybit",
+  "start": 20.83,
+  "end": 40.56,
+  "say": "Here is one check. On the left, the ballot: the Velora proposal to return 40.203 wrapped ether to Bybit after the hack, fetched by its IPFS hash and verified inside the contract. On the right, the receipt: the Safe execution, read from two independent RPCs that must agree, decoded action by action."
+ },
+ {
+  "id": "bybit2",
+  "start": 40.56,
+  "end": 48.48,
+  "say": "The recipient and the amount are both written in the proposal, so code settles this action. No model is involved. The verdict is as voted."
+ },
+ {
+  "id": "deviates",
+  "start": 48.48,
+  "end": 65.37,
+  "say": "Check seven is a CoW DAO batch of four calls. Two of them are quoted in the proposal, calldata for calldata, and code authorizes them. The other two call a contract that CIP-16 never names. The ruling is worded neutrally and dated: the execution includes an action the proposal does not mention."
+ },
+ {
+  "id": "unclear",
+  "start": 65.37,
+  "end": 78.3,
+  "say": "When the data cannot settle it, the answer is unclear, never a guess. This ParaSwap grant was set at five hundred dollars per epoch and paid in PSP. The contract never fetches prices, so it does not compare them."
+ },
+ {
+  "id": "model",
+  "start": 78.3,
+  "end": 96.09,
+  "say": "Code decides first: every address, every amount summed across transfers, every delegate call. A model only reads calls the proposal describes in words, it must quote the proposal verbatim, and two answers must agree. It never decides an address, an amount, a chain fact, or the verdict."
+ },
+ {
+  "id": "demo_switch",
+  "start": 96.09,
+  "end": 102.15,
+  "say": "The demo registry runs the same code with ninety second windows, so every path can be shown end to end."
+ },
+ {
+  "id": "appeal",
+  "start": 102.15,
+  "end": 124.18,
+  "say": "A real story from choosing seeds. CoW DAO sent 67 wrapped ether to its treasury. Filed against CIP-43, which states 60 ether, it ruled deviates. But the transfer went to the treasury, not from it. The DAO appealed with a bond and named CIP-28, the mandate to send profits to the treasury. A fresh validator panel ruled as voted, and the bond was refunded."
+ },
+ {
+  "id": "slash",
+  "start": 124.18,
+  "end": 136.13,
+  "say": "When a deviates ruling becomes final, the DAO's pledge is slashed by a frozen severity table, and the slash is paid to whoever proved it. Every state has a deadline and an exit anyone can call. There is no owner."
+ },
+ {
+  "id": "gate",
+  "start": 136.13,
+  "end": 145.59,
+  "say": "Other contracts can ask one question: is this DAO executing as voted? This small consumer refused to act after the final deviates ruling, and logged why."
+ },
+ {
+  "id": "patrol",
+  "start": 145.59,
+  "end": 147.76,
+  "say": "Back on the canonical registry."
+ },
+ {
+  "id": "patrol2",
+  "start": 147.76,
+  "end": 161,
+  "say": "A patrol bot runs every fifteen minutes. It watches every listed Safe, matches each new execution to the latest passed proposal that names something it touches, files the check, and closes its own filings after their deadlines."
+ },
+ {
+  "id": "verify",
+  "start": 161,
+  "end": 174.62,
+  "say": "Anyone can verify the deployment. This page reads each contract's code back from Studio Dev and hashes it against the deploy commit on GitHub, in your browser. The books balance on both registries, and the demo has drained to exactly zero."
+ },
+ {
+  "id": "explorer",
+  "start": 174.62,
+  "end": 179.24,
+  "say": "Every filing, ruling and payout is a transaction on the GenLayer explorer."
+ },
+ {
+  "id": "outro",
+  "start": 179.24,
+  "end": 185.85,
+  "say": "AsVoted. The ballot and the receipt, read by the chain, held side by side, with money behind the answer."
+ }
+]

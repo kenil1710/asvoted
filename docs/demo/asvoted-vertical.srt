@@ -1,0 +1,57 @@
+1
+00:00:00,150 --> 00:00:03,341
+Token holders vote on
+Snapshot. A Safe multisig
+
+2
+00:00:03,341 --> 00:00:06,532
+executes the result. Nothing
+checks that they match.
+
+3
+00:00:06,532 --> 00:00:08,127
+AsVoted does, on GenLayer.
+
+4
+00:00:08,577 --> 00:00:11,736
+Every action is decoded from
+the calldata. Two calls here
+
+5
+00:00:11,736 --> 00:00:15,526
+are quoted in the proposal.
+Two go to a contract it never
+
+6
+00:00:15,526 --> 00:00:17,422
+names, so the verdict is:
+deviates.
+
+7
+00:00:17,872 --> 00:00:21,819
+Velora returned exactly 40.203
+wrapped ether to Bybit, as
+
+8
+00:00:21,819 --> 00:00:24,889
+voted. Code settled it, no
+model needed.
+
+9
+00:00:25,339 --> 00:00:28,931
+Code decides first. A model
+only reads the words, and must
+
+10
+00:00:28,931 --> 00:00:32,523
+quote them. DAOs pledge a
+bond, anyone can file a check,
+
+11
+00:00:32,523 --> 00:00:36,115
+and there is no admin. Fifteen
+real executions, all on chain
+
+12
+00:00:36,115 --> 00:00:38,074
+at asvoted dot vercel dot app.

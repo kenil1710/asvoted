@@ -1,0 +1,148 @@
+1
+00:00:00,150 --> 00:00:07,880
+Most DAOs vote on Snapshot, off chain, and a Safe multisig
+carries out the result on chain. Nothing checks that what the
+
+2
+00:00:07,880 --> 00:00:15,260
+signers executed is what token holders voted for. This is
+AsVoted, running on GenLayer. Every figure on this page is read
+
+3
+00:00:15,260 --> 00:00:20,530
+from the contracts: fifteen real executions checked, ten as
+voted, two that deviate, three unclear.
+
+4
+00:00:20,980 --> 00:00:29,509
+Here is one check. On the left, the ballot: the Velora proposal
+to return 40.203 wrapped ether to Bybit after the hack, fetched
+
+5
+00:00:29,509 --> 00:00:37,666
+by its IPFS hash and verified inside the contract. On the right,
+the receipt: the Safe execution, read from two independent RPCs
+
+6
+00:00:37,666 --> 00:00:40,261
+that must agree, decoded action by action.
+
+7
+00:00:40,711 --> 00:00:47,282
+The recipient and the amount are both written in the proposal,
+so code settles this action. No model is involved. The verdict
+
+8
+00:00:47,282 --> 00:00:48,182
+is as voted.
+
+9
+00:00:48,628 --> 00:00:55,899
+Check seven is a CoW DAO batch of four calls. Two of them are
+quoted in the proposal, calldata for calldata, and code
+
+10
+00:00:55,899 --> 00:01:02,537
+authorizes them. The other two call a contract that CIP-16 never
+names. The ruling is worded neutrally and dated: the execution
+
+11
+00:01:02,537 --> 00:01:05,066
+includes an action the proposal does not mention.
+
+12
+00:01:05,516 --> 00:01:12,878
+When the data cannot settle it, the answer is unclear, never a
+guess. This ParaSwap grant was set at five hundred dollars per
+
+13
+00:01:12,878 --> 00:01:18,000
+epoch and paid in PSP. The contract never fetches prices, so it
+does not compare them.
+
+14
+00:01:18,450 --> 00:01:25,461
+Code decides first: every address, every amount summed across
+transfers, every delegate call. A model only reads calls the
+
+15
+00:01:25,461 --> 00:01:32,473
+proposal describes in words, it must quote the proposal
+verbatim, and two answers must agree. It never decides an
+
+16
+00:01:32,473 --> 00:01:35,794
+address, an amount, a chain fact, or the verdict.
+
+17
+00:01:36,244 --> 00:01:41,853
+The demo registry runs the same code with ninety second windows,
+so every path can be shown end to end.
+
+18
+00:01:42,303 --> 00:01:50,059
+A real story from choosing seeds. CoW DAO sent 67 wrapped ether
+to its treasury. Filed against CIP-43, which states 60 ether, it
+
+19
+00:01:50,059 --> 00:01:57,814
+ruled deviates. But the transfer went to the treasury, not from
+it. The DAO appealed with a bond and named CIP-28, the mandate
+
+20
+00:01:57,814 --> 00:02:03,884
+to send profits to the treasury. A fresh validator panel ruled
+as voted, and the bond was refunded.
+
+21
+00:02:04,334 --> 00:02:10,657
+When a deviates ruling becomes final, the DAO's pledge is
+slashed by a frozen severity table, and the slash is paid to
+
+22
+00:02:10,657 --> 00:02:15,830
+whoever proved it. Every state has a deadline and an exit anyone
+can call. There is no owner.
+
+23
+00:02:16,280 --> 00:02:23,555
+Other contracts can ask one question: is this DAO executing as
+voted? This small consumer refused to act after the final
+
+24
+00:02:23,555 --> 00:02:25,287
+deviates ruling, and logged why.
+
+25
+00:02:25,737 --> 00:02:27,460
+Back on the canonical registry.
+
+26
+00:02:27,910 --> 00:02:35,171
+A patrol bot runs every fifteen minutes. It watches every listed
+Safe, matches each new execution to the latest passed proposal
+
+27
+00:02:35,171 --> 00:02:40,702
+that names something it touches, files the check, and closes its
+own filings after their deadlines.
+
+28
+00:02:41,152 --> 00:02:47,573
+Anyone can verify the deployment. This page reads each
+contract's code back from Studio Dev and hashes it against the
+
+29
+00:02:47,573 --> 00:02:54,315
+deploy commit on GitHub, in your browser. The books balance on
+both registries, and the demo has drained to exactly zero.
+
+30
+00:02:54,765 --> 00:02:58,942
+Every filing, ruling and payout is a transaction on the GenLayer
+explorer.
+
+31
+00:02:59,392 --> 00:03:05,554
+AsVoted. The ballot and the receipt, read by the chain, held
+side by side, with money behind the answer.

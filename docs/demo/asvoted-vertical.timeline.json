@@ -1,0 +1,26 @@
+[
+ {
+  "id": "hook",
+  "start": 0,
+  "end": 8.43,
+  "say": "Token holders vote on Snapshot. A Safe multisig executes the result. Nothing checks that they match. AsVoted does, on GenLayer."
+ },
+ {
+  "id": "dev",
+  "start": 8.43,
+  "end": 17.72,
+  "say": "Every action is decoded from the calldata. Two calls here are quoted in the proposal. Two go to a contract it never names, so the verdict is: deviates."
+ },
+ {
+  "id": "ok",
+  "start": 17.72,
+  "end": 25.19,
+  "say": "Velora returned exactly 40.203 wrapped ether to Bybit, as voted. Code settled it, no model needed."
+ },
+ {
+  "id": "out",
+  "start": 25.19,
+  "end": 38.37,
+  "say": "Code decides first. A model only reads the words, and must quote them. DAOs pledge a bond, anyone can file a check, and there is no admin. Fifteen real executions, all on chain at asvoted dot vercel dot app."
+ }
+]
