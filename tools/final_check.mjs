@@ -153,7 +153,9 @@ check("Disagreement behaviour documented exactly as on chain", t.status === 0 &&
   const all = Object.values(dep).map((d) => d.address);
   const miss = all.filter((a) => !ts.includes(a) || !md.includes(a));
   const roles = Object.values(JSON.parse(readFileSync(root + "test/.accounts.json", "utf8"))).map((r) => r.address.toLowerCase());
-  const known = new Set([...all.map((a) => a.toLowerCase()), ...roles]);
+  // the judge's token list (a constructor argument) names mainnet token contracts, not deployments
+  const tokenList = Object.values(JSON.parse(readFileSync(root + "test/token_list.json", "utf8"))).flatMap((m) => Object.keys(m));
+  const known = new Set([...all.map((a) => a.toLowerCase()), ...roles, ...tokenList.map((a) => a.toLowerCase())]);
   const stray = [...new Set([...(ts + md + sub).matchAll(/(?<![0-9a-fA-Fx])0x[0-9a-fA-F]{40}(?![0-9a-fA-F])/g)].map((m) => m[0]))].filter((a) => !known.has(a.toLowerCase()));
   check("One set of addresses everywhere (deployments.json, site, ADDRESSES.md, SUBMISSION)", miss.length === 0 && stray.length === 0, `missing: ${miss.join(",") || "none"}; other addresses: ${stray.join(",") || "none"}`);
 }

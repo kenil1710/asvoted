@@ -130,7 +130,7 @@ What is left can't be fixed on Studio Dev, or is a deliberate choice:
 - **A link's target counts as naming an address; numbers inside it don't.** *By design:* the target is part of what voters read (on hover, in the raw text, behind every explorer link). HTML comments are dropped because Markdown never shows them.
 - **The filer chooses the proposal.** *By design:* one check per execution. A wrong pairing is corrected by the DAO's appeal naming the right proposal (demo check #3). Only the DAO's controller may name another proposal, and only when answering a DEVIATES.
 - **ENS names for Polygon executions are not resolved.** *Can't fix cheaply:* a Polygon block carries no Ethereum block number to resolve at. Such names never count as naming anyone, and an address they might name is UNCLEAR rather than NOT_AUTHORIZED.
-- **Value transfers on Studio Dev.** *Can't fix:* `claim()` posts the transfer, but Studio Dev queues it and never delivers it, so a registry's on-chain balance stays above what it holds by up to the claimed total. The books (`held_now`) are what drain to zero.
+- **Studio Dev value transfers.** *Can't fix:* `claim()` posts the transfer, but Studio Dev queues it and never delivers it, so a registry's on-chain balance stays above what it holds by up to the claimed total. The books (`held_now`) are what drain to zero.
 - **Demo control seam and short demo windows.** *By design:* this project controls no Safe or Snapshot space, so the demo registry lets one test address claim listings and uses 90 s windows. The canonical registry has neither.
 - **Public RPCs and gateways can be down.** *By design:* a read is then refused, never guessed, and anyone can retry.
 
