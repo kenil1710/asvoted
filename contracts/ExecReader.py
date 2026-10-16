@@ -775,6 +775,61 @@ def _proj_call(call: list, r: typing.Any) -> typing.Any:
     return ["ok", str(r[1]).lower()]
 
 
+L1_INFO_SELECTORS = ("0x440a5e20", "0x098999be")   # OP-stack setL1BlockValuesEcotone / Isthmus (packed)
+L1_INFO_BEDROCK = "0x015d8eb9"                      # setL1BlockValues(uint64 _number, ...)
+
+
+def _proj_l1(call: list, r: typing.Any) -> typing.Any:
+    if not isinstance(r, list) or r[0] != "ok" or not isinstance(r[1], dict):
+        return None
+    v = r[1]
+    if call[0] == "eth_getBlockByNumber":
+        return str(v.get("l1BlockNumber") or "").lower()
+    return str(v.get("input") or "").lower()
+
+
+def _proj_first(call: list, r: typing.Any) -> typing.Any:
+    """The hash of a block's first transaction."""
+    if not isinstance(r, list) or r[0] != "ok" or not isinstance(r[1], dict):
+        return None
+    txs = r[1].get("transactions") or []
+    return str(txs[0]).lower() if len(txs) > 0 and isinstance(txs[0], str) else ""
+
+
+def l1_block_of(ch: str, tb: int) -> int:
+    """The Ethereum block an execution's block belongs to, so ENS names can be
+    resolved as of the execution and never later: the block itself on
+    Ethereum; the L1 attributes deposit (first transaction of every block)
+    on OP-stack chains; the block's l1BlockNumber on Arbitrum; 0 (unknown)
+    elsewhere. Raises ReadFailed / Disagree like any read."""
+    if ch == "ethereum":
+        return tb
+    if ch in ("optimism", "base"):
+        first = dual_read(ch, [["eth_getBlockByNumber", [hex(tb), False]]], _proj_first)[0]
+        if not isinstance(first, str) or not first.startswith("0x") or not _is_hex(first[2:], 64):
+            return 0
+        got = dual_read(ch, [["eth_getTransactionByHash", [first]]], _proj_l1)[0]
+        if not isinstance(got, str) or len(got) < 10:
+            return 0
+        sel = got[:10]
+        body = got[10:]
+        try:
+            if sel in L1_INFO_SELECTORS and len(body) >= 64:
+                return int(body[48:64], 16)
+            if sel == L1_INFO_BEDROCK and len(body) >= 64:
+                return int(body[0:64], 16)
+        except Exception:
+            return 0
+        return 0
+    if ch == "arbitrum":
+        got = dual_read(ch, [["eth_getBlockByNumber", [hex(tb), False]]], _proj_l1)[0]
+        try:
+            return int(got, 16) if isinstance(got, str) and got.startswith("0x") else 0
+        except Exception:
+            return 0
+    return 0
+
+
 def read_execution(p: dict, block: int) -> dict:
     """Everything one node reads. `block` < 0: this node is the leader."""
     ch = p["chain"]
@@ -803,6 +858,7 @@ def read_execution(p: dict, block: int) -> dict:
         return {"refused": "TX_NOT_FINALIZED_YET", "pinned": out_block}
     try:
         tbk = dual_read(ch, [["eth_getBlockByNumber", [hex(tb), False]]], _proj_basic)[0]
+        l1 = l1_block_of(ch, tb)
     except ReadFailed:
         return {"refused": "RPC_UNREADABLE", "pinned": out_block}
     except Disagree:
@@ -908,6 +964,7 @@ def read_execution(p: dict, block: int) -> dict:
     return {
         "chain": ch, "safe": p["safe"], "tx": p["tx"], "nonce": p["nonce"], "safe_tx_hash": safe_tx_hash,
         "executor": tx["from"], "block": {"number": tb, "hash": tbk["hash"], "timestamp": tbk["timestamp"]},
+        "l1_block": l1,
         "pinned": out_block,
         "outer": {"to": e["to"], "value": str(e["value"]), "operation": e["operation"],
                   "safeTxGas": str(e["safeTxGas"]), "baseGas": str(e["baseGas"]), "gasPrice": str(e["gasPrice"]),
@@ -954,6 +1011,7 @@ class Execution:
     pinned_block: u64
     pinned_hash: str
     pinned_time: u64
+    l1_block: u64
     read_at: u64
     reader: Address
     n_actions: u64
@@ -1028,7 +1086,7 @@ class ExecReader(gl.contract.Contract):
             exec_id=u64(eid), key=key, chain=ch, safe=sf, tx=th, nonce=u64(nn),
             safe_tx_hash=ev["safe_tx_hash"], executor=ev["executor"],
             block=u64(int(ev["block"]["number"])), block_hash=ev["block"]["hash"],
-            block_time=u64(int(ev["block"]["timestamp"])), pinned_block=u64(int(ev["pinned"]["number"])),
+            block_time=u64(int(ev["block"]["timestamp"])), l1_block=u64(int(ev["l1_block"])), pinned_block=u64(int(ev["pinned"]["number"])),
             pinned_hash=ev["pinned"]["hash"], pinned_time=u64(int(ev["pinned"]["timestamp"])),
             read_at=u64(now), reader=gl.message.sender_address, n_actions=u64(len(ev["actions"])),
             has_delegatecall=has_dc, actions_json=_canon(ev["actions"]), tokens_json=_canon(ev["tokens"]),
@@ -1045,6 +1103,7 @@ class ExecReader(gl.contract.Contract):
         return {"exec_id": int(x.exec_id), "key": x.key, "chain": x.chain, "safe": x.safe, "tx": x.tx,
                 "nonce": int(x.nonce), "safe_tx_hash": x.safe_tx_hash, "executor": x.executor,
                 "block": int(x.block), "block_hash": x.block_hash, "block_time": int(x.block_time),
+                "l1_block": int(x.l1_block),
                 "pinned_block": int(x.pinned_block), "pinned_hash": x.pinned_hash,
                 "pinned_time": int(x.pinned_time), "read_at": int(x.read_at),
                 "reader": x.reader.as_hex.lower(), "n_actions": int(x.n_actions),
