@@ -8,7 +8,7 @@
  * so what is on chain is byte-identical to the pushed commit. Order:
  *
  *   ExecReader, VoteReader, AsVotedJudge                  (shared by both registries)
- *   AsVotedRegistry  CANONICAL  (1 h contest window, no demo seam)
+ *   AsVotedRegistry  CANONICAL  (72 h contest window, no demo seam)
  *   AsVotedRegistry  DEMO       (90 s contest window, demo controller = the `dao` test account)
  *   DaoStanding x2 (30-day window), GrantGate x2
  *

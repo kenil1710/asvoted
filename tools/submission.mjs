@@ -2,8 +2,15 @@
 import { readFileSync, writeFileSync } from "node:fs";
 const dep = JSON.parse(readFileSync(new URL("../deployments.json", import.meta.url), "utf8")).contracts;
 const commit = Object.values(dep)[0].commit;
-const one = "AsVoted checks every action a DAO's Safe executed against the Snapshot proposal that passed: decoded calldata, CID-proven text, code-first rulings, pledges and appeals.";
-const desc = "Most DAOs vote on Snapshot and a Safe multisig executes the result; nothing checks the two match. AsVoted reads the execution from two RPCs that must agree, decodes every action (MultiSend batches included) and verifies the Safe's own success event. It reads the proposal by IPFS CID, hashing it in the contract, checks the hub and the space's treasury list, and computes whether it passed. Code rules on each action: unnamed recipient, amount over what the proposal states (summed across transfers), unnamed DELEGATECALL. A model only reads calls described in words, and must quote the text. DAOs pledge a bond; anyone files with a stake; one appeal; deadlines; pull payouts; no admin. A patrol bot watches listed Safes. 15 real executions: 10 as voted, 2 deviate, 3 unclear.";
+const one = "AsVoted checks every action a DAO's Safe executed against the passed Snapshot proposal its filer names: decoded calldata, CID-proven text, code-first rulings, pledges, appeals.";
+const seeds = JSON.parse(readFileSync(new URL("../docs/seed-canonical.json", import.meta.url), "utf8"));
+const rul = (v) => seeds.checks.filter((c) => (c.final || c.ruling) === v).length;
+const nFinal = seeds.checks.filter((c) => c.status === "FINAL").length;
+const demo = JSON.parse(readFileSync(new URL("../docs/seed-demo.json", import.meta.url), "utf8"));
+const dOk = demo.results.filter((r) => r.ok).length;
+const tests = ["test_asvoted", "test_attacks", "test_attacks_r2", "test_attacks_r3"]
+  .map((f) => (readFileSync(new URL(`../test/${f}.py`, import.meta.url), "utf8").match(/^    def test_/gm) || []).length).reduce((a, b) => a + b, 0);
+const desc = `Most DAOs vote on Snapshot and a Safe multisig executes the result; nothing checks the two match. AsVoted reads the execution from two RPCs that must agree, decodes every action (MultiSend batches included) and verifies the Safe's own success event. It reads the proposal by IPFS CID, hashing it in the contract, checks the hub and the space's treasury list, and computes whether it passed. Code rules on each action: unnamed recipient, amount over what the proposal states (summed across transfers), unnamed DELEGATECALL. A model only reads calls described in words, and must quote the text. DAOs pledge a bond; anyone files with a stake; one appeal; deadlines; pull payouts; no admin. A patrol bot watches listed Safes. ${seeds.checks.length} real executions: ${rul("AS_VOTED")} as voted, ${rul("DEVIATES")} deviate, ${rul("UNCLEAR")} unclear.`;
 const steps = [
   "Open https://asvoted.vercel.app and pick a check: the proposal as voted on the left, every decoded action of the Safe execution on the right, a verdict per action.",
   "Open /verify and click Compare: each contract's code is read from Studio Dev and hashed against the deploy commit on GitHub in your browser.",
@@ -11,7 +18,7 @@ const steps = [
   "On the check page, judge and apply the ruling, then appeal within 90 seconds (a DEVIATES ruling can name a different proposal) or finalize after it.",
   "Run the offline suite (cd test && python3 -m unittest test_asvoted test_attacks test_attacks_r2 test_attacks_r3) and read docs/SEEDS.md and docs/FINAL_CHECK.md.",
 ];
-const verify = `All 9 contracts deployed from commit ${commit.slice(0, 7)}; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: 15 real seeds, all final, every row linked to Etherscan and IPFS. Demo registry: every path run on chain, 23/23, drained to 0. 118 offline tests incl. 2 attack rounds.`;
+const verify = `All 9 contracts deployed from commit ${commit.slice(0, 7)}; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: ${seeds.checks.length} real seeds, ${nFinal === seeds.checks.length ? "all final" : "all ruled, final after the 72 h contest window"}, each linked to Etherscan and IPFS. Demo registry: every path run on chain, ${dOk}/${demo.results.length}, drained to 0. ${tests} offline tests incl. 3 attack rounds.`;
 const EX = "https://explorer-studio-dev.genlayer.com/address/";
 const ev = [
   ["Repository", "https://github.com/kenil1710/asvoted"], ["Live site", "https://asvoted.vercel.app"],
