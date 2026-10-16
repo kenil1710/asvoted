@@ -11,7 +11,9 @@
  *   UNCLEAR    CoW CIP-19                                -> final at once, refund
  *   expiry     CoW CIP-37 never judged                   -> expire after 600 s -> UNCLEAR
  *   appeal expiry  CoW CIP-29 AS_VOTED appealed, never judged -> expire -> ruling stands, bond back
- *   consumer   GrantGateDemo before / after the final DEVIATES
+ *   consumer   GrantGateDemo before / after a final DEVIATES on a recent execution (standing dates a
+ *              deviation by when the execution ran): CoW Treasury's 200,000 BAL transfer of 2026-10-15,
+ *              filed against CIP-69, which does not name the recipient
  *   drain      controller withdraws the pledge, everyone claims; held_now == 0
  *
  *   node demo_paths.mjs [--from=step]
@@ -40,6 +42,7 @@ const CID = {
 const TX = {
   cip48: ["0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16", 27, COW], cip16: ["0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1", 19, COW],
   weth67: ["0x2d3d227cc11bb047e4b221e2a1d1c6077ce3534b798659258b08a05e28c9baba", 26, COW], cip69: ["0x5b453427e61374b5d023a9920943fcbe05a54b7d06b9fc557d512c20351abe22", 891, TREAS],
+  bal200k: ["0xa85e7333380b8d40be2fa89c24cb7183be0006d1c2e78134ada10ced08336ad3", 902, TREAS],
   cip19: ["0x1fd579d7bbb8e7e8b8a6e2816f679ca55dddf36728615420d5a7f21c87d4870f", 9, COW], cip37: ["0xbcdb6b99ab2f256f74ccfed3ad361e58eeccff31289ac8b347c4e1d38876905f", 22, COW],
   cip29: ["0xaa412db50fb9cb384d56ddec01a00997d686927d332f13ddf93e7644a5f47c29", 17, COW],
 };
@@ -135,7 +138,7 @@ if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "r
   expect("pledge by a non-controller is credited back, ok:false", out.ok && out.r?.ok === false, out.r?.reason);
 }
 {
-  const g = await w("demo", "gate", "request_grant", [cow, "release tranche 1"]);
+  const g = await w("demo", "gate", "request_grant", [treas, "release tranche 1"]);
   expect("GrantGate carries out a request while the DAO is in good standing", g.r?.carried_out === true, JSON.stringify(g.r?.reasons));
 }
 
@@ -147,6 +150,7 @@ D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
 D.unc = await file("filer", "cip19", "cip19", "demo: unclear");
 D.exp = await file("filer", "cip37", "cip37", "demo: never judged, expires");
 D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
+D.gate = await file("filer", "bal200k", "cip69", "demo: a recent execution against a proposal that does not cover it, for GrantGate");
 log("checks", JSON.stringify(D));
 {
   const [tx, , safe] = TX.cip48;
@@ -165,7 +169,7 @@ const APPEAL = {
   lost: ["dao", "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0],
   aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
 };
-for (const k of ["won", "lost", "aexp", "asv", "dev", "unc"]) {
+for (const k of ["won", "lost", "aexp", "asv", "dev", "unc", "gate"]) {
   let c = await v("rg", "get_check", [D[k]]);
   if (c.status === "PROVISIONAL") c = await judgeRule("filer", D[k]);
   if (APPEAL[k] && c.status === "CONTESTABLE") {
@@ -196,7 +200,7 @@ expect("appeal naming CIP-28 wins: AS_VOTED, bond refunded", R.won.final_verdict
 expect("appeal with words only loses: DEVIATES stands, bond to the filer", R.lost.final_verdict === "DEVIATES" && R.lost.settlement.some((m) => /appeal bond to the filer/.test(m[0])), JSON.stringify(R.lost.settlement));
 
 // --- finalize after the 90 s window
-for (const k of ["asv", "dev"]) {
+for (const k of ["asv", "dev", "gate"]) {
   const c = await v("rg", "get_check", [D[k]]);
   if (c.status === "CONTESTABLE") { await waitPast(c.contest_deadline, `check #${D[k]} contest window`); await w("filer", "rg", "finalize", [D[k]]); }
 }
@@ -205,8 +209,10 @@ R.dev = await v("rg", "get_check", [D.dev]);
 expect("AS_VOTED final: stake to the DAO pledge", R.asv.final_verdict === "AS_VOTED" && R.asv.settlement.some((m) => /stake to the DAO pledge/.test(m[0])), JSON.stringify(R.asv.settlement));
 expect("DEVIATES final: pledge slashed, bounty to the filer", R.dev.final_verdict === "DEVIATES" && BigInt(R.dev.slash) > 0n && R.dev.bounty_to === who("filer"), `slash ${R.dev.slash} severity ${R.dev.severity}`);
 {
-  const g = await w("demo", "gate", "request_grant", [cow, "release tranche 2"]);
-  { const log = J(await C.demo.gate.view("get_requests", [0, 5])); const last = log.requests[0]; expect("GrantGate refuses after a final DEVIATES", last?.carried_out === false, JSON.stringify(last?.reasons)); }
+  R.gate = await v("rg", "get_check", [D.gate]);
+  expect("recent 200,000 BAL transfer against CIP-69 is DEVIATES, final", R.gate.final_verdict === "DEVIATES", R.gate.ruling_summary);
+  const g = await w("demo", "gate", "request_grant", [treas, "release tranche 2"]);
+  { const log = J(await C.demo.gate.view("get_requests", [0, 5])); const last = log.requests[0]; expect("GrantGate refuses after a final DEVIATES on a recent execution", last?.carried_out === false, JSON.stringify(last?.reasons)); }
 }
 
 // --- expiries (600 s)
@@ -228,7 +234,7 @@ for (const id of [cow, treas]) {
 }
 for (const id of [cow, treas]) {
   const d = await v("rg", "get_dao", [id]);
-  if (BigInt(d.withdraw_amount) > 0n) { await waitPast(d.withdraw_at, `dao #${id} withdrawal delay`); await w("filer", "rg", "execute_withdrawal", [id]); }
+  if (BigInt(d.withdraw_amount) > 0n) { await waitPast(d.withdraw_executable_at || d.withdraw_at, `dao #${id} withdrawal delay and late window`); await w("filer", "rg", "execute_withdrawal", [id]); }
 }
 for (const role of ["filer", "filer2", "dao", "appellant"]) {
   const cl = await v("rg", "claimable_of", [who(role)]);
