@@ -116,7 +116,7 @@ check("Demo registry drained to exactly 0 held", LD.held_now === "0" && LD.pledg
     `${daos.daos.length} canonical listings, each with a listed=true binding (bad: ${bad.join(",") || "none"}); canonical demo_controllers = []; demo log: "claim by a non-admin is refused"`);
 }
 // 9 tests: partial data, replay, model-never-decides, disagreement
-const t = sh("python3", ["-m", "unittest", "test_asvoted", "test_attacks", "test_attacks_r2"], root + "test");
+const t = sh("python3", ["-m", "unittest", "test_asvoted", "test_attacks", "test_attacks_r2", "test_attacks_r3"], root + "test");
 const tl = t.stderr.trim().split("\n");
 check("All offline tests pass", t.status === 0, tl.slice(-3).join(" "));
 const demo = existsSync(root + "docs/seed-demo.json") ? JSON.parse(readFileSync(root + "docs/seed-demo.json", "utf8")) : { results: [] };
