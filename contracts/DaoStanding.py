@@ -48,7 +48,7 @@ class DaoStanding(gl.contract.Contract):
         cutoff = int(at_time) - int(self.window_days) * DAY
         if last > 0 and last >= cutoff:
             reasons.append("a FINAL DEVIATES ruling (check #" + str(int(s.get("last_deviates_check", 0))) +
-                           ") within the last " + str(int(self.window_days)) + " days")
+                           ") on an execution from the last " + str(int(self.window_days)) + " days")
         s["ok"] = len(reasons) == 0
         s["reasons"] = reasons
         s["window_days"] = int(self.window_days)
@@ -62,6 +62,26 @@ class DaoStanding(gl.contract.Contract):
     @gl.public.view
     def standing(self, dao_id: int, at_time: int) -> typing.Any:
         return self._standing(dao_id, at_time)
+
+    def _pair(self, space: str, chain: str, safe: str) -> int:
+        try:
+            return int(gl.contract.get_at(self.registry).view().get_dao_id(str(space), str(chain), str(safe)))
+        except Exception:
+            return 0
+
+    @gl.public.view
+    def is_executing_as_voted_for(self, space: str, chain: str, safe: str, at_time: int) -> bool:
+        """Standing by identity: a DAO is the pair (Snapshot space, Safe on a
+        chain). Another space listing the same Safe is another DAO."""
+        d = self._pair(space, chain, safe)
+        return d > 0 and bool(self._standing(d, at_time).get("ok"))
+
+    @gl.public.view
+    def standing_for(self, space: str, chain: str, safe: str, at_time: int) -> typing.Any:
+        d = self._pair(space, chain, safe)
+        if d <= 0:
+            return {"ok": False, "found": False, "reasons": ["no such (space, chain, Safe) in the registry"]}
+        return self._standing(d, at_time)
 
     @gl.public.view
     def get_config(self) -> typing.Any:

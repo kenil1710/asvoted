@@ -66,11 +66,13 @@ import typing
 VERSION = "1.0.0"
 
 MODES = {
-    # contest: 72 h on canonical, where listings are real DAOs that must notice
-    # a filing, find the right proposal and appeal. late: after the unlock a
-    # withdrawal still waits this long, so an execution made just before the
-    # unlock can finalize on its chain and be filed.
-    "CANONICAL": {"contest": 259200, "judge": 86400, "appeal": 86400, "withdraw": 3600, "binding": 3600, "late": 21600},
+    # contest: 6 h on canonical, time for a DAO to notice a filing, find the
+    # right proposal and appeal; an appeal that produces DEVIATES opens the
+    # same window again for the DAO. withdraw + late: a pledge leaves no
+    # sooner than the request + the filing time for an execution made just
+    # before it (late) + a full contest window (withdraw), and never while a
+    # check of an earlier execution is open.
+    "CANONICAL": {"contest": 21600, "judge": 86400, "appeal": 86400, "withdraw": 21600, "binding": 3600, "late": 21600},
     "DEMO": {"contest": 90, "judge": 600, "appeal": 600, "withdraw": 90, "binding": 3600, "late": 120},
 }
 
@@ -452,6 +454,7 @@ class Dao:
     last_deviates_at: u64
     last_deviates_check: u64
     slashed_total: u256
+    verified: bool
 
 
 @gl.storage.allow
@@ -502,6 +505,21 @@ class Check:
     settlement_json: str
     prior_json: str
     appeal_prior_json: str
+    names_json: str            # the filed proposal's ENS names at the execution's L1 block
+    ens_unresolved: bool       # the proposal names ENS names that could not be resolved at that block
+    appeal_names_json: str
+    responder: str             # round 2: the DAO's response to a DEVIATES an appeal produced
+    resp_bond: u256
+    resp_text: str
+    resp_vote_id: u64
+    resp_cid: str
+    resp_vote_sha: str
+    resp_names_json: str
+    resp_prior_json: str
+    resp_deadline: u64
+    resp_ruling: str
+    resp_summary: str
+    resp_json: str
 
 
 class AsVotedRegistry(gl.contract.Contract):
@@ -714,7 +732,8 @@ class AsVotedRegistry(gl.contract.Contract):
             dao_id=u64(did), space=sp, chain=ch, safe=sf, listed_at=u64(now), bind_id=u64(int(b["bind_id"])),
             lister=self._sender(), controller="", pledge=u256(0), withdraw_amount=u256(0), withdraw_at=u64(0),
             withdraw_requested=u64(0), open_checks=u64(0), blocking_n=u64(0), n_checks=u64(0), as_voted=u64(0), deviates=u64(0), unclear=u64(0),
-            last_deviates_at=u64(0), last_deviates_check=u64(0), slashed_total=u256(0))
+            last_deviates_at=u64(0), last_deviates_check=u64(0), slashed_total=u256(0),
+            verified=bool(b.get("verified")))
         self.dao_by_key[key] = u64(did)
         self.n_daos = u64(did)
         return {"ok": True, "dao_id": did}
@@ -869,8 +888,21 @@ class AsVotedRegistry(gl.contract.Contract):
                 pc = self.checks[u64(prev)]
                 if pc.status != ST_FINAL or pc.final_verdict != V_UNCLEAR:
                     problem = "DUPLICATE_OF_CHECK_" + str(prev)
-            if problem == "" and int(self.pair_seen.get(txk + "|" + vote["cid"]) or 0) != 0:
-                problem = "THIS_EXECUTION_AND_PROPOSAL_WERE_ALREADY_CHECKED"
+            seen = int(self.pair_seen.get(txk + "|" + vote["cid"]) or 0)
+            if problem == "" and seen != 0:
+                sc = self.checks[u64(seen)]
+                # a check nobody judged before its deadline proved nothing: refile it
+                if not (sc.status == ST_FINAL and sc.final_how == "EXPIRED_UNJUDGED"):
+                    problem = "THIS_EXECUTION_AND_PROPOSAL_WERE_ALREADY_CHECKED"
+        names = {}
+        unresolved = False
+        if problem == "":
+            nm = self._names_for(vote, ex)
+            if "error" in nm:
+                problem = nm["error"]
+            else:
+                names = nm["ens"]
+                unresolved = nm["unresolved"]
         if problem != "":
             return self._refuse(me, value, problem)
         prior = self._prior(int(d.dao_id), vote["cid"], int(ex["exec_id"]))
@@ -889,7 +921,10 @@ class AsVotedRegistry(gl.contract.Contract):
             appeal_cid="", appeal_vote_sha="", appeal_deadline=u64(0), appeal_ruling="", appeal_summary="",
             appeal_json="", final_verdict="", final_how="", final_at=u64(0), severity="", severity_bps=u64(0),
             pledge_at_filing=d.pledge, slash=u256(0), bounty_to="", settlement_json="", prior_json=_canon(prior),
-            appeal_prior_json="[]")
+            appeal_prior_json="[]", names_json=_canon(names), ens_unresolved=unresolved, appeal_names_json="{}",
+            responder="", resp_bond=u256(0), resp_text="", resp_vote_id=u64(0), resp_cid="", resp_vote_sha="",
+            resp_names_json="{}", resp_prior_json="[]", resp_deadline=u64(0), resp_ruling="", resp_summary="",
+            resp_json="")
         ck = str(int(d.dao_id)) + "|" + vote["cid"]
         self.cid_checks[ck] = str(self.cid_checks.get(ck) or "") + str(cid) + ","
         self.check_by_tx[txk] = u64(cid)
@@ -905,20 +940,50 @@ class AsVotedRegistry(gl.contract.Contract):
         self._bump("status:" + ST_PROVISIONAL)
         return {"ok": True, "check_id": cid, "judge_deadline": now + int(self.judge_s)}
 
+    def _names_for(self, vote: dict, ex: dict) -> dict:
+        """The proposal's ENS names as resolved at the execution's L1 block
+        (VoteReader.read_names_at), never later. A chain with no L1 block
+        (Polygon) leaves them unresolved: the judge then never treats a name
+        as naming nobody."""
+        if len(vote.get("ens_names") or []) == 0:
+            return {"ens": {}, "unresolved": False}
+        l1 = int(ex.get("l1_block") or 0)
+        if l1 <= 0:
+            return {"ens": {}, "unresolved": True}
+        nm = self._ext(self.vote_reader, "get_names_at", [int(vote["vote_id"]), l1])
+        if not isinstance(nm, dict) or not nm.get("found"):
+            return {"error": "READ_NAMES_AT_EXECUTION_BLOCK_" + str(l1) + "_FIRST"}
+        return {"ens": nm["ens"], "unresolved": False}
+
+    def _round_vote(self, c: Check, rnd: int) -> list:
+        """[vote_id, evidence sha, names json, prior json, counter-evidence]
+        for one round."""
+        if rnd == 2 and int(c.resp_vote_id) > 0:
+            return [int(c.resp_vote_id), c.resp_vote_sha, c.resp_names_json, c.resp_prior_json, c.resp_text]
+        if rnd >= 1 and int(c.appeal_vote_id) > 0:
+            return [int(c.appeal_vote_id), c.appeal_vote_sha, c.appeal_names_json, c.appeal_prior_json,
+                    c.resp_text if rnd == 2 else c.appeal_text]
+        counter = c.appeal_text if rnd == 1 else (c.resp_text if rnd == 2 else "")
+        return [int(c.vote_id), c.vote_sha, c.names_json, c.prior_json, counter]
+
     def _input(self, c: Check) -> dict:
         """The evidence for the open round, read back from the readers and
         compared with what was snapshotted at filing."""
         rnd = int(c.round)
         ex = self._ext(self.exec_reader, "get_execution", [int(c.exec_id)])
-        vid = int(c.appeal_vote_id) if rnd == 1 and int(c.appeal_vote_id) > 0 else int(c.vote_id)
-        want_vsha = c.appeal_vote_sha if rnd == 1 and int(c.appeal_vote_id) > 0 else c.vote_sha
+        rv = self._round_vote(c, rnd)
+        vid = rv[0]
+        want_vsha = rv[1]
         vote = self._ext(self.vote_reader, "get_proposal", [vid])
         if not isinstance(ex, dict) or not ex.get("found") or not isinstance(vote, dict) or not vote.get("found"):
             return {"error": "READER_UNREADABLE"}
         if ex["evidence_sha256"] != c.exec_sha or vote["evidence_sha256"] != want_vsha:
             return {"error": "SNAPSHOT_MISMATCH"}
-        counter = c.appeal_text if rnd == 1 else ""
-        prior_ids = json.loads(c.appeal_prior_json if rnd == 1 and int(c.appeal_vote_id) > 0 else c.prior_json)
+        counter = rv[4]
+        prior_ids = json.loads(rv[3])
+        # the names as of the execution, snapshotted when this round began
+        vote["ens"] = json.loads(rv[2])
+        vote["ens_unresolved"] = bool(c.ens_unresolved) and len(vote.get("ens_names") or []) > 0
         truncated = len(prior_ids) > PRIOR_MAX
         prior_ids = prior_ids[:PRIOR_MAX]
         prior = []
@@ -939,7 +1004,7 @@ class AsVotedRegistry(gl.contract.Contract):
         c = self._check(check_id)
         if c is None:
             return {"found": False}
-        is_open = (c.status == ST_PROVISIONAL and int(c.round) == 0) or (c.status == ST_APPEALED and int(c.round) == 1)
+        is_open = (c.status == ST_PROVISIONAL and int(c.round) == 0) or (c.status == ST_APPEALED and int(c.round) >= 1)
         out = {"found": True, "check_id": int(c.check_id), "round": int(c.round), "open": is_open,
                "status": c.status}
         if not is_open:
@@ -963,12 +1028,12 @@ class AsVotedRegistry(gl.contract.Contract):
         if c is None:
             raise gl.vm.UserError("REFUSED: NO_SUCH_CHECK")
         rnd = int(c.round)
-        if not ((c.status == ST_PROVISIONAL and rnd == 0) or (c.status == ST_APPEALED and rnd == 1)):
+        if not ((c.status == ST_PROVISIONAL and rnd == 0) or (c.status == ST_APPEALED and rnd >= 1)):
             raise gl.vm.UserError("REFUSED: NOTHING_TO_RULE_ON_IN_" + c.status)
         j = self._ext(self.judge, "get_judgment", [gl.message.contract_address.as_hex.lower(), int(c.check_id), rnd])
         if not isinstance(j, dict) or not j.get("found"):
             raise gl.vm.UserError("REFUSED: NOT_JUDGED_YET")
-        deadline = int(c.judge_deadline) if rnd == 0 else int(c.appeal_deadline)
+        deadline = int(c.judge_deadline) if rnd == 0 else (int(c.appeal_deadline) if rnd == 1 else int(c.resp_deadline))
         if int(j["judged_at"]) > deadline:
             raise gl.vm.UserError("REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE")
         inp = self._input(c)
@@ -999,22 +1064,42 @@ class AsVotedRegistry(gl.contract.Contract):
                 c.contest_deadline = u64(now + int(self.contest_s))
                 self._bump("status:" + ST_CONTESTABLE)
             return {"ok": True, "check_id": int(c.check_id), "ruling": verdict, "status": c.status}
-        c.appeal_ruling = verdict
-        c.appeal_summary = str(j["summary"])
-        c.appeal_json = doc
         self._drop("status:" + ST_APPEALED)
         c.severity = sev[0]
         c.severity_bps = u64(sev[1])
+        if rnd == 2:
+            c.resp_ruling = verdict
+            c.resp_summary = str(j["summary"])
+            c.resp_json = doc
+            self._settle(c, d, verdict, "RESPONSE_RULED", now)
+            return {"ok": True, "check_id": int(c.check_id), "response_ruling": verdict, "final": c.final_verdict}
+        c.appeal_ruling = verdict
+        c.appeal_summary = str(j["summary"])
+        c.appeal_json = doc
+        if verdict == V_DEV and c.ruling == V_AS:
+            # an appeal turned AS_VOTED into DEVIATES: the DAO gets its own
+            # window to respond before anything is final
+            c.status = ST_CONTESTABLE
+            c.contest_deadline = u64(now + int(self.contest_s))
+            self._bump("status:" + ST_CONTESTABLE)
+            return {"ok": True, "check_id": int(c.check_id), "appeal_ruling": verdict, "status": c.status,
+                    "dao_may_respond_until": now + int(self.contest_s)}
         self._settle(c, d, verdict, "APPEAL_RULED", now)
         return {"ok": True, "check_id": int(c.check_id), "appeal_ruling": verdict, "final": c.final_verdict}
 
     @gl.public.write.payable
     def appeal(self, check_id: int, counter_evidence: str, alt_vote_id: int) -> typing.Any:
         """One appeal of a CONTESTABLE ruling, with exactly APPEAL_BOND and new
-        counter-evidence. A DEVIATES ruling is appealed by the DAO's
-        controller (anyone but the filer if the listing is unclaimed); an
-        AS_VOTED ruling by anyone but the controller. alt_vote_id (0 = none):
-        a different proposal record this execution implements."""
+        counter-evidence.
+          round 1: a DEVIATES ruling is appealed by the DAO's controller
+          (anyone but the filer if the listing is unclaimed); an AS_VOTED
+          ruling by anyone but the controller.
+          round 2 (the DAO's response): when an appeal turned AS_VOTED into
+          DEVIATES, the DAO side (the controller; anyone but the filer and
+          the appellant if unclaimed) may answer once more.
+        alt_vote_id (0 = none): a different proposal this execution
+        implements. Switching the proposal is the DAO's defence only: the
+        listing's controller, answering a DEVIATES."""
         value = int(gl.message.value)
         me = self._sender()
         now = self._now()
@@ -1024,6 +1109,8 @@ class AsVotedRegistry(gl.contract.Contract):
         alt = _as_int(alt_vote_id, -1)
         vote = None
         d = None
+        ex = None
+        response = False
         if now <= 0:
             problem = "NO_CLOCK"
         elif value != APPEAL_BOND:
@@ -1036,7 +1123,15 @@ class AsVotedRegistry(gl.contract.Contract):
             problem = "CONTEST_WINDOW_CLOSED"
         if problem == "":
             d = self.daos[c.dao_id]
-            if c.ruling == V_DEV:
+            response = int(c.round) == 1
+            if response:
+                if c.appeal_ruling != V_DEV:
+                    problem = "NOT_APPEALABLE"
+                elif d.controller != "" and me != d.controller:
+                    problem = "ONLY_THE_DAOS_CONTROLLER_MAY_RESPOND"
+                elif d.controller == "" and (me == c.filer or me == c.appellant):
+                    problem = "ONLY_THE_DAO_SIDE_MAY_RESPOND"
+            elif c.ruling == V_DEV:
                 if d.controller != "" and me != d.controller:
                     problem = "ONLY_THE_DAOS_CONTROLLER_MAY_APPEAL_DEVIATES"
                 elif d.controller == "" and me == c.filer:
@@ -1047,43 +1142,69 @@ class AsVotedRegistry(gl.contract.Contract):
             else:
                 problem = "NOT_APPEALABLE"
         if problem == "":
+            on_record = c.note + "\n" + c.ruling_summary + "\n" + c.appeal_text + "\n" + c.appeal_summary
             if len(text) < MIN_COUNTER or len(text) > MAX_COUNTER:
                 problem = "COUNTER_EVIDENCE_LENGTH_" + str(MIN_COUNTER) + "_TO_" + str(MAX_COUNTER)
-            elif too_similar(text, c.note + "\n" + c.ruling_summary):
+            elif too_similar(text, on_record):
                 problem = "COUNTER_EVIDENCE_NOT_NEW"
-        if problem == "" and alt > 0 and c.ruling == V_DEV:
+        if problem == "" and alt < 0:
+            problem = "BAD_ALT_VOTE_ID"
+        if problem == "" and alt > 0:
+            answering_dev = (response and c.appeal_ruling == V_DEV) or (not response and c.ruling == V_DEV)
+            if not answering_dev or d.controller == "" or me != d.controller:
+                problem = "ONLY_THE_DAOS_CONTROLLER_ANSWERING_DEVIATES_MAY_NAME_ANOTHER_PROPOSAL"
+        names = {}
+        if problem == "" and alt > 0:
             ex = self._ext(self.exec_reader, "get_execution", [int(c.exec_id)])
             vote = self._ext(self.vote_reader, "get_proposal", [alt])
             if not isinstance(ex, dict) or not ex.get("found"):
                 problem = "READER_UNREADABLE"
             else:
                 problem = self._vote_problem(d, vote, ex, now)
-            if problem == "" and vote["cid"] == c.cid:
+            if problem == "" and vote["cid"] in (c.cid, c.appeal_cid):
                 problem = "ALT_PROPOSAL_IS_THE_SAME_PROPOSAL"
-        elif problem == "" and alt < 0:
-            problem = "BAD_ALT_VOTE_ID"
-        if problem == "" and alt > 0 and c.ruling != V_DEV:
-            problem = "ONLY_A_DEVIATES_APPEAL_MAY_NAME_ANOTHER_PROPOSAL"
+            if problem == "":
+                nm = self._names_for(vote, ex)
+                if "error" in nm:
+                    problem = nm["error"]
+                else:
+                    names = nm["ens"]
         if problem != "":
             return self._refuse(me, value, problem)
         aprior = self._prior(int(d.dao_id), vote["cid"], int(c.exec_id)) if alt > 0 else []
         # --- writes
         self.received_total = u256(int(self.received_total) + value)
         self.open_total = u256(int(self.open_total) + value)
-        c.appellant = me
-        c.appeal_prior_json = _canon(aprior)
-        c.appeal_bond = u256(value)
-        c.appeal_text = text
-        if alt > 0:
-            c.appeal_vote_id = u64(alt)
-            c.appeal_cid = vote["cid"]
-            c.appeal_vote_sha = vote["evidence_sha256"]
+        if response:
+            c.responder = me
+            c.resp_bond = u256(value)
+            c.resp_text = text
+            c.resp_prior_json = _canon(aprior)
+            if alt > 0:
+                c.resp_vote_id = u64(alt)
+                c.resp_cid = vote["cid"]
+                c.resp_vote_sha = vote["evidence_sha256"]
+                c.resp_names_json = _canon(names)
+            c.round = u64(2)
+            c.resp_deadline = u64(now + int(self.appeal_s))
+            deadline = int(c.resp_deadline)
+        else:
+            c.appellant = me
+            c.appeal_prior_json = _canon(aprior)
+            c.appeal_bond = u256(value)
+            c.appeal_text = text
+            if alt > 0:
+                c.appeal_vote_id = u64(alt)
+                c.appeal_cid = vote["cid"]
+                c.appeal_vote_sha = vote["evidence_sha256"]
+                c.appeal_names_json = _canon(names)
+            c.round = u64(1)
+            c.appeal_deadline = u64(now + int(self.appeal_s))
+            deadline = int(c.appeal_deadline)
         c.status = ST_APPEALED
-        c.round = u64(1)
-        c.appeal_deadline = u64(now + int(self.appeal_s))
         self._drop("status:" + ST_CONTESTABLE)
         self._bump("status:" + ST_APPEALED)
-        return {"ok": True, "check_id": int(c.check_id), "appeal_deadline": now + int(self.appeal_s)}
+        return {"ok": True, "check_id": int(c.check_id), "round": int(c.round), "appeal_deadline": deadline}
 
     @gl.public.write
     def finalize(self, check_id: int) -> typing.Any:
@@ -1101,7 +1222,10 @@ class AsVotedRegistry(gl.contract.Contract):
         d = self.daos[c.dao_id]
         # --- writes
         self._drop("status:" + ST_CONTESTABLE)
-        self._settle(c, d, c.ruling, "NO_APPEAL", now)
+        if int(c.round) == 1 and c.appeal_ruling != "":
+            self._settle(c, d, c.appeal_ruling, "APPEAL_RULED", now)      # the DAO did not respond
+        else:
+            self._settle(c, d, c.ruling, "NO_APPEAL", now)
         return {"ok": True, "check_id": int(c.check_id), "final": c.final_verdict}
 
     @gl.public.write
@@ -1119,6 +1243,10 @@ class AsVotedRegistry(gl.contract.Contract):
             if now <= int(c.judge_deadline):
                 raise gl.vm.UserError("REFUSED: JUDGEABLE_UNTIL_" + str(int(c.judge_deadline)))
             how = "EXPIRED_UNJUDGED"
+        elif c.status == ST_APPEALED and int(c.round) == 2:
+            if now <= int(c.resp_deadline):
+                raise gl.vm.UserError("REFUSED: RESPONSE_JUDGEABLE_UNTIL_" + str(int(c.resp_deadline)))
+            how = "RESPONSE_EXPIRED"
         elif c.status == ST_APPEALED:
             if now <= int(c.appeal_deadline):
                 raise gl.vm.UserError("REFUSED: APPEAL_JUDGEABLE_UNTIL_" + str(int(c.appeal_deadline)))
@@ -1130,57 +1258,79 @@ class AsVotedRegistry(gl.contract.Contract):
         self._drop("status:" + c.status)
         if how == "EXPIRED_UNJUDGED":
             self._settle(c, d, V_UNCLEAR, how, now)
+        elif how == "RESPONSE_EXPIRED":
+            self._settle(c, d, c.appeal_ruling, how, now)
         else:
             self._settle(c, d, c.ruling, how, now)
         return {"ok": True, "check_id": int(c.check_id), "final": c.final_verdict, "how": how}
 
     def _settle(self, c: Check, d: Dao, verdict: str, how: str, now: int) -> None:
         """Move every coin of a check, by the rules in the header. Only ever
-        called after the last check that can revert."""
+        called after the last check that can revert.
+        Parties: the filer (stake), the appellant (bond, round 1) and the
+        DAO's responder (bond, round 2). Whoever argued for the final verdict
+        gets their money back; whoever argued against it loses theirs to the
+        other side; UNCLEAR refunds everyone."""
         stake = int(c.stake)
         bond = int(c.appeal_bond)
+        rbond = int(c.resp_bond)
         moves = []
-        appealed = c.appellant != "" and how in ("APPEAL_RULED", "APPEAL_EXPIRED")
         # release what this check held
-        self.open_total = u256(int(self.open_total) - stake - bond)
+        self.open_total = u256(int(self.open_total) - stake - bond - rbond)
         if how == "APPEAL_EXPIRED":
             # the appeal was never ruled on: the bond goes back, the ruling stands
             self._credit(c.appellant, bond)
             moves.append(["appeal bond refunded", c.appellant, str(bond)])
             bond = 0
-            appealed = False
-        if verdict == V_UNCLEAR:
-            self._credit(c.filer, stake)
-            moves.append(["stake refunded", c.filer, str(stake)])
-            if bond > 0:
-                self._credit(c.appellant, bond)
-                moves.append(["appeal bond refunded", c.appellant, str(bond)])
-        elif verdict == V_AS:
-            d.pledge = u256(int(d.pledge) + stake)
-            self.pledges_total = u256(int(self.pledges_total) + stake)
-            moves.append(["stake to the DAO pledge", "dao#" + str(int(d.dao_id)), str(stake)])
-            if bond > 0:
-                if c.ruling == V_DEV:
-                    # the DAO appealed a DEVIATES ruling and won
-                    self._credit(c.appellant, bond)
-                    moves.append(["appeal bond refunded", c.appellant, str(bond)])
-                else:
-                    d.pledge = u256(int(d.pledge) + bond)
-                    self.pledges_total = u256(int(self.pledges_total) + bond)
-                    moves.append(["appeal bond to the DAO pledge", "dao#" + str(int(d.dao_id)), str(bond)])
+        if how == "RESPONSE_EXPIRED":
+            # the DAO's response was never ruled on: its bond goes back and the
+            # appeal's ruling stands
+            self._credit(c.responder, rbond)
+            moves.append(["response bond refunded", c.responder, str(rbond)])
+            rbond = 0
+        # who argued for DEVIATES, who for AS_VOTED
+        dev_side = []
+        as_side = []
+        if c.ruling == V_DEV:
+            dev_side.append(["stake", c.filer, stake])
         else:
-            winner = c.filer
-            if appealed and c.ruling == V_AS:
-                winner = c.appellant
+            as_side.append(["stake", c.filer, stake])
+        if bond > 0:
+            (as_side if c.ruling == V_DEV else dev_side).append(["appeal bond", c.appellant, bond])
+        if rbond > 0:
+            as_side.append(["response bond", c.responder, rbond])
+        if verdict == V_UNCLEAR:
+            for x in dev_side + as_side:
+                self._credit(x[1], x[2])
+                moves.append([x[0] + " refunded", x[1], str(x[2])])
+        elif verdict == V_AS:
+            for x in as_side:
+                if x[0] == "stake":
+                    # the filer was right that it is as voted: the stake still backs the pledge
+                    d.pledge = u256(int(d.pledge) + x[2])
+                    self.pledges_total = u256(int(self.pledges_total) + x[2])
+                    moves.append(["stake to the DAO pledge", "dao#" + str(int(d.dao_id)), str(x[2])])
+                else:
+                    self._credit(x[1], x[2])
+                    moves.append([x[0] + " refunded", x[1], str(x[2])])
+            for x in dev_side:
+                d.pledge = u256(int(d.pledge) + x[2])
+                self.pledges_total = u256(int(self.pledges_total) + x[2])
+                moves.append([x[0] + " to the DAO pledge", "dao#" + str(int(d.dao_id)), str(x[2])])
+        else:
+            # whoever first argued DEVIATES proved it: the filer, or the appellant of an AS_VOTED
+            winner = c.filer if c.ruling == V_DEV else c.appellant
             self._credit(c.filer, stake)
             moves.append(["stake refunded", c.filer, str(stake)])
-            if bond > 0:
-                if c.ruling == V_DEV:
-                    self._credit(c.filer, bond)
-                    moves.append(["appeal bond to the filer", c.filer, str(bond)])
-                else:
-                    self._credit(c.appellant, bond)
-                    moves.append(["appeal bond refunded", c.appellant, str(bond)])
+            for x in as_side:
+                if x[0] == "stake":
+                    continue
+                self._credit(winner, x[2])
+                moves.append([x[0] + " to " + ("the filer" if winner == c.filer else "the appellant"), winner, str(x[2])])
+            for x in dev_side:
+                if x[0] != "stake":
+                    self._credit(x[1], x[2])
+                    moves.append([x[0] + " refunded", x[1], str(x[2])])
             slash = int(c.pledge_at_filing) * int(c.severity_bps) // BPS
             slash = min(slash, int(d.pledge))
             if slash > 0:
@@ -1242,7 +1392,7 @@ class AsVotedRegistry(gl.contract.Contract):
                 "open_checks": int(d.open_checks), "n_checks": int(d.n_checks), "as_voted": int(d.as_voted),
                 "deviates": int(d.deviates), "unclear": int(d.unclear),
                 "last_deviates_at": int(d.last_deviates_at), "last_deviates_check": int(d.last_deviates_check),
-                "slashed_total": str(int(d.slashed_total))}
+                "slashed_total": str(int(d.slashed_total)), "verified": bool(d.verified)}
 
     def _check_view(self, c: Check, full: bool) -> dict:
         out = {"check_id": int(c.check_id), "dao_id": int(c.dao_id), "chain": c.chain, "safe": c.safe, "tx": c.tx,
@@ -1259,10 +1409,16 @@ class AsVotedRegistry(gl.contract.Contract):
                "pledge_at_filing": str(int(c.pledge_at_filing)), "slash": str(int(c.slash)),
                "bounty_to": c.bounty_to,
                "settlement": json.loads(c.settlement_json) if c.settlement_json != "" else [],
-               "prior_exec_ids": json.loads(c.prior_json) if c.prior_json != "" else []}
+               "prior_exec_ids": json.loads(c.prior_json) if c.prior_json != "" else [],
+               "ens_at_execution": json.loads(c.names_json) if c.names_json != "" else {},
+               "ens_unresolved": bool(c.ens_unresolved), "responder": c.responder,
+               "resp_bond": str(int(c.resp_bond)), "resp_text": c.resp_text, "resp_vote_id": int(c.resp_vote_id),
+               "resp_cid": c.resp_cid, "resp_deadline": int(c.resp_deadline), "resp_ruling": c.resp_ruling,
+               "resp_summary": c.resp_summary}
         if full:
             out["ruling_detail"] = json.loads(c.ruling_json) if c.ruling_json != "" else None
             out["appeal_detail"] = json.loads(c.appeal_json) if c.appeal_json != "" else None
+            out["resp_detail"] = json.loads(c.resp_json) if c.resp_json != "" else None
         return out
 
     @gl.public.view
@@ -1390,7 +1546,8 @@ class AsVotedRegistry(gl.contract.Contract):
         return {"found": True, "dao_id": int(d.dao_id), "space": d.space, "chain": d.chain, "safe": d.safe,
                 "controller": d.controller, "pledge": str(int(d.pledge)), "open_checks": int(d.open_checks),
                 "as_voted": int(d.as_voted), "deviates": int(d.deviates), "unclear": int(d.unclear),
-                "last_deviates_at": int(d.last_deviates_at), "last_deviates_check": int(d.last_deviates_check)}
+                "last_deviates_at": int(d.last_deviates_at), "last_deviates_check": int(d.last_deviates_check),
+                "verified": bool(d.verified)}
 
     @gl.public.view
     def claimable_of(self, who: str) -> typing.Any:
@@ -1408,7 +1565,7 @@ class AsVotedRegistry(gl.contract.Contract):
         for i in range(offset + 1, min(offset + count, int(self.n_checks)) + 1):
             c = self.checks.get(u64(i))
             if c is not None and c.status in OPEN:
-                held += int(c.stake) + int(c.appeal_bond)
+                held += int(c.stake) + int(c.appeal_bond) + int(c.resp_bond)
         owed = 0
         paid = 0
         ps = [str(x) for x in self.payees]
