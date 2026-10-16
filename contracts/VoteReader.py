@@ -1079,8 +1079,10 @@ def decode_addresses(raw: str) -> list:
 def control_of(space: str, chain: str, safe: str) -> dict:
     """Who controls the space (the ENS owner of its name, through the
     NameWrapper when wrapped) and who owns the Safe, at each chain's
-    finalized block. verified: the space's owner is the Safe or one of its
-    owners. Raises ReadFailed / Disagree."""
+    finalized block. verified: the space's ENS name is owned by the Safe
+    itself, so controlling it takes the Safe's own threshold of signers (a
+    signature of the name's owner is a transaction of the Safe). Raises
+    ReadFailed / Disagree."""
     node = namehash(space).hex()
     own = dual_read("ethereum", [["eth_call", [{"to": ENS_REGISTRY, "data": "0x02571be3" + node}, "finalized"]]],
                     _proj_word)[0]
@@ -1090,8 +1092,9 @@ def control_of(space: str, chain: str, safe: str) -> dict:
     owners = decode_addresses(dual_read(chain, [["eth_call", [{"to": safe, "data": "0xa0e67e2b"}, "finalized"]]],
                                         _proj_raw)[0])
     own = _addr(own) if own != "" else ""
-    return {"space_owner": own, "safe_owners": owners,
-            "verified": own != "" and own != ZERO and (own == safe or own in owners)}
+    # verified only when the Safe itself owns the name: then any change to it
+    # needs the Safe's own threshold of signers, never one signer
+    return {"space_owner": own, "safe_owners": owners, "verified": own != "" and own != ZERO and own == safe}
 
 
 def read_space(p: dict) -> dict:
@@ -1114,14 +1117,68 @@ def read_space(p: dict) -> dict:
             "space_owner": ctl["space_owner"], "safe_owners": ctl["safe_owners"], "verified": ctl["verified"]}
 
 
-def read_names(names: list, block: int, snap: int) -> dict:
-    """The proposal's ENS names as of an execution: resolved at its Ethereum
-    block (final for this node) and, when the space votes on Ethereum, at the
-    vote's snapshot block too. A name counts only if both agree: it means
-    what voters saw, unchanged when the Safe acted, and never what it was
-    repointed to later."""
+L1_INFO_SELECTORS = ("0x440a5e20", "0x098999be")   # OP-stack setL1BlockValuesEcotone / Isthmus (packed)
+L1_INFO_BEDROCK = "0x015d8eb9"                      # setL1BlockValues(uint64 _number, ...)
+
+
+def _proj_first(call: list, r: typing.Any) -> typing.Any:
+    if not isinstance(r, list) or r[0] != "ok" or not isinstance(r[1], dict):
+        return None
+    txs = r[1].get("transactions") or []
+    return str(txs[0]).lower() if len(txs) > 0 and isinstance(txs[0], str) else ""
+
+
+def _proj_l1(call: list, r: typing.Any) -> typing.Any:
+    if not isinstance(r, list) or r[0] != "ok" or not isinstance(r[1], dict):
+        return None
+    if call[0] == "eth_getBlockByNumber":
+        return str(r[1].get("l1BlockNumber") or "").lower()
+    return str(r[1].get("input") or "").lower()
+
+
+def l1_of(network: str, blk: int) -> int:
+    """The Ethereum block a space network's block belongs to: the block on
+    Ethereum; the L1 attributes deposit on OP-stack chains; l1BlockNumber on
+    Arbitrum; 0 (unknown) elsewhere or when it cannot be read."""
+    ch = NETWORK_OF.get(str(network), "")
+    if blk <= 0 or ch == "":
+        return 0
+    if ch == "ethereum":
+        return blk
+    try:
+        if ch in ("optimism", "base"):
+            first = dual_read(ch, [["eth_getBlockByNumber", [hex(blk), False]]], _proj_first)[0]
+            if not isinstance(first, str) or not first.startswith("0x") or not _is_hex(first[2:], 64):
+                return 0
+            got = dual_read(ch, [["eth_getTransactionByHash", [first]]], _proj_l1)[0]
+            if not isinstance(got, str) or len(got) < 10:
+                return 0
+            body = got[10:]
+            if got[:10] in L1_INFO_SELECTORS and len(body) >= 64:
+                return int(body[48:64], 16)
+            if got[:10] == L1_INFO_BEDROCK and len(body) >= 64:
+                return int(body[0:64], 16)
+            return 0
+        if ch == "arbitrum":
+            got = dual_read(ch, [["eth_getBlockByNumber", [hex(blk), False]]], _proj_l1)[0]
+            return int(got, 16) if isinstance(got, str) and got.startswith("0x") else 0
+    except ReadFailed:
+        return 0
+    except Disagree:
+        return 0
+    except Exception:
+        return 0
+    return 0
+
+
+def read_names(names: list, block: int, snap: int, network: str) -> dict:
+    """The proposal's ENS names as voters saw them: resolved at the Ethereum
+    block of the vote's snapshot (mapped to its L1 block for a space that
+    votes on another network). Names that point elsewhere at the execution's
+    Ethereum block (`block`) are reported in "moved". "unresolved": the
+    snapshot's Ethereum block is unknown, so no name names anyone."""
     if len(names) == 0:
-        return {"ens": {}, "block": block}
+        return {"ens": {}, "moved": {}, "unresolved": False, "block": block, "snap_l1": 0}
     try:
         fins = finalized_each("ethereum")
     except ReadFailed:
@@ -1131,16 +1188,21 @@ def read_names(names: list, block: int, snap: int) -> dict:
     low = fins[0]["number"] if fins[0]["number"] <= fins[1]["number"] else fins[1]["number"]
     if block > low:
         return {"refused": "BLOCK_NOT_FINALIZED"}
+    snap_l1 = l1_of(network, snap)
+    if snap_l1 <= 0 or snap_l1 > block:
+        return {"ens": {}, "moved": {}, "unresolved": True, "block": block, "snap_l1": snap_l1}
     try:
-        at = resolve_names(names, block)
-        if snap > 0 and snap < block:
-            then = resolve_names(names, snap)
-            at = {n: at[n] for n in at if then.get(n, "") == at[n]}
-        return {"ens": at, "block": block}
+        then = resolve_names(names, snap_l1)
+        at = resolve_names(names, block) if block != snap_l1 else then
     except ReadFailed:
         return {"refused": "ENS_UNREADABLE"}
     except Disagree:
         return {"refused": "ENS_RPC_DISAGREE"}
+    moved = {}
+    for n in at:
+        if then.get(n, "") != at[n]:
+            moved[n] = at[n]
+    return {"ens": then, "moved": moved, "unresolved": False, "block": block, "snap_l1": snap_l1}
 
 
 def validate_proposal(theirs: typing.Any, p: dict, now: int) -> bool:
@@ -1352,33 +1414,39 @@ class VoteReader(gl.contract.Contract):
             raise gl.vm.UserError("REFUSED: BAD_BLOCK")
         key = str(int(x.vote_id)) + "|" + str(blk)
         if key in self.names_at:
-            return {"vote_id": int(x.vote_id), "l1_block": blk, "ens": json.loads(self.names_at[key])}
+            rec0 = json.loads(self.names_at[key])
+            return {"vote_id": int(x.vote_id), "l1_block": blk, "ens": rec0["ens"], "moved": rec0["moved"],
+                    "unresolved": rec0["unresolved"]}
         names = json.loads(x.ens_names_json)
-        snap = int(x.snapshot) if x.space_network == "1" else 0
+        snap = int(x.snapshot)
+        net = str(x.space_network)
 
         def leader() -> dict:
-            return read_names(names, blk, snap)
+            return read_names(names, blk, snap, net)
 
         def validator(res: gl.vm.Result) -> bool:
             if not isinstance(res, gl.vm.Return):
                 return False
-            return _canon(read_names(names, blk, snap)) == _canon(res.calldata)
+            return _canon(read_names(names, blk, snap, net)) == _canon(res.calldata)
 
-        ev = gl.vm.run_nondet(leader, validator) if len(names) > 0 else {"ens": {}, "block": blk}
+        ev = gl.vm.run_nondet(leader, validator) if len(names) > 0 else {"ens": {}, "moved": {}, "unresolved": False}
         if not isinstance(ev, dict):
             raise gl.vm.UserError("REFUSED: EVIDENCE_UNREADABLE")
         if "refused" in ev:
             raise gl.vm.UserError("REFUSED: " + str(ev["refused"])[:80])
+        rec = {"ens": ev["ens"], "moved": ev.get("moved") or {}, "unresolved": bool(ev.get("unresolved"))}
         # --- writes
-        self.names_at[key] = _canon(ev["ens"])
-        return {"vote_id": int(x.vote_id), "l1_block": blk, "ens": ev["ens"]}
+        self.names_at[key] = _canon(rec)
+        return {"vote_id": int(x.vote_id), "l1_block": blk, "ens": rec["ens"], "moved": rec["moved"],
+                "unresolved": rec["unresolved"]}
 
     @gl.public.view
     def get_names_at(self, vote_id: int, l1_block: int) -> typing.Any:
         key = str(max(_as_int(vote_id, 0), 0)) + "|" + str(max(_as_int(l1_block, 0), 0))
         if key not in self.names_at:
             return {"found": False}
-        return {"found": True, "ens": json.loads(self.names_at[key])}
+        rec = json.loads(self.names_at[key])
+        return {"found": True, "ens": rec["ens"], "moved": rec["moved"], "unresolved": rec["unresolved"]}
 
     # --- views (storage only) -------------------------------------------------
 
