@@ -57,12 +57,12 @@ export function DaoView({ id }: { id: number }) {
     <div>
       <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-4xl font-semibold">{d.space}</h1>
-          <p className="mt-1 text-ink-2">Safe <Addr value={d.safe} chain={d.chain} size={6} /> on {CHAIN_LABEL[d.chain]} · listed {isoDate(d.listed_at)} by <Addr value={d.lister} /></p>
+          <h1 className="font-serif text-4xl font-semibold">{d.space}{d.verified && <span className="ml-3 align-middle rounded border border-ok px-2 py-0.5 font-sans text-sm font-semibold text-ok" title="The space's ENS owner is the Safe or one of its owners">verified</span>}</h1>
+          <p className="mt-1 text-ink-2">Snapshot space <strong>{d.space}</strong> with the Safe <Addr value={d.safe} chain={d.chain} size={6} /> on {CHAIN_LABEL[d.chain]}. This pair is the DAO: another space listing the same Safe is another record. Listed {isoDate(d.listed_at)} by <Addr value={d.lister} />{d.verified ? "; the space's ENS owner is the Safe or one of its owners." : "; Snapshot does not prove who controls a Safe, and this space's ENS owner is not one of its owners."}</p>
         </div>
         <div className={`rounded-lg border-2 px-4 py-3 ${stand.data?.ok ? "border-ok bg-ok-soft" : "border-dev bg-dev-soft"}`}>
           <p className={`font-semibold ${stand.data?.ok ? "text-ok" : "text-dev"}`}>{stand.data ? (stand.data.ok ? "Executing as voted" : "Not in good standing") : "Reading standing"}</p>
-          <p className="text-xs text-ink-2">{stand.data ? (stand.data.reasons[0] ?? `no final DEVIATES ruling in the last ${stand.data.window_days} days`) : ""} (DaoStanding)</p>
+          <p className="text-xs text-ink-2">{stand.data ? (stand.data.reasons[0] ?? `no final DEVIATES ruling on an execution from the last ${stand.data.window_days} days`) : ""} (DaoStanding)</p>
         </div>
       </div>
       <section aria-label="Record" className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-5">
@@ -120,7 +120,7 @@ export function DaoView({ id }: { id: number }) {
       </Section>
       <Section title="A contract that asks before it acts">
         <p className="max-w-3xl text-sm text-ink-2">
-          GrantGate is a small consumer: it carries out a request for a DAO only if DaoStanding says the DAO has no final DEVIATES ruling in the last 30 days. Every request is logged, carried out or refused.
+          GrantGate is a small consumer: it carries out a request for a DAO only if DaoStanding says the DAO has no final DEVIATES ruling on an execution from the last 30 days. Every request is logged, carried out or refused.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <input className={`${inputCls} max-w-sm`} value={purpose} onChange={(e) => setPurpose(e.target.value)} aria-label="What to ask GrantGate to do" />

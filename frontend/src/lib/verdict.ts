@@ -15,13 +15,14 @@ export function proposalLabel(vote: Proposal | undefined, cid?: string): string 
  * only what that establishes: the named proposal does not cover the action.
  */
 export function verdictSentence(check: Check, vote?: Proposal): string {
-  const s = check.appeal_summary || check.ruling_summary;
+  const s = check.resp_summary || check.appeal_summary || check.ruling_summary;
   if (!s) return "";
-  const id = proposalLabel(vote, check.appeal_summary ? check.appeal_cid : check.cid);
+  const id = proposalLabel(vote, check.resp_summary ? check.resp_cid || check.appeal_cid || check.cid : check.appeal_summary ? check.appeal_cid || check.cid : check.cid);
   return s
     .replace(/includes an action the proposal of (\S+) does not mention\./, `includes an action proposal ${id} (closed $1) does not cover.`)
     .replace(/sends more than the proposal of (\S+) states\./, `sends more than proposal ${id} (closed $1) states.`);
 }
 
 /** The proposal a check's sentence is about: the appeal's when an appeal was ruled. */
-export const sentenceVoteId = (c: Check) => (c.appeal_summary && c.appeal_vote_id ? c.appeal_vote_id : c.vote_id);
+export const sentenceVoteId = (c: Check) =>
+  c.resp_summary && c.resp_vote_id ? c.resp_vote_id : c.appeal_summary && c.appeal_vote_id ? c.appeal_vote_id : c.vote_id;

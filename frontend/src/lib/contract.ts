@@ -91,6 +91,8 @@ export const getExecutionId = (chain: string, safe: string, tx: string) => viewO
 export const getExecReaderConfig = () => viewOf<Record<string, unknown>>(ADDR.execReader, "get_config");
 export const getProposal = (id: number) => viewOf<Proposal>(ADDR.voteReader, "get_proposal", [id]);
 export const getProposalId = (cid: string, chain: string, safe: string) => viewOf<number>(ADDR.voteReader, "get_proposal_id", [cid, chain, safe]);
+export const getNamesAt = (voteId: number, l1: number) =>
+  viewOf<{ found: boolean; ens?: Record<string, string> }>(ADDR.voteReader, "get_names_at", [voteId, l1]);
 export const getBindingId = (space: string, chain: string, safe: string) => viewOf<number>(ADDR.voteReader, "get_binding_id", [space, chain, safe]);
 export const getBinding = (id: number) => viewOf<{ found: boolean; listed: boolean; read_at: number; controllers: string[] }>(ADDR.voteReader, "get_binding", [id]);
 export const getVoteReaderConfig = () => viewOf<Record<string, unknown>>(ADDR.voteReader, "get_config");

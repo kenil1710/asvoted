@@ -16,7 +16,7 @@ function Timeline({ c }: { c: Check }) {
   const steps = [
     { key: "PROVISIONAL", label: "Filed", at: c.filed_at, note: c.status === "PROVISIONAL" ? `judge by ${isoDate(c.judge_deadline)} ${new Date(c.judge_deadline * 1000).toISOString().slice(11, 16)} UTC` : "" },
     { key: "CONTESTABLE", label: "Ruled, contestable", at: c.ruled_at, note: c.contest_deadline ? `appeals until ${new Date(c.contest_deadline * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` : "" },
-    ...(c.appellant ? [{ key: "APPEALED", label: "Appealed", at: c.contest_deadline && c.appeal_deadline ? c.appeal_deadline - 1 : 0, note: `fresh panel by ${new Date(c.appeal_deadline * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` }] : []),
+    ...(c.appellant ? [{ key: "APPEALED", label: c.responder ? "Appealed, DAO responded" : "Appealed", at: c.contest_deadline && c.appeal_deadline ? c.appeal_deadline - 1 : 0, note: c.responder ? `response panel by ${new Date(c.resp_deadline * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` : `fresh panel by ${new Date(c.appeal_deadline * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` }] : []),
     { key: "FINAL", label: "Final", at: c.final_at, note: c.final_how ? c.final_how.toLowerCase().split("_").join(" ") : "" },
   ];
   const order = steps.map((s) => s.key);
@@ -40,11 +40,12 @@ function Timeline({ c }: { c: Check }) {
 /** What the contract would say right now, so a button is disabled with the contract's own reason. */
 function reasons(c: Check, judged: boolean) {
   const t = now();
+  const roundDeadline = c.round === 2 ? c.resp_deadline : c.appeal_deadline;
   return {
-    judge: c.status === "PROVISIONAL" || c.status === "APPEALED" ? (judged ? "ALREADY_JUDGED" : (c.status === "PROVISIONAL" ? t > c.judge_deadline : t > c.appeal_deadline) ? "deadline passed, use expire" : "") : "CHECK_NOT_AWAITING_JUDGMENT",
+    judge: c.status === "PROVISIONAL" || c.status === "APPEALED" ? (judged ? "ALREADY_JUDGED" : (c.status === "PROVISIONAL" ? t > c.judge_deadline : t > roundDeadline) ? "deadline passed, use expire" : "") : "CHECK_NOT_AWAITING_JUDGMENT",
     rule: c.status === "PROVISIONAL" || c.status === "APPEALED" ? (judged ? "" : "NOT_JUDGED_YET") : `NOTHING_TO_RULE_ON_IN_${c.status}`,
     finalize: c.status !== "CONTESTABLE" ? "NOT_CONTESTABLE" : t <= c.contest_deadline ? `CONTESTABLE_UNTIL_${c.contest_deadline}` : "",
-    expire: c.status === "PROVISIONAL" ? (t <= c.judge_deadline ? `JUDGEABLE_UNTIL_${c.judge_deadline}` : "") : c.status === "APPEALED" ? (t <= c.appeal_deadline ? `APPEAL_JUDGEABLE_UNTIL_${c.appeal_deadline}` : "") : `NOTHING_TO_EXPIRE_IN_${c.status}`,
+    expire: c.status === "PROVISIONAL" ? (t <= c.judge_deadline ? `JUDGEABLE_UNTIL_${c.judge_deadline}` : "") : c.status === "APPEALED" ? (t <= roundDeadline ? `${c.round === 2 ? "RESPONSE" : "APPEAL"}_JUDGEABLE_UNTIL_${roundDeadline}` : "") : `NOTHING_TO_EXPIRE_IN_${c.status}`,
     appeal: c.status !== "CONTESTABLE" ? "NOT_CONTESTABLE" : t > c.contest_deadline ? "CONTEST_WINDOW_CLOSED" : "",
   };
 }
@@ -56,6 +57,9 @@ function Actions({ c, judged, reload }: { c: Check; judged: boolean; reload: () 
   const [alt, setAlt] = useState("");
   const r = reasons(c, judged);
   const reg = registry();
+  // an appeal turned AS_VOTED into DEVIATES: the DAO's own response window
+  const response = c.status === "CONTESTABLE" && c.round === 1 && c.appeal_ruling === "DEVIATES";
+  const answersDeviates = response || c.ruling === "DEVIATES";
   const noWallet = !w.account ? "connect a wallet first" : w.onWrongNetwork ? "switch to Studio Dev first" : "";
   const run = (label: string, address: string, fn: string, args: (string | number)[], value: bigint, confirm: () => Promise<boolean>) =>
     tx.run((onProgress) => send(w.account!, address, fn, args, value, { onProgress, confirm })).then(() => reload());
@@ -80,22 +84,25 @@ function Actions({ c, judged, reload }: { c: Check; judged: boolean; reload: () 
       {c.status === "CONTESTABLE" && (
         <form className="mt-6 rounded-lg border border-rule bg-sheet p-4" onSubmit={(e) => {
           e.preventDefault();
-          void run("appeal", reg, "appeal", [c.check_id, text, c.ruling === "DEVIATES" ? Number(alt || 0) : 0], 10n ** 17n,
+          void run("appeal", reg, "appeal", [c.check_id, text, answersDeviates ? Number(alt || 0) : 0], 10n ** 17n,
             async () => (await getCheck(c.check_id)).status === "APPEALED");
         }}>
-          <h3 className="font-serif text-lg font-semibold">Appeal this ruling</h3>
+          <h3 className="font-serif text-lg font-semibold">{response ? "Respond as the DAO" : "Appeal this ruling"}</h3>
           <p className="mt-1 text-sm text-ink-2">
-            One appeal per check, with a 0.1 GEN bond and new counter-evidence (40 to 2,000 characters, not a resend of what is on record).
-            {c.ruling === "DEVIATES" ? " A DEVIATES ruling is appealed by the DAO's controller; on an unclaimed listing, by anyone but the filer." : " An AS_VOTED ruling can be appealed by anyone but the DAO's controller."}
-            {" "}A fresh validator panel judges it. Counter-evidence cannot change what code settled.{c.ruling === "DEVIATES" ? " Naming the proposal this execution really implements can." : ""}
+            {response
+              ? "An appeal turned AS_VOTED into DEVIATES. Nothing is final until the DAO has had this one chance to answer: its controller (on an unclaimed listing, anyone but the filer and the appellant), with a 0.1 GEN bond and new counter-evidence. A fresh panel judges the answer and that ruling is final."
+              : <>One appeal per check, with a 0.1 GEN bond and new counter-evidence (40 to 2,000 characters, not a resend of what is on record).
+                {c.ruling === "DEVIATES" ? " A DEVIATES ruling is appealed by the DAO's controller; on an unclaimed listing, by anyone but the filer." : " An AS_VOTED ruling can be appealed by anyone but the DAO's controller; if the fresh panel says DEVIATES, the DAO gets its own window to answer."}
+                {" "}A fresh validator panel judges it. Counter-evidence cannot change what code settled.</>}
+            {answersDeviates ? " Only the DAO's controller may name the proposal this execution really implements." : ""}
           </p>
           <textarea className={`${inputCls} mt-3 min-h-28`} value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} aria-label="Counter-evidence" placeholder="What does the proposal say that the ruling missed?" />
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            {c.ruling === "DEVIATES" && <label className="text-sm">
+            {answersDeviates && <label className="text-sm">
               <span className="block font-semibold">Different proposal (VoteReader record id, optional)</span>
               <input className={`${inputCls} mt-1 w-40`} inputMode="numeric" value={alt} onChange={(e) => setAlt(e.target.value.replace(/\D/g, ""))} placeholder="0" />
             </label>}
-            <Button type="submit" disabled={Boolean(r.appeal || noWallet) || tx.busy || text.trim().length < 40}>Appeal with 0.1 GEN</Button>
+            <Button type="submit" disabled={Boolean(r.appeal || noWallet) || tx.busy || text.trim().length < 40}>{response ? "Respond with 0.1 GEN" : "Appeal with 0.1 GEN"}</Button>
             <span className="font-mono text-[11px] text-ink-3">{noWallet || r.appeal || (text.trim().length < 40 ? `${40 - text.trim().length} more characters` : "")}</span>
           </div>
         </form>
@@ -110,14 +117,14 @@ export function CheckView({ id }: { id: number }) {
   const check = useView(`check:${reg}:${id}`, () => getCheck(id), 20_000);
   const c = check.data;
   const ex = useView(c?.found ? `exec:${c.exec_id}` : null, () => getExecution(c!.exec_id));
-  const voteId = c && c.round === 1 && c.appeal_vote_id > 0 ? c.appeal_vote_id : c?.vote_id;
+  const voteId = c && c.round === 2 && c.resp_vote_id > 0 ? c.resp_vote_id : c && c.round >= 1 && c.appeal_vote_id > 0 ? c.appeal_vote_id : c?.vote_id;
   const vote = useView(c?.found ? `vote:${voteId}` : null, () => getProposal(voteId!));
   const judged = useView(c?.found ? `judged:${reg}:${id}:${c.round}` : null, () => getJudgment(reg, id, c!.round), 20_000);
 
   if (check.error) return <ErrorNote error={check.error} retry={() => void check.mutate()} />;
   if (!c) return <div className="mt-10 space-y-3"><Skeleton className="h-24 w-full" /><Skeleton className="h-96 w-full" /></div>;
   if (!c.found) return <p className="mt-10 text-ink-2">There is no check #{id} on this registry. Switch between Canonical and Demo at the top if it lives on the other one.</p>;
-  const detail = c.appeal_detail ?? c.ruling_detail ?? null;
+  const detail = c.resp_detail ?? c.appeal_detail ?? c.ruling_detail ?? null;
   const quotes = (detail?.actions ?? []).map((a) => a.quote).filter(Boolean);
   return (
     <div>
@@ -137,6 +144,13 @@ export function CheckView({ id }: { id: number }) {
           <p className="text-sm text-ink-2">By <Addr value={c.appellant} /> with {formatGen(c.appeal_bond)} GEN{c.appeal_cid ? <>, naming proposal <span className="font-mono">{shortAddress(c.appeal_cid, 8)}</span></> : null}.</p>
           <blockquote className="mt-2 border-l-2 border-booth pl-3 font-serif">{c.appeal_text}</blockquote>
           {c.appeal_ruling && <p className="mt-2 text-sm">Fresh panel: <strong>{c.appeal_ruling.split("_").join(" ").toLowerCase()}</strong>. The first ruling was {c.ruling.split("_").join(" ").toLowerCase()}.</p>}
+        </Section>
+      )}
+      {c.resp_text && (
+        <Section title="The DAO's response">
+          <p className="text-sm text-ink-2">By <Addr value={c.responder} /> with {formatGen(c.resp_bond)} GEN{c.resp_cid ? <>, naming proposal <span className="font-mono">{shortAddress(c.resp_cid, 8)}</span></> : null}.</p>
+          <blockquote className="mt-2 border-l-2 border-booth pl-3 font-serif">{c.resp_text}</blockquote>
+          {c.resp_ruling && <p className="mt-2 text-sm">Response panel: <strong>{c.resp_ruling.split("_").join(" ").toLowerCase()}</strong> (final).</p>}
         </Section>
       )}
       {c.status === "FINAL" && (

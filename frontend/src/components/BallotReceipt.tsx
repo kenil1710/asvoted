@@ -245,7 +245,7 @@ export function Receipt({ ex, ruled }: { ex: Execution; ruled: RuledAction[] | n
 export function VerdictBanner({ check, ex, vote, animate }: { check: Check; ex?: Execution; vote?: Proposal; animate?: boolean }) {
   const verdict = (check.final_verdict || check.appeal_ruling || check.ruling) as Check["ruling"];
   const summary = verdictSentence(check, vote);
-  const counts = (check.appeal_detail ?? check.ruling_detail)?.counts;
+  const counts = (check.resp_detail ?? check.appeal_detail ?? check.ruling_detail)?.counts;
   const tone = verdict === "AS_VOTED" ? "border-ok bg-ok-soft" : verdict === "DEVIATES" ? "border-dev bg-dev-soft" : verdict ? "border-unclear bg-unclear-soft" : "border-rule bg-sheet";
   return (
     <section aria-label="Verdict" className={`flex flex-col gap-5 rounded-lg border-2 p-5 sm:flex-row sm:items-center sm:p-6 ${tone}`}>

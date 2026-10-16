@@ -75,7 +75,7 @@ export default function DaosPage() {
   return (
     <div>
       <h1 className="mt-10 font-serif text-4xl font-semibold">DAOs</h1>
-      <p className="mt-2 max-w-2xl text-ink-2">Each row is a Snapshot space and the Safe its settings list as a treasury. Counts are final rulings.</p>
+      <p className="mt-2 max-w-2xl text-ink-2">Each row is a Snapshot space and the Safe its settings list as a treasury; the pair is the DAO. Verified: the space&apos;s ENS owner is the Safe or one of its owners. Counts are final rulings.</p>
       <Section title="Listed">
         {daos.error ? <ErrorNote error={daos.error} retry={() => void daos.mutate()} /> : !daos.data ? <Skeleton className="h-48 w-full" /> : daos.data.daos.length === 0 ? (
           <p className="text-sm text-ink-2">No DAO is listed on this registry yet.</p>
@@ -91,7 +91,7 @@ export default function DaosPage() {
               <tbody>
                 {daos.data.daos.map((d) => (
                   <tr key={d.dao_id} className="border-b border-rule-2 last:border-0 hover:bg-paper">
-                    <td className="px-4 py-3"><Link href={`/dao/${d.dao_id}`} className="font-semibold text-booth underline decoration-rule underline-offset-2">{d.space}</Link><span className="block text-xs text-ink-3">{d.controller ? "claimed" : "unclaimed listing"}</span></td>
+                    <td className="px-4 py-3"><Link href={`/dao/${d.dao_id}`} className="font-semibold text-booth underline decoration-rule underline-offset-2">{d.space}</Link><span className="block text-xs text-ink-3">{d.controller ? "claimed" : "unclaimed listing"}{d.verified ? ", verified" : ""}</span></td>
                     <td className="px-4 py-3 font-mono text-xs">{shortAddress(d.safe)} <span className="font-sans text-ink-3">{CHAIN_LABEL[d.chain]}</span></td>
                     <td className="px-4 py-3 text-right tabular text-ok">{d.as_voted}</td>
                     <td className="px-4 py-3 text-right tabular text-dev">{d.deviates}</td>

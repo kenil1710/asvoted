@@ -12,7 +12,7 @@
  *   4. match each new one to the most recent PASSED proposal of the DAO's
  *      space that ended before it and whose text names an address the
  *      execution touches (no such proposal: not filed, noted in the report);
- *   5. file it: ExecReader.read_execution -> VoteReader.read_proposal ->
+ *   5. file it: ExecReader.read_execution -> VoteReader.read_proposal -> read_names_at (if needed) ->
  *      file_check (+0.1 GEN) -> judge -> rule, one step per write, resuming
  *      next run where it stopped.
  * Every write estimates its fee by simulating the call first.
@@ -162,6 +162,13 @@ export async function runPatrol(opts: { dry: boolean; key?: string }): Promise<R
         voteId = Number(await view<number>(ADDR.voteReader, "get_proposal_id", [m.cid, d.chain, d.safe]));
       }
       if (!budgetLeft()) continue;
+      // ENS names as of the execution's L1 block, which a filing needs
+      const pv = await view<{ ens_names?: string[] }>(ADDR.voteReader, "get_proposal", [voteId]);
+      const ev = await view<{ l1_block: number }>(ADDR.execReader, "get_execution", [execId]);
+      if (pv.ens_names?.length && ev.l1_block > 0 && !(await view<{ found: boolean }>(ADDR.voteReader, "get_names_at", [voteId, ev.l1_block])).found) {
+        if (!(await write(ADDR.voteReader, "read_names_at", [voteId, ev.l1_block]))) continue;
+        if (!budgetLeft()) continue;
+      }
       await write(ADDR.registry, "file_check", [d.dao_id, execId, voteId, `patrol: ${m.why}`.slice(0, 200)], STAKE);
     }
   }

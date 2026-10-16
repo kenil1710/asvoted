@@ -10,7 +10,7 @@ const CONTRACTS = [
   ["VoteReader", "Fetches the Snapshot proposal by IPFS CID and hashes the bytes against the CID in the contract. Requires the hub to report the same proposal, closed, with final scores. Computes from the scores whether it passed. Records whether the Safe is listed in the space's treasuries, and resolves ENS names at two blocks."],
   ["AsVotedJudge", "Rules on every action: code first for every address and amount, the model only for calls the proposal describes in words, with a verbatim quote that code checks."],
   ["AsVotedRegistry", "DAO listings, pledges, checks, appeals, deadlines and money. Holds the stakes and pays by pull balances."],
-  ["DaoStanding + GrantGate", "One question another contract can ask: has this DAO had a final DEVIATES ruling in the last 30 days? GrantGate refuses to act for a DAO that has."],
+  ["DaoStanding + GrantGate", "One question another contract can ask: has this DAO (a Snapshot space and its Safe) a final DEVIATES ruling on an execution from the last 30 days? GrantGate refuses to act for a DAO that has."],
 ];
 
 export default function Docs() {
@@ -68,7 +68,7 @@ export default function Docs() {
       <Section title="Money and deadlines">
         {!c ? <Skeleton className="h-40 w-full" /> : (
           <div className="space-y-3 text-ink-2">
-            <p>Filing stake {formatGen(c.check_stake)} GEN, appeal bond {formatGen(c.appeal_bond)} GEN, read from the canonical registry. Contest window {c.contest_s / 3600} hours (demo: 90 seconds), judge deadline {c.judge_deadline_s / 3600} hours, pledge withdrawal delay {c.withdraw_delay_s / 60} minutes, then {(c.withdraw_late_s ?? 0) / 3600} more hours so an execution made just before the unlock can finalize and be filed.</p>
+            <p>Filing stake {formatGen(c.check_stake)} GEN, appeal bond {formatGen(c.appeal_bond)} GEN, read from the canonical registry. Contest window {c.contest_s / 3600} hours (demo: 90 seconds), opened again for the DAO if an appeal turns AS_VOTED into DEVIATES; judge deadline {c.judge_deadline_s / 3600} hours. A pledge withdrawal waits {c.withdraw_delay_s / 3600} hours plus {(c.withdraw_late_s ?? 0) / 3600} more, so an execution made just before the request can be filed and contested, and never leaves while a check of an earlier execution is open.</p>
             <p>A final DEVIATES ruling slashes the DAO&apos;s pledge, as it stood at filing, by the worst action&apos;s severity, and pays the slash to whoever proved the deviation. A final AS_VOTED ruling adds the challenger&apos;s stake to the pledge. UNCLEAR refunds everything.</p>
             <table className="w-full text-sm">
               <caption className="sr-only">Severity table</caption>

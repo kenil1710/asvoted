@@ -25,6 +25,7 @@ export interface Action {
 export interface Execution {
   found: boolean;
   exec_id: number;
+  l1_block: number;
   chain: string;
   safe: string;
   tx: string;
@@ -74,6 +75,7 @@ export interface Proposal {
   treasuries: [string, string][];
   controllers: string[];
   ens: Record<string, string>;
+  ens_names?: string[];
   ens_blocks: number[];
   pinned_block: number;
   read_at: number;
@@ -132,6 +134,17 @@ export interface Check {
   appeal_deadline: number;
   appeal_ruling: Verdict | "";
   appeal_summary: string;
+  responder: string;
+  resp_bond: string;
+  resp_text: string;
+  resp_vote_id: number;
+  resp_cid: string;
+  resp_deadline: number;
+  resp_ruling: Verdict | "";
+  resp_summary: string;
+  resp_detail?: RulingDetail | null;
+  ens_at_execution?: Record<string, string>;
+  ens_unresolved?: boolean;
   final_verdict: Verdict | "";
   final_how: string;
   final_at: number;
@@ -159,6 +172,7 @@ export interface Dao {
   withdraw_amount: string;
   withdraw_at: number;
   withdraw_executable_at?: number;
+  verified?: boolean;
   withdraw_requested: number;
   open_checks: number;
   n_checks: number;

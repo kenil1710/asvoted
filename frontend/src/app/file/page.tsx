@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ADDR } from "@/lib/deployments";
-import { getCheckIdByTx, getDaos, getExecutionId, getJudgment, getProposal, getProposalId, registry, send } from "@/lib/contract";
+import { getCheckIdByTx, getDaos, getExecution, getExecutionId, getJudgment, getNamesAt, getProposal, getProposalId, registry, send } from "@/lib/contract";
 import { CHAIN_LABEL, isTxHash, shortAddress } from "@/lib/format";
 import { TxStatus, useTx } from "@/components/tx";
 import { useWallet } from "@/components/WalletProvider";
@@ -61,6 +61,15 @@ export default function FilePage() {
         voteId = Number(await getProposalId(c, dao.chain, dao.safe));
       }
       say(`Proposal record #${voteId}.`);
+      // ENS names count only as they resolved when the Safe acted (the execution's L1 block)
+      const pv = await getProposal(voteId);
+      const ev = await getExecution(execId);
+      if (pv.ens_names?.length && ev.l1_block > 0 && !(await getNamesAt(voteId, ev.l1_block)).found) {
+        const r = await send(w.account!, ADDR.voteReader, "read_names_at", [voteId, ev.l1_block], 0n, { onProgress,
+          confirm: async () => Boolean((await getNamesAt(voteId, ev.l1_block)).found) });
+        if (r.kind !== "ok") return;
+        say(`ENS names resolved as of Ethereum block ${ev.l1_block}.`);
+      }
       setAt(3);
       const f = await send<{ check_id: number }>(w.account!, reg, "file_check", [dao.dao_id, execId, voteId, note], 10n ** 17n, { onProgress,
         confirm: async () => Number(await getCheckIdByTx(dao.chain, dao.safe, t)) > 0 });
