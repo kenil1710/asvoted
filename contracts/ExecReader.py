@@ -99,7 +99,7 @@ MAX_ACTIONS = 64
 MAX_ARG_WORDS = 48
 MAX_TOKENS = 16
 MAX_CALLDATA = 131072
-ADDR_LIKE_MIN = 1 << 120      # an argument word whose top 12 bytes are zero, that is at least this and is not 2**k - 1, is reported as address-like
+ADDR_LIKE_MIN = 1 << 96       # an argument word whose top 12 bytes are zero, that is at least this and is not 2**k - 1, is reported as address-like (2**96: a vanity prefix of 16+ zero hex digits is out of reach; an amount that large is 79 billion tokens at 18 decimals)
 MAX_ARG_ADDRS = 24
 
 # ==== shared helpers: generated from contracts/shared/common.py by tools/inline_shared.py; edit there ====

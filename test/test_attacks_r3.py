@@ -341,12 +341,31 @@ class Binding(R3):
         self.assertEqual(self.ruling("Send 5 USDC to alice.eth", to=USDC, data=F.transfer(ALICE, U(5))), "AS_VOTED")
 
     def test_r3_62_any_space_can_list_any_safe(self):
-        # Snapshot does not check treasury entries: evil.eth lists the DAO's
-        # Safe, and its proposals can then be used to rule on that Safe.
+        # Snapshot does not check treasury entries: evil.eth can list the DAO's
+        # Safe. Kept by design (README, Known limitations): Snapshot records
+        # nothing about who controls a Safe. What this test pins is that the
+        # rogue listing is its own record: its rulings and standing never touch
+        # the real space's listing.
+        D = self.D
         F.space("evil.eth", treasuries=[[SAFE, "1"]], controllers=[MALLORY])
-        self.D.call(self.D.vr, "read_space", "evil.eth", "ethereum", SAFE)
-        with self.assertRaises(world.Reverted):
-            self.D.call(self.D.rg, "list_dao", "evil.eth", "ethereum", SAFE)
+        D.call(D.vr, "read_space", "evil.eth", "ethereum", SAFE)
+        evil = D.call(D.rg, "list_dao", "evil.eth", "ethereum", SAFE)["dao_id"]
+        self.assertNotEqual(evil, self.dao)
+        tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)))
+        vid = D.read_vote(F.proposal("Send 5 USDC to " + BOB, space="evil.eth", treasuries=[[SAFE, "1"]],
+                                     controllers=[MALLORY]))
+        cid = D.file(evil, D.read_exec(tx, n), vid)["check_id"]
+        D.judge_rule(cid)
+        D.w.advance(91)
+        D.call(D.rg, "finalize", cid)
+        self.assertEqual(D.view(D.rg, "get_check", cid)["final_verdict"], "DEVIATES")
+        real = D.view(D.rg, "get_dao", self.dao)
+        self.assertEqual((real["deviates"], real["n_checks"], real["last_deviates_at"]), (0, 0, 0))
+        self.assertTrue(D.view(D.st, "is_executing_as_voted", self.dao, D.w.now()))
+        # the real space's proposals cannot be filed on the rogue listing
+        r = D.file(evil, D.read_exec(*F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), nonce=31)),
+                   D.read_vote(F.proposal("Send 5 USDC to " + ALICE)))
+        self.assertEqual((r["ok"], r["reason"]), (False, "PROPOSAL_IS_NOT_IN_THE_DAOS_SPACE"))
 
     def test_r3_63_unlisting_the_safe_blocks_every_filing(self):
         # The execution happened while listed; the space then drops the Safe
@@ -393,7 +412,10 @@ class Money(R3):
         D.w.advance(90)
         tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(MALLORY, U(5)), block_ts=D.w.now() - 60)
         D.w.advance(1)
-        D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
+        # fixed: the withdrawal waits RG late seconds past the unlock, so the
+        # late execution can finalize and be filed first
+        with self.assertRaisesRegex(world.Reverted, "WITHDRAWAL_LOCKED"):
+            D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
         cid = D.file(self.dao, D.read_exec(tx, n), D.read_vote(F.proposal("Send 5 USDC to " + ALICE)))["check_id"]
         D.judge_rule(cid)
         D.w.advance(91)
@@ -412,6 +434,7 @@ class Money(R3):
         for k in range(RG.SCAN_CAP):
             t, m = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, 1), nonce=1000 + k, block_ts=D.w.now())
             D.file(self.dao, D.read_exec(t, m), vid, sender=CONTROLLER)
+        D.w.advance(RG.MODES["DEMO"]["late"])
         with self.assertRaisesRegex(world.Reverted, "CHECKS_OPEN"):
             D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
 

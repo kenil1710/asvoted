@@ -66,8 +66,12 @@ import typing
 VERSION = "1.0.0"
 
 MODES = {
-    "CANONICAL": {"contest": 3600, "judge": 86400, "appeal": 86400, "withdraw": 3600, "binding": 3600},
-    "DEMO": {"contest": 90, "judge": 600, "appeal": 600, "withdraw": 90, "binding": 3600},
+    # contest: 72 h on canonical, where listings are real DAOs that must notice
+    # a filing, find the right proposal and appeal. late: after the unlock a
+    # withdrawal still waits this long, so an execution made just before the
+    # unlock can finalize on its chain and be filed.
+    "CANONICAL": {"contest": 259200, "judge": 86400, "appeal": 86400, "withdraw": 3600, "binding": 3600, "late": 21600},
+    "DEMO": {"contest": 90, "judge": 600, "appeal": 600, "withdraw": 90, "binding": 3600, "late": 120},
 }
 
 CHECK_STAKE = 10 ** 17          # 0.1 GEN, exact
@@ -440,6 +444,7 @@ class Dao:
     withdraw_at: u64
     withdraw_requested: u64
     open_checks: u64
+    blocking_n: u64
     n_checks: u64
     as_voted: u64
     deviates: u64
@@ -509,6 +514,7 @@ class AsVotedRegistry(gl.contract.Contract):
     judge_s: u64
     appeal_s: u64
     withdraw_s: u64
+    late_s: u64
     binding_s: u64
     n_daos: u64
     n_checks: u64
@@ -560,6 +566,7 @@ class AsVotedRegistry(gl.contract.Contract):
         self.judge_s = u64(cfg["judge"])
         self.appeal_s = u64(cfg["appeal"])
         self.withdraw_s = u64(cfg["withdraw"])
+        self.late_s = u64(cfg["late"])
         self.binding_s = u64(cfg["binding"])
         self.n_daos = u64(0)
         self.n_checks = u64(0)
@@ -642,8 +649,6 @@ class AsVotedRegistry(gl.contract.Contract):
             return "PROPOSAL_IS_NOT_IN_THE_DAOS_SPACE"
         if vote["chain"] != d.chain or vote["safe"] != d.safe:
             return "PROPOSAL_RECORD_READ_FOR_ANOTHER_SAFE"
-        if not vote["listed"]:
-            return "SAFE_NOT_LISTED_IN_SPACE_TREASURIES_AT_READ"
         if now - int(vote["read_at"]) > int(self.binding_s):
             return "PROPOSAL_RECORD_TOO_OLD_REREAD_IT"
         if vote["outcome"] == "FAILED":
@@ -655,25 +660,16 @@ class AsVotedRegistry(gl.contract.Contract):
     def _blocking(self, d: Dao) -> int:
         """Open checks of executions made before the withdrawal unlocks
         (including during the delay): the pledge is what they are about, so it
-        stays until they close. A check of an execution made after the unlock
-        time does not hold it, so a pledge cannot be griefed into never
-        leaving by filing checks of new executions."""
-        n = int(self.dao_check_n.get(d.dao_id) or 0)
-        k = n - 1
-        seen = 0
-        out = 0
-        while k >= 0 and seen < SCAN_CAP:
-            cid = int(self.dao_check_at.get(str(int(d.dao_id)) + "#" + str(k)) or 0)
-            c = self.checks.get(u64(cid)) if cid > 0 else None
-            if c is not None and c.status in OPEN and int(c.exec_time) <= int(d.withdraw_at):
-                out += 1
-            k -= 1
-            seen += 1
-        return out
+        stays until they close. Kept as a counter (set at the request, moved
+        by every filing and closing), so no number of newer checks can hide
+        one. A check of an execution made after the unlock time does not
+        count, so a pledge cannot be griefed into never leaving."""
+        return int(d.blocking_n)
 
     def _prior(self, dao_id: int, cid: str, exec_id: int) -> list:
-        """Execution ids of earlier checks of this DAO under this proposal that
-        were not ruled UNCLEAR: their transfers count against the same caps."""
+        """Execution ids of every other check of this DAO under this proposal,
+        whatever its outcome (an expired or UNCLEAR check's transfers still
+        happened): they count against the same caps."""
         out = []
         raw = str(self.cid_checks.get(str(dao_id) + "|" + cid) or "")
         for part in raw.split(","):
@@ -681,8 +677,6 @@ class AsVotedRegistry(gl.contract.Contract):
                 continue
             pc = self.checks.get(u64(int(part)))
             if pc is None or int(pc.exec_id) == exec_id:
-                continue
-            if pc.status == ST_FINAL and pc.final_verdict == V_UNCLEAR:
                 continue
             if int(pc.exec_id) not in out:
                 out.append(int(pc.exec_id))
@@ -719,7 +713,7 @@ class AsVotedRegistry(gl.contract.Contract):
         self.daos[u64(did)] = Dao(
             dao_id=u64(did), space=sp, chain=ch, safe=sf, listed_at=u64(now), bind_id=u64(int(b["bind_id"])),
             lister=self._sender(), controller="", pledge=u256(0), withdraw_amount=u256(0), withdraw_at=u64(0),
-            withdraw_requested=u64(0), open_checks=u64(0), n_checks=u64(0), as_voted=u64(0), deviates=u64(0), unclear=u64(0),
+            withdraw_requested=u64(0), open_checks=u64(0), blocking_n=u64(0), n_checks=u64(0), as_voted=u64(0), deviates=u64(0), unclear=u64(0),
             last_deviates_at=u64(0), last_deviates_check=u64(0), slashed_total=u256(0))
         self.dao_by_key[key] = u64(did)
         self.n_daos = u64(did)
@@ -789,7 +783,10 @@ class AsVotedRegistry(gl.contract.Contract):
         d.withdraw_amount = u256(amt)
         d.withdraw_at = u64(now + int(self.withdraw_s))
         d.withdraw_requested = u64(now)
-        return {"ok": True, "unlocks_at": now + int(self.withdraw_s)}
+        # every check open now is of an execution made before the unlock
+        d.blocking_n = d.open_checks
+        return {"ok": True, "unlocks_at": now + int(self.withdraw_s),
+                "executable_at": now + int(self.withdraw_s) + int(self.late_s)}
 
     @gl.public.write
     def cancel_withdrawal(self, dao_id: int) -> typing.Any:
@@ -803,6 +800,7 @@ class AsVotedRegistry(gl.contract.Contract):
         d.withdraw_amount = u256(0)
         d.withdraw_at = u64(0)
         d.withdraw_requested = u64(0)
+        d.blocking_n = u64(0)
         return {"ok": True}
 
     @gl.public.write
@@ -818,8 +816,8 @@ class AsVotedRegistry(gl.contract.Contract):
         amt = int(d.withdraw_amount)
         if amt == 0:
             raise gl.vm.UserError("REFUSED: NO_WITHDRAWAL_PENDING")
-        if now < int(d.withdraw_at):
-            raise gl.vm.UserError("REFUSED: WITHDRAWAL_LOCKED_UNTIL_" + str(int(d.withdraw_at)))
+        if now < int(d.withdraw_at) + int(self.late_s):
+            raise gl.vm.UserError("REFUSED: WITHDRAWAL_LOCKED_UNTIL_" + str(int(d.withdraw_at) + int(self.late_s)))
         blocking = self._blocking(d)
         if blocking > 0:
             raise gl.vm.UserError("REFUSED: CHECKS_OPEN_" + str(blocking))
@@ -830,6 +828,7 @@ class AsVotedRegistry(gl.contract.Contract):
         d.withdraw_amount = u256(0)
         d.withdraw_at = u64(0)
         d.withdraw_requested = u64(0)
+        d.blocking_n = u64(0)
         self._credit(d.controller, amt)
         return {"ok": True, "withdrawn": str(amt), "to": d.controller}
 
@@ -899,6 +898,8 @@ class AsVotedRegistry(gl.contract.Contract):
         self.dao_check_at[str(int(d.dao_id)) + "#" + str(n)] = u64(cid)
         self.dao_check_n[d.dao_id] = u64(n + 1)
         d.open_checks = u64(int(d.open_checks) + 1)
+        if int(d.withdraw_amount) > 0 and int(ex["block_time"]) <= int(d.withdraw_at):
+            d.blocking_n = u64(int(d.blocking_n) + 1)
         d.n_checks = u64(int(d.n_checks) + 1)
         self.n_checks = u64(cid)
         self._bump("status:" + ST_PROVISIONAL)
@@ -1050,7 +1051,7 @@ class AsVotedRegistry(gl.contract.Contract):
                 problem = "COUNTER_EVIDENCE_LENGTH_" + str(MIN_COUNTER) + "_TO_" + str(MAX_COUNTER)
             elif too_similar(text, c.note + "\n" + c.ruling_summary):
                 problem = "COUNTER_EVIDENCE_NOT_NEW"
-        if problem == "" and alt > 0:
+        if problem == "" and alt > 0 and c.ruling == V_DEV:
             ex = self._ext(self.exec_reader, "get_execution", [int(c.exec_id)])
             vote = self._ext(self.vote_reader, "get_proposal", [alt])
             if not isinstance(ex, dict) or not ex.get("found"):
@@ -1061,6 +1062,8 @@ class AsVotedRegistry(gl.contract.Contract):
                 problem = "ALT_PROPOSAL_IS_THE_SAME_PROPOSAL"
         elif problem == "" and alt < 0:
             problem = "BAD_ALT_VOTE_ID"
+        if problem == "" and alt > 0 and c.ruling != V_DEV:
+            problem = "ONLY_A_DEVIATES_APPEAL_MAY_NAME_ANOTHER_PROPOSAL"
         if problem != "":
             return self._refuse(me, value, problem)
         aprior = self._prior(int(d.dao_id), vote["cid"], int(c.exec_id)) if alt > 0 else []
@@ -1188,14 +1191,19 @@ class AsVotedRegistry(gl.contract.Contract):
                 moves.append(["pledge slashed, bounty", winner, str(slash)])
             c.slash = u256(slash)
             c.bounty_to = winner
-            d.last_deviates_at = u64(now)
-            d.last_deviates_check = c.check_id
+            # standing dates a deviation by when the execution ran, not when
+            # its ruling became final
+            if int(c.exec_time) >= int(d.last_deviates_at):
+                d.last_deviates_at = c.exec_time
+                d.last_deviates_check = c.check_id
         c.status = ST_FINAL
         c.final_verdict = verdict
         c.final_how = how
         c.final_at = u64(now)
         c.settlement_json = _canon(moves)
         d.open_checks = u64(max(int(d.open_checks) - 1, 0))
+        if int(d.withdraw_amount) > 0 and int(c.exec_time) <= int(d.withdraw_at):
+            d.blocking_n = u64(max(int(d.blocking_n) - 1, 0))
         if verdict == V_AS:
             d.as_voted = u64(int(d.as_voted) + 1)
         elif verdict == V_DEV:
@@ -1229,6 +1237,7 @@ class AsVotedRegistry(gl.contract.Contract):
                 "listed_at": int(d.listed_at), "bind_id": int(d.bind_id), "lister": d.lister,
                 "controller": d.controller, "pledge": str(int(d.pledge)),
                 "withdraw_amount": str(int(d.withdraw_amount)), "withdraw_at": int(d.withdraw_at),
+                "withdraw_executable_at": int(d.withdraw_at) + int(self.late_s) if int(d.withdraw_amount) > 0 else 0,
                 "withdraw_requested": int(d.withdraw_requested),
                 "open_checks": int(d.open_checks), "n_checks": int(d.n_checks), "as_voted": int(d.as_voted),
                 "deviates": int(d.deviates), "unclear": int(d.unclear),
@@ -1262,7 +1271,7 @@ class AsVotedRegistry(gl.contract.Contract):
                 "exec_reader": self.exec_reader.as_hex.lower(), "vote_reader": self.vote_reader.as_hex.lower(),
                 "judge": self.judge.as_hex.lower(), "demo_controllers": json.loads(self.demo_controllers_json),
                 "contest_s": int(self.contest_s), "judge_deadline_s": int(self.judge_s),
-                "appeal_deadline_s": int(self.appeal_s), "withdraw_delay_s": int(self.withdraw_s),
+                "appeal_deadline_s": int(self.appeal_s), "withdraw_delay_s": int(self.withdraw_s), "withdraw_late_s": int(self.late_s),
                 "binding_max_age_s": int(self.binding_s), "check_stake": str(CHECK_STAKE),
                 "appeal_bond": str(APPEAL_BOND), "min_pledge": str(MIN_PLEDGE),
                 "severity_table": [[r[0], r[1], r[2]] for r in SEVERITY],

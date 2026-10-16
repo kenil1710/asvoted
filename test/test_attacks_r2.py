@@ -48,7 +48,7 @@ class Withdrawal(Base):
         tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(MALLORY, U(5)), block_ts=D.w.now() - 5)   # during the delay
         vid = D.read_vote(F.proposal("Send 5 USDC to " + ALICE))
         self.assertTrue(D.file(self.dao, D.read_exec(tx, n), vid, sender=STRANGER)["ok"])
-        D.w.advance(61)
+        D.w.advance(61 + F.RG.MODES["DEMO"]["late"])
         with self.assertRaisesRegex(world.Reverted, "CHECKS_OPEN_1"):
             D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
 
@@ -78,6 +78,7 @@ class Withdrawal(Base):
         D.call(D.rg, "request_withdrawal", self.dao, str(10 * GEN), sender=CONTROLLER)
         D.w.advance(91)
         D.call(D.rg, "finalize", cid)
+        D.w.advance(F.RG.MODES["DEMO"]["late"])
         D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
         self.assertEqual(D.view(D.rg, "claimable_of", CONTROLLER)["claimable"], str(10 * GEN - 25 * GEN // 10))
         self.assertLedger()

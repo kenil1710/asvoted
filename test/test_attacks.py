@@ -123,10 +123,12 @@ class Votes(Base):
         self.assertEqual(D.file(self.dao, D.read_exec(tx, n), vid)["reason"], "PROPOSAL_IS_NOT_IN_THE_DAOS_SPACE")
 
     def test_a32_treasury_removed_from_space_settings(self):
+        # Round 3 (r3_63): filings are bound to the listing, so a space that
+        # drops the Safe from its treasuries can no longer switch checks off.
         D = self.D
         tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)))
         vid = D.read_vote(F.proposal("Send 5 USDC to " + ALICE, treasuries=[[OTHER_SAFE, "1"]]))
-        self.assertEqual(D.file(self.dao, D.read_exec(tx, n), vid)["reason"], "SAFE_NOT_LISTED_IN_SPACE_TREASURIES_AT_READ")
+        self.assertTrue(D.file(self.dao, D.read_exec(tx, n), vid)["ok"])
 
     def test_a33_listed_on_another_chain_only(self):
         F.space("multi.eth", treasuries=[[SAFE, "8453"]])
@@ -221,7 +223,7 @@ class Appeals(Base):
         D = self.D
         cid, tx = self.flow("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(MALLORY, U(5)))
         D.call(D.rg, "request_withdrawal", self.dao, str(10 * GEN), sender=CONTROLLER)
-        D.w.advance(91)
+        D.w.advance(91 + F.RG.MODES["DEMO"]["late"])
         with self.assertRaisesRegex(world.Reverted, "CHECKS_OPEN_1"):
             D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
 
@@ -229,7 +231,7 @@ class Appeals(Base):
         D = self.D
         D.call(D.rg, "request_withdrawal", self.dao, str(10 * GEN), sender=CONTROLLER)
         cid, tx = self.flow("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(MALLORY, U(5)))
-        D.w.advance(91)
+        D.w.advance(91 + F.RG.MODES["DEMO"]["late"])
         with self.assertRaisesRegex(world.Reverted, "CHECKS_OPEN"):
             D.call(D.rg, "execute_withdrawal", self.dao, sender=STRANGER)
 
@@ -245,7 +247,7 @@ class Appeals(Base):
     def test_a57_open_checks_of_later_executions_do_not_lock_a_withdrawal(self):
         D = self.D
         D.call(D.rg, "request_withdrawal", self.dao, str(10 * GEN), sender=CONTROLLER)
-        D.w.advance(150)
+        D.w.advance(150 + F.RG.MODES["DEMO"]["late"])
         # a griefer files a check of an execution made AFTER the unlock time
         tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), block_ts=D.w.now() - 30)
         vid = D.read_vote(F.proposal("Send 5 USDC to " + ALICE))

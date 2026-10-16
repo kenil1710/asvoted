@@ -299,12 +299,14 @@ class TestVoteReader(unittest.TestCase):
         with self.assertRaisesRegex(world.Reverted, "SCORES_NOT_FINAL"):
             self.D.read_vote(F.proposal("b", scores_state="pending"))
 
-    def test_ens_counted_only_if_stable(self):
+    def test_ens_resolved_as_at_the_vote(self):
+        # Round 3 (r3_61): a name means what it resolved to at the vote's
+        # snapshot block; repointing it later changes nothing.
         F.ens(self.D.mc, "alice.eth", ALICE)
         F.ens(self.D.mc, "bob.eth", BOB)
         F.ens(self.D.mc, "bob.eth", MALLORY, block=FIN - 50_000)       # bob.eth pointed elsewhere at the vote
         v = self.D.view(self.D.vr, "get_proposal", self.D.read_vote(F.proposal("Pay alice.eth and bob.eth")))
-        self.assertEqual(v["ens"], {"alice.eth": ALICE})
+        self.assertEqual(v["ens"], {"alice.eth": ALICE, "bob.eth": MALLORY})
 
     def test_reread_cooldown(self):
         cid = F.proposal("x")
@@ -624,7 +626,7 @@ class TestRegistry(Base):
         D = self.D
         cid, tx = self.flow("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(ALICE, U(5)))
         D.call(D.rg, "request_withdrawal", self.dao, str(5 * GEN), sender=CONTROLLER)
-        D.w.advance(91)
+        D.w.advance(91 + F.RG.MODES["DEMO"]["late"])
         with self.assertRaisesRegex(world.Reverted, "CHECKS_OPEN_1"):
             D.call(D.rg, "execute_withdrawal", self.dao, sender=CONTROLLER)
         D.call(D.rg, "cancel_withdrawal", self.dao, sender=CONTROLLER)
@@ -635,6 +637,9 @@ class TestRegistry(Base):
         with self.assertRaisesRegex(world.Reverted, "WITHDRAWAL_LOCKED"):
             D.call(D.rg, "execute_withdrawal", self.dao, sender=STRANGER)
         D.w.advance(91)
+        with self.assertRaisesRegex(world.Reverted, "WITHDRAWAL_LOCKED"):     # the late window after the unlock
+            D.call(D.rg, "execute_withdrawal", self.dao, sender=STRANGER)
+        D.w.advance(F.RG.MODES["DEMO"]["late"])
         D.call(D.rg, "execute_withdrawal", self.dao, sender=STRANGER)
         D.call(D.rg, "claim", sender=CONTROLLER)
         L = self.assertLedger()
@@ -651,7 +656,7 @@ class TestCanonical(Base):
 
     def test_windows_and_no_seam(self):
         cfg = self.D.view(self.D.rg, "get_config")
-        self.assertEqual((cfg["contest_s"], cfg["demo_controllers"]), (3600, []))
+        self.assertEqual((cfg["contest_s"], cfg["demo_controllers"]), (72 * 3600, []))
         with self.assertRaisesRegex(world.Reverted, "NOT_AN_ADMIN"):
             self.D.call(self.D.rg, "claim_dao", self.dao, sender=CONTROLLER)
 

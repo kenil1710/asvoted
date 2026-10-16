@@ -1018,9 +1018,12 @@ def read_proposal(p: dict, now: int, block: int) -> dict:
         return pin
     eb = pin["block"]
     ens = {}
+    # A name means what it resolved to when voters voted: at the snapshot
+    # block of an Ethereum space, so a later repointing changes nothing. An L2
+    # space's snapshot is not an Ethereum block; there only the pinned block.
     at = [eb["number"]]
     if b["network"] == "1" and snap > 0 and snap < eb["number"]:
-        at.append(snap)
+        at = [snap]
     try:
         maps = [resolve_names(names, n) for n in at]
     except ReadFailed:
