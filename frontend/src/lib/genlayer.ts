@@ -121,7 +121,7 @@ export async function switchToNetwork(): Promise<void> {
 export type Deployment = "canonical" | "demo";
 const DEPLOYMENT_KEY = "asvoted-deployment";
 
-/** Which registry the app talks to: canonical (1 h windows, real seeds) or demo (90 s). Per browser. */
+/** Which registry the app talks to: canonical (72 h contest window, real seeds) or demo (90 s). Per browser. */
 export function getDeployment(): Deployment {
   if (typeof window === "undefined") return "canonical";
   try {

@@ -68,7 +68,7 @@ export default function Docs() {
       <Section title="Money and deadlines">
         {!c ? <Skeleton className="h-40 w-full" /> : (
           <div className="space-y-3 text-ink-2">
-            <p>Filing stake {formatGen(c.check_stake)} GEN, appeal bond {formatGen(c.appeal_bond)} GEN, read from the canonical registry. Contest window {c.contest_s / 60} minutes (demo: 90 seconds), judge deadline {c.judge_deadline_s / 3600} hours, pledge withdrawal delay {c.withdraw_delay_s / 60} minutes.</p>
+            <p>Filing stake {formatGen(c.check_stake)} GEN, appeal bond {formatGen(c.appeal_bond)} GEN, read from the canonical registry. Contest window {c.contest_s / 3600} hours (demo: 90 seconds), judge deadline {c.judge_deadline_s / 3600} hours, pledge withdrawal delay {c.withdraw_delay_s / 60} minutes, then {(c.withdraw_late_s ?? 0) / 3600} more hours so an execution made just before the unlock can finalize and be filed.</p>
             <p>A final DEVIATES ruling slashes the DAO&apos;s pledge, as it stood at filing, by the worst action&apos;s severity, and pays the slash to whoever proved the deviation. A final AS_VOTED ruling adds the challenger&apos;s stake to the pledge. UNCLEAR refunds everything.</p>
             <table className="w-full text-sm">
               <caption className="sr-only">Severity table</caption>

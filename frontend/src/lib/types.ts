@@ -158,6 +158,7 @@ export interface Dao {
   pledge: string;
   withdraw_amount: string;
   withdraw_at: number;
+  withdraw_executable_at?: number;
   withdraw_requested: number;
   open_checks: number;
   n_checks: number;
@@ -200,6 +201,7 @@ export interface RegistryConfig {
   judge_deadline_s: number;
   appeal_deadline_s: number;
   withdraw_delay_s: number;
+  withdraw_late_s?: number;
   binding_max_age_s: number;
   check_stake: string;
   appeal_bond: string;

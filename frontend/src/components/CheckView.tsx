@@ -80,21 +80,21 @@ function Actions({ c, judged, reload }: { c: Check; judged: boolean; reload: () 
       {c.status === "CONTESTABLE" && (
         <form className="mt-6 rounded-lg border border-rule bg-sheet p-4" onSubmit={(e) => {
           e.preventDefault();
-          void run("appeal", reg, "appeal", [c.check_id, text, Number(alt || 0)], 10n ** 17n,
+          void run("appeal", reg, "appeal", [c.check_id, text, c.ruling === "DEVIATES" ? Number(alt || 0) : 0], 10n ** 17n,
             async () => (await getCheck(c.check_id)).status === "APPEALED");
         }}>
           <h3 className="font-serif text-lg font-semibold">Appeal this ruling</h3>
           <p className="mt-1 text-sm text-ink-2">
             One appeal per check, with a 0.1 GEN bond and new counter-evidence (40 to 2,000 characters, not a resend of what is on record).
             {c.ruling === "DEVIATES" ? " A DEVIATES ruling is appealed by the DAO's controller; on an unclaimed listing, by anyone but the filer." : " An AS_VOTED ruling can be appealed by anyone but the DAO's controller."}
-            {" "}A fresh validator panel judges it. Counter-evidence cannot change what code settled; naming the proposal this execution really implements can.
+            {" "}A fresh validator panel judges it. Counter-evidence cannot change what code settled.{c.ruling === "DEVIATES" ? " Naming the proposal this execution really implements can." : ""}
           </p>
           <textarea className={`${inputCls} mt-3 min-h-28`} value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} aria-label="Counter-evidence" placeholder="What does the proposal say that the ruling missed?" />
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            <label className="text-sm">
+            {c.ruling === "DEVIATES" && <label className="text-sm">
               <span className="block font-semibold">Different proposal (VoteReader record id, optional)</span>
               <input className={`${inputCls} mt-1 w-40`} inputMode="numeric" value={alt} onChange={(e) => setAlt(e.target.value.replace(/\D/g, ""))} placeholder="0" />
-            </label>
+            </label>}
             <Button type="submit" disabled={Boolean(r.appeal || noWallet) || tx.busy || text.trim().length < 40}>Appeal with 0.1 GEN</Button>
             <span className="font-mono text-[11px] text-ink-3">{noWallet || r.appeal || (text.trim().length < 40 ? `${40 - text.trim().length} more characters` : "")}</span>
           </div>

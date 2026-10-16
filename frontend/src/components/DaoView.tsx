@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ADDR } from "@/lib/deployments";
 import { gate, getBinding, getBindingId, getClaimable, getConfig, getDao, getDaoChecks, getGateRequests, getStanding, registry, send } from "@/lib/contract";
-import { CHAIN_LABEL, formatGen, isoDate, parseGen, relativeTime } from "@/lib/format";
+import { CHAIN_LABEL, formatGen, isoDate, parseGen } from "@/lib/format";
 import { CheckList } from "./CheckList";
 import { TxStatus, useTx } from "./tx";
 import { useWallet } from "./WalletProvider";
@@ -35,7 +35,7 @@ export function DaoView({ id }: { id: number }) {
   const wei = parseGen(amount);
   const withdrawWhy = !isController ? "ONLY_THE_DAOS_CONTROLLER" : wei === null || wei <= 0n || wei > BigInt(d.pledge) ? "AMOUNT_OUT_OF_RANGE" : "";
   const blocking = (checks.data?.checks ?? []).filter((c) => c.status !== "FINAL" && c.exec_time <= d.withdraw_at).length;
-  const execWhy = BigInt(d.withdraw_amount) === 0n ? "NO_WITHDRAWAL_PENDING" : now() < d.withdraw_at ? `WITHDRAWAL_LOCKED_UNTIL_${d.withdraw_at}` : blocking > 0 ? `CHECKS_OPEN_${blocking}` : "";
+  const execWhy = BigInt(d.withdraw_amount) === 0n ? "NO_WITHDRAWAL_PENDING" : now() < (d.withdraw_executable_at || d.withdraw_at) ? `WITHDRAWAL_LOCKED_UNTIL_${d.withdraw_executable_at || d.withdraw_at}` : blocking > 0 ? `CHECKS_OPEN_${blocking}` : "";
 
   async function claimDao() {
     await tx.run(async (onProgress) => {
@@ -100,7 +100,7 @@ export function DaoView({ id }: { id: number }) {
           </div>
           <div className="rounded-lg border border-rule bg-sheet p-4">
             <h3 className="font-semibold">Pending withdrawal</h3>
-            <p className="mt-1 text-sm">{BigInt(d.withdraw_amount) > 0n ? <>{formatGen(d.withdraw_amount)} GEN, unlocks {relativeTime(d.withdraw_at) === "just now" ? "now" : new Date(d.withdraw_at * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC"}</> : "none"}</p>
+            <p className="mt-1 text-sm">{BigInt(d.withdraw_amount) > 0n ? <>{formatGen(d.withdraw_amount)} GEN, unlocks {new Date(d.withdraw_at * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC, can be paid out from {new Date((d.withdraw_executable_at || d.withdraw_at) * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC</> : "none"}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button variant="quiet" disabled={Boolean(execWhy || noWallet) || tx.busy} onClick={() => void act("execute_withdrawal", [id], 0n, async () => BigInt((await getDao(id)).withdraw_amount) === 0n)}>Execute</Button>
               <Button variant="quiet" disabled={!isController || BigInt(d.withdraw_amount) === 0n || tx.busy} onClick={() => void act("cancel_withdrawal", [id], 0n, async () => BigInt((await getDao(id)).withdraw_amount) === 0n)}>Cancel</Button>
