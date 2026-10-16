@@ -159,7 +159,7 @@ D.asv = await file("filer", "cip30", "cip30", "demo: as voted");
 D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
 D.won = await file("filer2", "cip37", "cip30", "demo: filed against the wrong proposal");
 D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
-D.unc = await file("filer", "cip19", "cip19", "demo: unclear");
+D.unc = await file("filer", "weth67", "cip28", "demo: unclear");
 D.exp = await file("filer", "cip24", "cip24", "demo: never judged, expires");
 D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
 D.gate = await file("filer", "bal200k", "cip69", "demo: a recent execution against a proposal that does not cover it, for GrantGate");
@@ -198,7 +198,7 @@ expect("appeals were filed inside the window", R.won.status === "APPEALED" && R.
 expect("CIP-16 batch is DEVIATES", R.dev.ruling === "DEVIATES", R.dev.ruling_summary);
 expect("6,000,000 COW against CIP-30 is DEVIATES (CIP-30 never names the Treasury)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
 expect("CIP-69 Treasury call is DEVIATES", R.lost.ruling === "DEVIATES", R.lost.ruling_summary);
-expect("CIP-19 is UNCLEAR and FINAL at once", R.unc.ruling === "UNCLEAR" && R.unc.status === "FINAL", R.unc.ruling_summary);
+expect("67 WETH against CIP-28 is UNCLEAR (no amount on the Treasury's own line) and FINAL at once", R.unc.ruling === "UNCLEAR" && R.unc.status === "FINAL", R.unc.ruling_summary);
 expect("CIP-29 is AS_VOTED", R.aexp.ruling === "AS_VOTED", R.aexp.ruling_summary);
 for (const k of ["won", "lost", "aexp"]) R[k] = await v("rg", "get_check", [D[k]]);
 
