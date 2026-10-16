@@ -47,9 +47,12 @@ class Ownership(R3):
 
     def test_r3_03_table_column_keeps_its_own_amount(self):
         body = "| " + ALICE + " | " + BOB + " |\n|---|---|\n| 1,000 USDC | 9,000 USDC |"
-        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(9_000))), "DEVIATES")
+        # Second pass (required design): only the recipient's own row caps, so
+        # an amount in the column below the header is not a cap for anyone.
+        # The attack (Alice taking Bob's 9,000) is still never AS_VOTED.
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(9_000))), "UNCLEAR")
         self.setUp()
-        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(BOB, U(9_000))), "AS_VOTED")
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(BOB, U(9_000))), "UNCLEAR")
 
     def test_r3_04_unattributable_amount_is_not_a_cap(self):
         body = "Amount: 1,000 USDC\nTo: " + ALICE + "\nAmount: 9,000 USDC\nTo: " + BOB
@@ -76,11 +79,12 @@ class Ownership(R3):
     def test_r3_07_same_address_two_purposes_is_not_a_deviation(self):
         body = (ALICE + " receives 5,000 USDC for the audit.\n\n" +
                 ALICE + " is also reimbursed 3,000 USDC for travel.")
-        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(8_000))), "UNCLEAR")
-        self.setUp()
-        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(9_000))), "DEVIATES")
-        self.setUp()
-        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(5_000))), "AS_VOTED")
+        # Second pass (required design): two different amounts for one
+        # recipient is more than one candidate, so there is no cap at all:
+        # UNCLEAR whatever is paid, never a wrong slash and never AS_VOTED.
+        for amt in (8_000, 9_000, 5_000):
+            self.setUp()
+            self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(amt))), "UNCLEAR", amt)
 
     def test_r3_08_ens_and_hex_are_one_recipient(self):
         F.ens(self.D.mc, "alice.eth", ALICE)
@@ -276,7 +280,11 @@ class Decoding(R3):
         inner = bytes.fromhex("04e45aaf") + F.wa(MALLORY) + F.w(U(5))
         data = bytes.fromhex("ac9650d8") + F.w(32) + F.w(1) + F.w(32) + F.dyn(inner)
         c = self._router_call(data)
-        self.assertEqual(self.outcomes(c), ["NOT_AUTHORIZED"])
+        # Required design: an unnamed address inside a sub-call blocks
+        # AS_VOTED; code cannot prove what the inner call does with it, so the
+        # action is UNCLEAR (the attacker's test expected NOT_AUTHORIZED).
+        self.assertEqual(self.outcomes(c), ["UNCLEAR"])
+        self.assertNotEqual(c["ruling"], "AS_VOTED")
 
     def test_r3_53_vanity_address_argument_is_not_address_like(self):
         # ADDR_LIKE_MIN = 2**120: an address with ten leading zero hex digits
@@ -455,7 +463,9 @@ class Policy(unittest.TestCase):
     def test_r3_68_canonical_contest_window_is_too_short_for_a_dao_to_answer(self):
         # 1 h to notice a filing, read the right proposal and appeal; the
         # listings on the canonical registry are unclaimed real DAOs.
-        self.assertGreaterEqual(RG.MODES["CANONICAL"]["contest"], DAY)
+        # Required design: 6 h canonical (the attacker proposed 72 h). An
+        # appeal that produces DEVIATES opens a second 6 h window for the DAO.
+        self.assertGreaterEqual(RG.MODES["CANONICAL"]["contest"], 6 * 3600)
 
 
 class Docs(unittest.TestCase):
@@ -471,3 +481,160 @@ class Docs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# =============================================================================
+# Second pass: the required design for round 3 (see docs/ATTACK_REPORT.md).
+# =============================================================================
+
+ROUTER_BODY = QUOTE + " " + TARGET + "."
+DEPOSIT = bytes.fromhex("d0e30db0")
+
+
+class DaoResponse(R3):
+    """An appeal that produces DEVIATES gives the DAO its own window."""
+
+    def setUp(self):
+        super().setUp()
+        self.D.call(self.D.rg, "claim_dao", self.dao, sender=CONTROLLER)
+        self.D.call(self.D.rg, "pledge", self.dao, sender=CONTROLLER, value=10 * GEN)
+
+    def _turned(self):
+        D = self.D
+        stub.MODEL.answer = model_says("AUTHORIZED", QUOTE)
+        cid, j, c = self.judged(ROUTER_BODY, to=TARGET, data=DEPOSIT)
+        self.assertEqual(c["ruling"], "AS_VOTED")
+        D.call(D.rg, "appeal", cid, APPEAL_TEXT, 0, sender=STRANGER, value=BOND)
+        stub.MODEL.answer = model_says("NOT_AUTHORIZED", QUOTE)
+        D.judge_rule(cid)
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["status"], c["appeal_ruling"], c["final_verdict"]), ("CONTESTABLE", "DEVIATES", ""))
+        return cid
+
+    def test_r3_70_no_final_deviates_before_the_dao_answers(self):
+        D = self.D
+        cid = self._turned()
+        with self.assertRaisesRegex(world.Reverted, "CONTESTABLE_UNTIL"):
+            D.call(D.rg, "finalize", cid)
+        D.w.advance(91)
+        D.call(D.rg, "finalize", cid)                 # the DAO let its window pass
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["final_verdict"], c["bounty_to"]), ("DEVIATES", STRANGER))
+        self.assertLedger()
+
+    def test_r3_71_the_dao_answers_and_wins(self):
+        D = self.D
+        cid = self._turned()
+        r = D.call(D.rg, "appeal", cid, "The deposit is the swap the proposal describes; the earlier panel misread it.",
+                   0, sender=CONTROLLER, value=BOND)
+        self.assertEqual(r["round"], 2)
+        stub.MODEL.answer = model_says("AUTHORIZED", QUOTE)
+        D.judge_rule(cid)
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["final_verdict"], c["final_how"], c["slash"]), ("AS_VOTED", "RESPONSE_RULED", "0"))
+        moves = [m[0] for m in c["settlement"]]
+        self.assertIn("response bond refunded", moves)
+        self.assertIn("appeal bond to the DAO pledge", moves)
+        self.assertLedger()
+
+    def test_r3_72_only_the_dao_side_responds(self):
+        D = self.D
+        cid = self._turned()
+        r = D.call(D.rg, "appeal", cid, "A third party would like yet another panel to read the proposal once more.",
+                   0, sender=FILER2, value=BOND)
+        self.assertEqual((r["ok"], r["reason"]), (False, "ONLY_THE_DAOS_CONTROLLER_MAY_RESPOND"))
+
+    def test_r3_73_the_dao_may_name_the_proposal_it_implements(self):
+        D = self.D
+        cid = self._turned()
+        other = D.read_vote(F.proposal(ROUTER_BODY + " Deposit is fine."))
+        r = D.call(D.rg, "appeal", cid, "This deposit implements the other proposal, which describes it in its own words.",
+                   other, sender=CONTROLLER, value=BOND)
+        self.assertTrue(r["ok"], r)
+        self.assertEqual(D.view(D.rg, "get_check", cid)["resp_vote_id"], other)
+
+
+class Switching(R3):
+    def test_r3_74_unclaimed_listing_nobody_switches_the_proposal(self):
+        # Unclaimed: anyone but the filer may appeal a DEVIATES, but only the
+        # DAO's controller may name another proposal.
+        D = self.D
+        cid, j, c = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(MALLORY, U(5)))
+        other = D.read_vote(F.proposal("Send 5 USDC to " + MALLORY))
+        r = D.call(D.rg, "appeal", cid, APPEAL_TEXT, other, sender=STRANGER, value=BOND)
+        self.assertEqual((r["ok"], r["reason"]), (False, "ONLY_THE_DAOS_CONTROLLER_ANSWERING_DEVIATES_MAY_NAME_ANOTHER_PROPOSAL"))
+
+    def test_r3_75_an_expired_check_can_be_refiled(self):
+        D = self.D
+        vid = D.read_vote(F.proposal("Send 5 USDC to " + ALICE))
+        tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), nonce=40)
+        eid = D.read_exec(tx, n)
+        first = D.file(self.dao, eid, vid)["check_id"]
+        D.w.advance(601)
+        D.call(D.rg, "expire", first, sender=STRANGER)
+        r = D.file(self.dao, eid, vid, sender=FILER2)
+        self.assertTrue(r["ok"], r)
+        D.judge_rule(r["check_id"])
+        self.assertEqual(D.view(D.rg, "get_check", r["check_id"])["ruling"], "AS_VOTED")
+
+
+class Choices(R3):
+    KW = {"vtype": "single-choice", "choices": ["Yes, option A", "Yes, option B", "No"], "scores": [600.0, 300.0, 100.0]}
+
+    def test_r3_76_the_winning_option_sets_the_cap(self):
+        body = "Option A: send 50,000 USDC to " + ALICE + ".\n\nOption B: send 100,000 USDC to " + ALICE + "."
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(50_000)), vote_kw=self.KW), "AS_VOTED")
+        self.setUp()
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(100_000)), vote_kw=self.KW), "DEVIATES")
+
+    def test_r3_77_winner_text_not_found_is_unclear(self):
+        body = "Send 50,000 USDC to " + ALICE + "."
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(50_000)), vote_kw=self.KW), "UNCLEAR")
+
+
+class Tokens(R3):
+    FOO = F.addr(0xf00)
+
+    def test_r3_78_unlisted_token_named_by_address_counts(self):
+        F.tokens(self.D.mc, {self.FOO: ("FOO", 18)})
+        body = "Send 100 FOO (token " + self.FOO + ") to " + ALICE + "."
+        self.assertEqual(self.ruling(body, to=self.FOO, data=F.transfer(ALICE, 100 * GEN)), "AS_VOTED")
+
+    def test_r3_79_unlisted_token_by_symbol_alone_is_unclear(self):
+        F.tokens(self.D.mc, {self.FOO: ("FOO", 18)})
+        body = "Send 100 FOO to " + ALICE + "."
+        self.assertEqual(self.ruling(body, to=self.FOO, data=F.transfer(ALICE, 100 * GEN)), "UNCLEAR")
+
+
+class Identity(R3):
+    def test_r3_80_names_unresolvable_at_the_execution_are_never_proof_of_absence(self):
+        D = self.D
+        cid, j, c = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(MALLORY, U(5)))
+        inp = {"exec": D.view(D.er, "get_execution", 1), "prior": [],
+               "vote": dict(D.view(D.vr, "get_proposal", 1), text="Send 5 USDC to alice.eth", ens={}, ens_unresolved=True),
+               "allow": F.TOKEN_LIST}
+        self.assertEqual([r["outcome"] for r in F.JG.code_rules(inp)], ["UNCLEAR"])
+
+    def test_r3_81_verified_when_the_space_owner_owns_the_safe(self):
+        D = self.D
+        node = F.VR.namehash("verified.eth").hex()
+        D.mc.calls[(F.VR.ENS_REGISTRY, "0x02571be3" + node)] = "0x" + "0" * 24 + CONTROLLER[2:]
+        D.mc.calls[(OTHER_SAFE, "0xa0e67e2b")] = "0x" + ("%064x" % 32) + ("%064x" % 2) + "0" * 24 + ADMIN[2:] + "0" * 24 + CONTROLLER[2:]
+        F.space("verified.eth", treasuries=[[OTHER_SAFE, "1"]])
+        D.call(D.vr, "read_space", "verified.eth", "ethereum", OTHER_SAFE)
+        dao = D.call(D.rg, "list_dao", "verified.eth", "ethereum", OTHER_SAFE)["dao_id"]
+        self.assertTrue(D.view(D.rg, "get_dao", dao)["verified"])
+        self.assertFalse(D.view(D.rg, "get_dao", self.dao)["verified"])
+
+    def test_r3_82_standing_is_keyed_by_space_and_safe(self):
+        D = self.D
+        self.assertTrue(D.view(D.st, "is_executing_as_voted_for", F.SPACE, "ethereum", SAFE, D.w.now()))
+        self.assertFalse(D.view(D.st, "is_executing_as_voted_for", "evil.eth", "ethereum", SAFE, D.w.now()))
+
+    def test_r3_83_address_two_levels_down_is_found(self):
+        inner2 = bytes.fromhex("a9059cbb") + F.wa(MALLORY) + F.w(5)
+        inner1 = bytes.fromhex("1f0464d1") + F.w(32) + F.dyn(inner2)
+        data = bytes.fromhex("ac9650d8") + F.w(32) + F.dyn(inner1)
+        stub.MODEL.answer = model_says("AUTHORIZED", QUOTE)
+        c = self.judged(ROUTER_BODY, to=TARGET, data=data)[2]
+        self.assertEqual(self.outcomes(c), ["UNCLEAR"])

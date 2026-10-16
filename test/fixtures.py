@@ -50,6 +50,9 @@ STRANGER = addr(0x5745)
 
 SPACE = "acme.eth"
 TOKENS = {USDC: ("USDC", 6), COW: ("COW", 18), WETH: ("WETH", 18)}
+DAI = addr(0xda1)
+# the tokens the test judge identifies by symbol (the real deployment's list is in test/token_list.json)
+TOKEN_LIST = {"ethereum": {USDC: "USDC", COW: "COW", WETH: "WETH", DAI: "DAI"}}
 
 
 # --- ABI -------------------------------------------------------------------
@@ -259,7 +262,7 @@ class Deployment:
         self.w = world.new_world(now_iso=NOW_ISO)
         self.er = self.w.deploy("ExecReader")
         self.vr = self.w.deploy("VoteReader")
-        self.jg = self.w.deploy("AsVotedJudge")
+        self.jg = self.w.deploy("AsVotedJudge", json.dumps(TOKEN_LIST))
         dc = ",".join(demo_controllers if demo_controllers is not None else ([CONTROLLER] if mode == "DEMO" else []))
         self.rg = self.w.deploy("AsVotedRegistry", mode, self.er, self.vr, self.jg, dc)
         self.st = self.w.deploy("DaoStanding", self.rg, 30)
@@ -285,7 +288,16 @@ class Deployment:
     def read_vote(self, cid, safe=SAFE, chain_name="ethereum"):
         return self.call(self.vr, "read_proposal", cid, chain_name, safe)["vote_id"]
 
+    def names_at_execution(self, exec_id, vote_id):
+        """What the pipeline and the site do before filing: resolve the
+        proposal's ENS names at the execution's L1 block."""
+        v = self.view(self.vr, "get_proposal", vote_id)
+        e = self.view(self.er, "get_execution", exec_id)
+        if v.get("found") and e.get("found") and v["ens_names"] and e["l1_block"] > 0:
+            self.call(self.vr, "read_names_at", vote_id, e["l1_block"])
+
     def file(self, dao_id, exec_id, vote_id, note="", sender=FILER, value=None):
+        self.names_at_execution(exec_id, vote_id)
         return self.call(self.rg, "file_check", dao_id, exec_id, vote_id, note, sender=sender,
                          value=STAKE if value is None else value)
 

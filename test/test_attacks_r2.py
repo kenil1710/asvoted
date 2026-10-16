@@ -16,7 +16,11 @@ class Ownership(Base):
     def test_r2_01_amount_on_its_own_line_after_the_recipient(self):
         body = "## Grant\n\nRecipient: " + ALICE + "\nAmount: 50,000 USDC"
         cid, j, c = self.judged(body, to=USDC, data=F.transfer(ALICE, U(50_000)))
-        self.assertEqual(c["ruling"], "AS_VOTED")
+        # Round 3 design: a cap must sit on the recipient's own line, list item
+        # or table row. An amount on the next line is not provably theirs, so
+        # the payment is UNCLEAR (never AS_VOTED); write it as a list item or
+        # on one line to make it a cap (r3_02).
+        self.assertEqual(c["ruling"], "UNCLEAR")
 
     def test_r2_02_table_rows_keep_their_own_amounts(self):
         body = "| Recipient | Amount |\n|---|---|\n| " + ALICE + " | 1,000 USDC |\n| " + BOB + " | 9,000 USDC |"
@@ -26,7 +30,9 @@ class Ownership(Base):
     def test_r2_03_section_budget_with_no_other_owner_still_applies(self):
         body = "## Payment\n\nSafe: " + ALICE + "\n\nThe budget is 50,000 USDC."
         cid, j, c = self.judged(body, to=USDC, data=F.transfer(ALICE, U(50_000)))
-        self.assertEqual(c["ruling"], "AS_VOTED")
+        # Round 3 design: a section-level budget is no longer a cap (it was the
+        # ladder H1 and H2-H5 abused); UNCLEAR, never AS_VOTED.
+        self.assertEqual(c["ruling"], "UNCLEAR")
 
     def test_r2_04_ens_owner_counts_as_owner(self):
         F.ens(self.D.mc, "bob.eth", BOB)

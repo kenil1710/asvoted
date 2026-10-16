@@ -656,7 +656,7 @@ class TestCanonical(Base):
 
     def test_windows_and_no_seam(self):
         cfg = self.D.view(self.D.rg, "get_config")
-        self.assertEqual((cfg["contest_s"], cfg["demo_controllers"]), (72 * 3600, []))
+        self.assertEqual((cfg["contest_s"], cfg["demo_controllers"]), (6 * 3600, []))
         with self.assertRaisesRegex(world.Reverted, "NOT_AN_ADMIN"):
             self.D.call(self.D.rg, "claim_dao", self.dao, sender=CONTROLLER)
 
