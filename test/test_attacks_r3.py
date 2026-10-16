@@ -638,3 +638,42 @@ class Identity(R3):
         stub.MODEL.answer = model_says("AUTHORIZED", QUOTE)
         c = self.judged(ROUTER_BODY, to=TARGET, data=data)[2]
         self.assertEqual(self.outcomes(c), ["UNCLEAR"])
+
+
+class Relayed(R3):
+    RELAYER = F.addr(0x6e1a)
+
+    def _multisig_log(self, to, data, nonce):
+        sigs = b"\x11" * 65
+        info = F.w(nonce) + F.wa(F.EXECUTOR) + F.w(1)
+        heads = 11 * 32
+        tail_data = F.dyn(data)
+        tail_sigs = F.dyn(sigs)
+        o_data = heads
+        o_sigs = o_data + len(tail_data)
+        o_info = o_sigs + len(tail_sigs)
+        body = (F.wa(to) + F.w(0) + F.w(o_data) + F.w(0) + F.w(0) + F.w(0) + F.w(0) + F.wa(F.ER.ZERO) +
+                F.wa(F.ER.ZERO) + F.w(o_sigs) + F.w(o_info) + tail_data + tail_sigs + F.dyn(info))
+        return {"address": SAFE, "topics": [F.ER.TOPIC_MULTISIG_TX], "data": "0x" + body.hex(), "logIndex": "0x1"}
+
+    def test_r3_84_relayed_execution_read_from_the_safel2_log(self):
+        D = self.D
+        data = F.transfer(ALICE, U(5))
+        tx, n = F.safe_exec(D.mc, USDC, 0, data, nonce=50, tx_to=self.RELAYER)
+        D.mc.receipts[tx]["logs"].append(self._multisig_log(USDC, data, 50))
+        eid = D.read_exec(tx, n)
+        e = D.view(D.er, "get_execution", eid)
+        self.assertEqual((e["actions"][0]["recipient"], e["actions"][0]["amount"]), (ALICE, str(U(5))))
+        r = D.file(self.dao, eid, D.read_vote(F.proposal("Send 5 USDC to " + ALICE)))
+        D.judge_rule(r["check_id"])
+        self.assertEqual(D.view(D.rg, "get_check", r["check_id"])["ruling"], "AS_VOTED")
+
+    def test_r3_85_relayed_log_must_match_the_executed_hash(self):
+        D = self.D
+        tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), nonce=51, tx_to=self.RELAYER)
+        D.mc.receipts[tx]["logs"].append(self._multisig_log(USDC, F.transfer(MALLORY, U(5)), 51))   # a forged log
+        with self.assertRaisesRegex(world.Reverted, "SAFE_TX_HASH_MISMATCH"):
+            D.read_exec(tx, n)
+        tx2, n2 = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), nonce=52, tx_to=self.RELAYER)
+        with self.assertRaisesRegex(world.Reverted, "NOT_A_DIRECT_CALL_TO_THE_SAFE"):
+            D.read_exec(tx2, n2)

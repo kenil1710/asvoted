@@ -51,6 +51,8 @@ SEL_EXEC = "6a761202"     # execTransaction(address,uint256,bytes,uint8,uint256,
 SEL_MULTISEND = "8d80ff0a"  # multiSend(bytes)
 TOPIC_SUCCESS = "0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e"  # ExecutionSuccess(bytes32,uint256)
 TOPIC_FAILURE = "0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23"  # ExecutionFailure(bytes32,uint256)
+# SafeL2: SafeMultiSigTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes,bytes)
+TOPIC_MULTISIG_TX = "0x66753cd2356569ee081232e3be8909b950e0a76c1f8460c3a5e3c2be32b11bed"
 SAFE_TX_TYPEHASH = "bb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8"
 DOMAIN_TYPEHASH_V13 = "47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a79469218"  # (uint256 chainId,address verifyingContract), Safe >= 1.3.0
 DOMAIN_TYPEHASH_OLD = "035aff83d86937d35b32e04f0ddc6ff469290eef2f1b692d8a815c89404d4749"  # (address verifyingContract), Safe < 1.3.0
@@ -547,6 +549,22 @@ def decode_exec(inp: bytes) -> dict:
     return out
 
 
+def decode_multisig_log(data: bytes) -> dict:
+    """A SafeL2 SafeMultiSigTransaction log's data -> the same ten
+    parameters as execTransaction calldata, plus the nonce it records
+    (additionalInfo = abi.encode(nonce, sender, threshold)), or ValueError."""
+    out = {
+        "to": _w_addr(data, 0), "value": _word(data, 1), "data": _w_bytes(data, 2), "operation": _word(data, 3),
+        "safeTxGas": _word(data, 4), "baseGas": _word(data, 5), "gasPrice": _word(data, 6),
+        "gasToken": _w_addr(data, 7), "refundReceiver": _w_addr(data, 8), "signatures": _w_bytes(data, 9),
+    }
+    info = _w_bytes(data, 10)
+    if out["operation"] > 1 or len(info) < 32:
+        raise ValueError("bad multisig log")
+    out["nonce"] = _word(info, 0)
+    return out
+
+
 def safe_tx_hashes(chain_id: int, safe: str, e: dict, nonce: int) -> list:
     """The Safe transaction hash under both domain layouts Safe has shipped."""
     struct = keccak256(bytes.fromhex(SAFE_TX_TYPEHASH) + enc_addr(e["to"]) + enc_word(e["value"]) +
@@ -869,17 +887,36 @@ def read_execution(p: dict, block: int) -> dict:
     if rc["status"] != "0x1":
         return {"refused": "TX_REVERTED", "pinned": out_block}
     if tx["to"] != p["safe"]:
-        return {"refused": "NOT_A_DIRECT_CALL_TO_THE_SAFE", "pinned": out_block}
-    try:
-        inp = hexb(tx["input"])
-    except Exception:
-        return {"refused": "EXEC_CALLDATA_MALFORMED", "pinned": out_block}
-    if len(inp) > MAX_CALLDATA:
-        return {"refused": "CALLDATA_TOO_LARGE", "pinned": out_block}
-    try:
-        e = decode_exec(inp)
-    except ValueError:
-        return {"refused": "NOT_EXEC_TRANSACTION", "pinned": out_block}
+        # relayed (the Safe was called by another contract): only a SafeL2
+        # Safe records every parameter, in its SafeMultiSigTransaction log.
+        # Exactly one such log of this Safe, for this nonce; it is then bound
+        # to ExecutionSuccess like a direct call.
+        mlogs = [lg for lg in rc["logs"] if lg["address"] == p["safe"] and len(lg["topics"]) > 0 and
+                 lg["topics"][0] == TOPIC_MULTISIG_TX]
+        if len(mlogs) != 1:
+            return {"refused": "NOT_A_DIRECT_CALL_TO_THE_SAFE_AND_NO_SAFEL2_LOG", "pinned": out_block}
+        try:
+            raw = hexb(mlogs[0]["data"])
+            if len(raw) > MAX_CALLDATA:
+                return {"refused": "CALLDATA_TOO_LARGE", "pinned": out_block}
+            e = decode_multisig_log(raw)
+        except ValueError:
+            return {"refused": "SAFEL2_LOG_MALFORMED", "pinned": out_block}
+        except Exception:
+            return {"refused": "SAFEL2_LOG_MALFORMED", "pinned": out_block}
+        if e["nonce"] != p["nonce"]:
+            return {"refused": "SAFEL2_LOG_NONCE_MISMATCH", "pinned": out_block}
+    else:
+        try:
+            inp = hexb(tx["input"])
+        except Exception:
+            return {"refused": "EXEC_CALLDATA_MALFORMED", "pinned": out_block}
+        if len(inp) > MAX_CALLDATA:
+            return {"refused": "CALLDATA_TOO_LARGE", "pinned": out_block}
+        try:
+            e = decode_exec(inp)
+        except ValueError:
+            return {"refused": "NOT_EXEC_TRANSACTION", "pinned": out_block}
     hashes = safe_tx_hashes(CHAINS[ch][0], p["safe"], e, p["nonce"])
     succ = []
     fail = []
