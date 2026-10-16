@@ -1,26 +1,26 @@
 {
-  "registry": "0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc",
-  "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
-  "read_at": "2026-10-16T02:07:33.942Z",
+  "registry": "0x1C2891FE54a5CfE98436F439e40A3043050eFF44",
+  "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+  "read_at": "2026-10-16T08:18:02.815Z",
   "stats": {
     "checks": 15,
     "claimable_total": "500000000000000000",
     "claimed_total": "0",
-    "daos": 9,
-    "final:AS_VOTED": 10,
-    "final:DEVIATES": 2,
-    "final:UNCLEAR": 3,
+    "daos": 8,
+    "final:AS_VOTED": 0,
+    "final:DEVIATES": 0,
+    "final:UNCLEAR": 5,
     "how:APPEAL_EXPIRED": 0,
     "how:APPEAL_RULED": 0,
     "how:EXPIRED_UNJUDGED": 0,
-    "how:NO_APPEAL": 12,
-    "how:RULED_UNCLEAR": 3,
-    "open_total": "0",
-    "pledges_total": "1000000000000000000",
+    "how:NO_APPEAL": 0,
+    "how:RULED_UNCLEAR": 5,
+    "open_total": "1000000000000000000",
+    "pledges_total": "0",
     "received_total": "1500000000000000000",
     "status:APPEALED": 0,
-    "status:CONTESTABLE": 0,
-    "status:FINAL": 15,
+    "status:CONTESTABLE": 10,
+    "status:FINAL": 5,
     "status:PROVISIONAL": 0
   },
   "checks": [
@@ -38,9 +38,9 @@
       "proposal_end": "2024-07-24",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0xf4631cc0… on 2024-07-29 is named in the proposal of 2024-07-24.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-48 solver rewards budget renewal",
@@ -61,9 +61,9 @@
       "proposal_end": "2024-02-14",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0xbcdb6b99… on 2024-02-14 is named in the proposal of 2024-02-14.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-37 COW liquidity via programmatic orders",
@@ -84,9 +84,9 @@
       "proposal_end": "2023-08-17",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-29 solver rewards renewal",
@@ -108,13 +108,13 @@
       "vote_type": "basic",
       "vote_outcome": "PASSED",
       "status": "FINAL",
-      "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
-      "summary": "Every action in execution 0x2d3d227c… on 2024-05-25 is named in the proposal of 2023-08-02.",
+      "ruling": "UNCLEAR",
+      "final": "UNCLEAR",
+      "summary": "Execution 0x2d3d227c… on 2024-05-25 could not be fully matched to the proposal of 2023-08-02: 0 of 1 actions settled.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-28 send profits to the treasury (67 WETH)",
-      "exec_id": 5,
-      "vote_id": 5
+      "exec_id": 4,
+      "vote_id": 4
     },
     {
       "check_id": 5,
@@ -130,14 +130,14 @@
       "proposal_end": "2023-03-27",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-24 continued funding for development services",
-      "exec_id": 7,
-      "vote_id": 8
+      "exec_id": 5,
+      "vote_id": 5
     },
     {
       "check_id": 6,
@@ -153,14 +153,14 @@
       "proposal_end": "2023-08-17",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0x6b5e48e3… on 2023-08-23 is named in the proposal of 2023-08-17.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-30 oSnap",
-      "exec_id": 8,
-      "vote_id": 10
+      "exec_id": 6,
+      "vote_id": 6
     },
     {
       "check_id": 7,
@@ -176,14 +176,14 @@
       "proposal_end": "2022-11-09",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "DEVIATES",
-      "final": "DEVIATES",
+      "final": "",
       "summary": "Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-16 claim and delegate SAFE tokens",
-      "exec_id": 4,
-      "vote_id": 4
+      "exec_id": 7,
+      "vote_id": 7
     },
     {
       "check_id": 8,
@@ -205,8 +205,8 @@
       "summary": "Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "CIP-19 karpatkey core treasury team",
-      "exec_id": 9,
-      "vote_id": 9
+      "exec_id": 8,
+      "vote_id": 8
     },
     {
       "check_id": 9,
@@ -222,14 +222,14 @@
       "proposal_end": "2025-03-20",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0xb35fba26… on 2025-03-22 is named in the proposal of 2025-03-20.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "PIP-59 return 40.203 WETH to Bybit",
-      "exec_id": 10,
-      "vote_id": 11
+      "exec_id": 9,
+      "vote_id": 9
     },
     {
       "check_id": 10,
@@ -251,8 +251,8 @@
       "summary": "Execution 0x8a6a840a… on 2023-11-06 could not be fully matched to the proposal of 2023-10-31: 0 of 1 actions settled.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "PIP-43 ParaTroopers grant",
-      "exec_id": 11,
-      "vote_id": 12
+      "exec_id": 10,
+      "vote_id": 10
     },
     {
       "check_id": 11,
@@ -268,14 +268,14 @@
       "proposal_end": "2025-10-09",
       "vote_type": "basic",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0xea8e4391… on 2025-10-10 is named in the proposal of 2025-10-09.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "Gas refunds, epoch 35",
-      "exec_id": 12,
-      "vote_id": 13
+      "exec_id": 11,
+      "vote_id": 11
     },
     {
       "check_id": 12,
@@ -291,14 +291,14 @@
       "proposal_end": "2023-08-29",
       "vote_type": "single-choice",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
+      "final": "",
       "summary": "Every action in execution 0xb204790c… on 2023-09-19 is named in the proposal of 2023-08-29.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "Season 9 seasonal funding",
-      "exec_id": 13,
-      "vote_id": 14
+      "exec_id": 12,
+      "vote_id": 12
     },
     {
       "check_id": 13,
@@ -315,13 +315,13 @@
       "vote_type": "single-choice",
       "vote_outcome": "PASSED",
       "status": "FINAL",
-      "ruling": "AS_VOTED",
-      "final": "AS_VOTED",
-      "summary": "Every action in execution 0xc2e1137c… on 2024-11-29 is named in the proposal of 2024-11-15.",
+      "ruling": "UNCLEAR",
+      "final": "UNCLEAR",
+      "summary": "Execution 0xc2e1137c… on 2024-11-29 could not be fully matched to the proposal of 2024-11-15: 0 of 1 actions settled.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "MIP79 Credit Guild acqui-hire",
-      "exec_id": 14,
-      "vote_id": 15
+      "exec_id": 13,
+      "vote_id": 13
     },
     {
       "check_id": 14,
@@ -337,14 +337,14 @@
       "proposal_end": "2024-04-15",
       "vote_type": "single-choice",
       "vote_outcome": "PASSED",
-      "status": "FINAL",
+      "status": "CONTESTABLE",
       "ruling": "DEVIATES",
-      "final": "DEVIATES",
+      "final": "",
       "summary": "Execution 0x59a5c685… on 2024-12-05 includes an action the proposal of 2024-04-15 does not mention.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "SEP #22 unpause SAFE token (later module call)",
-      "exec_id": 15,
-      "vote_id": 16
+      "exec_id": 14,
+      "vote_id": 14
     },
     {
       "check_id": 15,
@@ -366,8 +366,8 @@
       "summary": "Execution 0x06a19d45… on 2023-08-16 could not be matched: whether the proposal of 2023-07-30 passed is not something the contract can compute from its voting type and scores.",
       "filer": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
       "note": "2nd Annual Krause House x Guatemala tournament",
-      "exec_id": 16,
-      "vote_id": 17
+      "exec_id": 15,
+      "vote_id": 15
     }
   ]
 }

@@ -26,13 +26,13 @@ Only what code cannot settle goes to an AI model. That means a call to a contrac
 
 ## Fifteen real executions
 
-I ran it on fifteen real Safe executions from six DAOs: CoW DAO, Velora (ParaSwap), Bankless, Morpho, SafeDAO and Krause House, on Ethereum, Optimism and Base. Ten came back AS VOTED, two DEVIATES and three UNCLEAR.
+I ran it on fifteen real Safe executions from six DAOs: CoW DAO, Velora (ParaSwap), Bankless, Morpho, SafeDAO and Krause House, on Ethereum, Optimism and Base. Eight came back AS VOTED, two DEVIATES and five UNCLEAR.
 
 The AS VOTED cases are the boring, reassuring majority. Velora's Safe returned 40.203 WETH to Bybit after the February 2025 hack. The proposal names the address and the amount, and the execution matches to the wei. No model was involved.
 
 The two DEVIATES are the kind you'd expect, and neither is an accusation. In one, a CoW DAO batch did exactly what CIP-16 described (claim SAFE tokens and delegate them), with the calldata quoted in the proposal itself. It also made two calls to a contract the proposal never names. In the other, the SafeDAO Safe passed an address that no SafeDAO Snapshot proposal writes out. The finding is narrow and dated: "Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention." Often that means the proposal should have named something, not that anyone did anything wrong.
 
-The three UNCLEAR are honest gaps. One proposal names the treasury but no amount. One prices a grant at "$500 per epoch" and pays in PSP; the contract never fetches prices, so it won't compare them. One DAO votes with weighted voting, whose result the contract doesn't compute.
+The five UNCLEAR are honest gaps. Two proposals name the receiving Safe without putting a figure on its line: CIP-28 is a standing mandate with a sample amount elsewhere, and MIP79 sends "half" of a total stated on another line. A cap has to be the one amount on the recipient's own line, so the contract won't guess. One proposal names the treasury but no amount at all. One prices a grant at "$500 per epoch" and pays in PSP; the contract never fetches prices, so it won't compare them. One DAO votes with weighted voting, whose result the contract doesn't compute.
 
 ## The wrong proposal, and the answer
 
