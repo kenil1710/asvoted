@@ -99,7 +99,11 @@ class Ens(Base):
         F.ens(self.D.mc, "alice.eth", MALLORY)
         F.ens(self.D.mc, "alice.eth", ALICE, block=F.FIN - 50_000)
         cid, j, c = self.judged("Send 5 USDC to alice.eth", to=USDC, data=F.transfer(MALLORY, U(5)))
-        self.assertEqual(c["ruling"], "DEVIATES")
+        # Round 4 design: voters saw Alice; the name had moved to Mallory by the
+        # payment. Paying the new address is UNCLEAR (never a code-settled
+        # slash: the recipient could have moved the name), and never AS_VOTED.
+        self.assertEqual(c["ruling"], "UNCLEAR")
+        self.assertIn("pointed to it when the Safe acted", c["ruling_detail"]["actions"][0]["reason"])
 
     def test_a22_subdomain_does_not_count_as_parent(self):
         F.ens(self.D.mc, "alice.eth", ALICE)

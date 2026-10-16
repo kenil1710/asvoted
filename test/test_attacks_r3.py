@@ -618,7 +618,8 @@ class Identity(R3):
     def test_r3_81_verified_when_the_space_owner_owns_the_safe(self):
         D = self.D
         node = F.VR.namehash("verified.eth").hex()
-        D.mc.calls[(F.VR.ENS_REGISTRY, "0x02571be3" + node)] = "0x" + "0" * 24 + CONTROLLER[2:]
+        # Round 4 (r4_11): verified only when the Safe itself owns the name
+        D.mc.calls[(F.VR.ENS_REGISTRY, "0x02571be3" + node)] = "0x" + "0" * 24 + OTHER_SAFE[2:]
         D.mc.calls[(OTHER_SAFE, "0xa0e67e2b")] = "0x" + ("%064x" % 32) + ("%064x" % 2) + "0" * 24 + ADMIN[2:] + "0" * 24 + CONTROLLER[2:]
         F.space("verified.eth", treasuries=[[OTHER_SAFE, "1"]])
         D.call(D.vr, "read_space", "verified.eth", "ethereum", OTHER_SAFE)

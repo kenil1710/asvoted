@@ -188,3 +188,62 @@ class Badge(R4):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Fixes(R4):
+    """Pins the round-4 design beyond the attacker's tests."""
+
+    def test_r4_12_a_strangers_losing_appeal_reopens_the_daos_window(self):
+        D = self.D
+        wrong = D.read_vote(F.proposal("Send 5 USDC to " + BOB))
+        tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), nonce=80)
+        cid = D.file(self.dao, D.read_exec(tx, n), wrong)["check_id"]
+        D.judge_rule(cid)
+        D.call(D.rg, "appeal", cid, "Panel please read the proposal one more time, carefully, thanks.", 0,
+               sender=SOCK, value=BOND)
+        D.judge_rule(cid)                                    # still DEVIATES
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["status"], c["appeal_ruling"]), ("CONTESTABLE", "DEVIATES"))
+        r = D.call(D.rg, "appeal", cid, "Someone else again would like to try another panel reading here.", 0,
+                   sender=FILER2, value=BOND)
+        self.assertEqual((r["ok"], r["reason"]), (False, "ONLY_THE_DAOS_CONTROLLER_MAY_RESPOND"))
+        D.call(D.rg, "claim_dao", self.dao, sender=ADMIN)
+        right = D.read_vote(F.proposal("Send 5 USDC to " + ALICE))
+        self.assertTrue(D.call(D.rg, "appeal", cid, APPEAL_TEXT, right, sender=ADMIN, value=BOND)["ok"])
+        D.judge_rule(cid)
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["final_verdict"], c["final_how"]), ("AS_VOTED", "RESPONSE_RULED"))
+        self.assertLedger()
+
+    def test_r4_13_takeover_returns_the_strangers_bond(self):
+        D = self.D
+        wrong = D.read_vote(F.proposal("Send 5 USDC to " + BOB))
+        right = D.read_vote(F.proposal("Send 5 USDC to " + ALICE))
+        tx, n = F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), nonce=81)
+        cid = D.file(self.dao, D.read_exec(tx, n), wrong)["check_id"]
+        D.judge_rule(cid)
+        D.call(D.rg, "appeal", cid, "Panel please read the proposal one more time, carefully, thanks.", 0,
+               sender=SOCK, value=BOND)
+        D.call(D.rg, "claim_dao", self.dao, sender=ADMIN)
+        D.call(D.rg, "appeal", cid, APPEAL_TEXT, right, sender=ADMIN, value=BOND)
+        self.assertEqual(D.view(D.rg, "claimable_of", SOCK)["claimable"], str(BOND))
+        D.judge_rule(cid)
+        self.assertEqual(D.view(D.rg, "get_check", cid)["final_verdict"], "AS_VOTED")
+        self.assertLedger()
+
+    def test_r4_14_unwrapping_is_neutral_and_the_eth_stays(self):
+        stub.MODEL.answer = model_says("AUTHORIZED", "Unwrap 100 WETH")
+        c = self.judged("Unwrap 100 WETH back into ETH.", to=WETH, data=bytes.fromhex("2e1a7d4d") + F.w(100 * GEN))[2]
+        self.assertEqual((c["ruling"], self.outcomes(c)), ("AS_VOTED", ["NEUTRAL"]))
+
+    def test_r4_15_a_choice_paragraph_needs_punctuation_after_the_name(self):
+        # "Against this backdrop, ..." is not the Against option's text.
+        body = "Against this backdrop, send 5,000 USDC to " + ALICE + "."
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(5_000))), "AS_VOTED")
+
+    def test_r4_16_restating_the_same_figure_is_not_an_amendment(self):
+        body = "Send 5,000 USDC to " + ALICE + ".\n\nBudget: as above, 5,000 USDC."
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(5_000))), "AS_VOTED")
+        self.setUp()
+        body = "Send 5,000 USDC to " + ALICE + ".\n\nBudget: as above, 4,000 USDC."
+        self.assertEqual(self.ruling(body, to=USDC, data=F.transfer(ALICE, U(5_000))), "UNCLEAR")
