@@ -16,23 +16,23 @@ Most DAOs vote on Snapshot and a Safe multisig executes the result; nothing chec
 4. On the check page, judge and apply the ruling, then appeal within 90 seconds (only the DAO, answering a DEVIATES, may name another proposal) or finalize after it. (162 chars)
 5. Run the offline suite (cd test && python3 -m unittest test_asvoted test_attacks test_attacks_r2 test_attacks_r3 test_attacks_r4) and read docs/SEEDS.md and docs/FINAL_CHECK.md. (176 chars)
 
-## Review verification (323/500)
+## Review verification (445/500)
 
-All 9 contracts deployed from commit 07ff3a3; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: 15 real seeds, all 15 final, each linked to Etherscan and IPFS. Demo registry: every path run on chain, 25/25, drained to 0. 203 offline tests incl. 4 attack rounds.
+All 9 contracts deployed from commit ab42d5c; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: 15 real seeds, all 15 final (6 AS_VOTED, 2 DEVIATES, 7 UNCLEAR), each linked to Etherscan and IPFS. Demo registry: every path run on chain, 30/30; 4/4 payouts arrived (recipient eth_getBalance checked); registry eth_getBalance 0 after the claims. 207 offline tests incl. 4 attack rounds.
 
 ## Evidence
 
 - Repository: https://github.com/kenil1710/asvoted
 - Live site: https://asvoted.vercel.app
-- ExecReader (explorer): https://explorer-studio-dev.genlayer.com/address/0x694E28e38D66C95E3A2138e5d22F8158939e21f8
-- VoteReader (explorer): https://explorer-studio-dev.genlayer.com/address/0x7319257a270EE4D77A302f193Eff76878ec02BCa
-- AsVotedJudge (explorer): https://explorer-studio-dev.genlayer.com/address/0xC2aBc36E01DEab31C1F24A66A8D010Cd9F7F7dfF
-- AsVotedRegistry (explorer): https://explorer-studio-dev.genlayer.com/address/0x4Ec22423528e64B4f1d41B7F647c0BD42464a30C
-- AsVotedRegistryDemo (explorer): https://explorer-studio-dev.genlayer.com/address/0x65dB1CD4b79Bc87e5d6dbA315ea8F4239eAea028
-- DaoStanding (explorer): https://explorer-studio-dev.genlayer.com/address/0xA74Bb08f0e497fc18138bF5383e5f65974eE3CCb
-- DaoStandingDemo (explorer): https://explorer-studio-dev.genlayer.com/address/0x6EC6F4fABd87C7A7DCA24044ED011631106c408c
-- GrantGate (explorer): https://explorer-studio-dev.genlayer.com/address/0x9848d38C85E1DFc8920c353124De3c82B519a62e
-- GrantGateDemo (explorer): https://explorer-studio-dev.genlayer.com/address/0x428727dF01a31202a66B2ED7d35F474Ba7B97C28
+- ExecReader (explorer): https://explorer-studio-dev.genlayer.com/address/0xA08486C9b6518B734D19Af58948db36FE3bdD961
+- VoteReader (explorer): https://explorer-studio-dev.genlayer.com/address/0x029870D42f42f808eFE707fea6BB3D78dA48147F
+- AsVotedJudge (explorer): https://explorer-studio-dev.genlayer.com/address/0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1
+- AsVotedRegistry (explorer): https://explorer-studio-dev.genlayer.com/address/0x808bbc73B8C65312d14e421C51C774EB4E90121C
+- AsVotedRegistryDemo (explorer): https://explorer-studio-dev.genlayer.com/address/0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1
+- DaoStanding (explorer): https://explorer-studio-dev.genlayer.com/address/0xF12CA2B1440AAB7915879D84Abf04123D71d905f
+- DaoStandingDemo (explorer): https://explorer-studio-dev.genlayer.com/address/0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128
+- GrantGate (explorer): https://explorer-studio-dev.genlayer.com/address/0xf4A21d3e39e6807202Cd9f656EAAF1F7C115e187
+- GrantGateDemo (explorer): https://explorer-studio-dev.genlayer.com/address/0x3C77CA433b10E71a414203a7FFeB20Bf10e20296
 - Seeds: https://github.com/kenil1710/asvoted/blob/main/docs/SEEDS.md
 - Final check: https://github.com/kenil1710/asvoted/blob/main/docs/FINAL_CHECK.md
 - Attack report: https://github.com/kenil1710/asvoted/blob/main/docs/ATTACK_REPORT.md
