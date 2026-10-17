@@ -1,0 +1,290 @@
+
+=== seed 1/15: cow.eth CIP-48 solver rewards budget renewal
+15:20:00 → read_space
+15:20:14   OK ACCEPTED 14s 0x698ef06dfdcfaf56d4a4a8f6b2194c5cedf6f8480b966438f9e8f780d040e8ee {"bind_id":1,"listed":true}
+15:20:14 → list_dao
+15:20:27   OK ACCEPTED 13s 0xa3fa68cfb2308b93697864db01cd506519821c3773413cd059684602928c95b2 {"dao_id":1,"ok":true}
+15:20:29 → read_execution
+15:20:44   OK ACCEPTED 15s 0x00976202a44bf863c6406c80fdf7e39a6f804815417f32a4ac8584ebd1feb942 {"actions":1,"block":20415037,"exec_id":1,"safe_tx_hash":"0x9e29063ef4d327abce133354a320b7cd2e2a9f407a972976d5ba278f6b126201"}
+15:20:49 → read_proposal
+15:21:09   OK ACCEPTED 20s 0xc745af0bb3a6f0d77314250040e75798a2fa3804843b86f87aeccaacad0ef53f {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":1}
+15:21:14 → file_check
+15:21:30   OK ACCEPTED 16s 0x69f92746c73016df1c9e49d7d2dbe2e86a24b9aa04ea774989e8346c63160e90 {"check_id":1,"judge_deadline":1792336882,"ok":true}
+15:21:31 check #1
+15:21:33 → judge
+15:21:47   OK ACCEPTED 14s 0x56f0054075e48719fb21fa0776f5ec6bb73a3649d69d51bb110005ce68b99253 {"overall":"UNCLEAR","round":0,"summary":"Execution 0xf4631cc0… on 2024-07-29 could not be fully matched to the proposal of 2024-07-24: 0 of 1 actions settled."}
+15:21:48 → rule
+15:22:02   OK ACCEPTED 14s 0x24a4443f5cc48c33826b1ccc2c7e115084bde84dd6ccb4b01bd0634d1f4b51d0 {"check_id":1,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+15:22:03 check #1 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0xf4631cc0… on 2024-07-29 could not be fully matched to the proposal of 2024-07-24: 0 of 1 actions settled.
+
+=== seed 2/15: cow.eth CIP-37 COW liquidity via programmatic orders
+15:22:06 → read_execution
+15:22:22   OK ACCEPTED 16s 0x6bf9cd518d940d8dad5175bc9df98d73f52b9c4210fee9a378c764fce789fe4e {"actions":1,"block":19226339,"exec_id":2,"safe_tx_hash":"0x4af0d6ce86b844265c09192b6896d31bfb72991e6112193e8d3ab87f7b3a26a9"}
+15:22:24 → read_proposal
+15:22:38   OK ACCEPTED 14s 0x05268cd96b76f46c73eac506b47f6d6840a3723851f81de8254fa973e8a62350 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":2}
+15:22:41 → file_check
+15:22:55   OK ACCEPTED 14s 0x1ff305815c072472e19f5f5127959b6e86b21beb1bb7d1a2943bb7f781d4c783 {"check_id":2,"judge_deadline":1792336966,"ok":true}
+15:22:57 check #2
+15:22:59 → judge
+15:23:13   OK ACCEPTED 15s 0x0b7641ce017bc34af740003163c90989e72c79690fe8f087902fe6939acc6d25 {"overall":"UNCLEAR","round":0,"summary":"Execution 0xbcdb6b99… on 2024-02-14 could not be fully matched to the proposal of 2024-02-14: 0 of 1 actions settled."}
+15:23:14 → rule
+15:23:29   OK ACCEPTED 15s 0x663427df777ab7d463042492130d71dd981aedeacaf8b5a966715cc4ae1719c5 {"check_id":2,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+15:23:31 check #2 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0xbcdb6b99… on 2024-02-14 could not be fully matched to the proposal of 2024-02-14: 0 of 1 actions settled.
+
+=== seed 3/15: cow.eth CIP-29 solver rewards renewal
+15:23:34 → read_execution
+15:23:48   OK ACCEPTED 14s 0x971983d443b28407be17b09d748d354fea516d61effe9db89754a16194c9941c {"actions":1,"block":17942594,"exec_id":3,"safe_tx_hash":"0x72e665076d6096a3d9c04956dec1453ae665a2d9bf3b59a16730f8d3eda2e94b"}
+15:23:51 → read_proposal
+15:24:05   OK ACCEPTED 14s 0x9073dfa8cacb72d6f21991ad58058244fc40cb1fa7e8d625a9f7ab0e0f6451e0 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":3}
+15:24:08 → file_check
+15:24:22   OK ACCEPTED 13s 0x6ed7939452a2eceb841392565fa912ea9925db5da545a23ddf851e7b710c3f35 {"check_id":3,"judge_deadline":1792337054,"ok":true}
+15:24:23 check #3
+15:24:24 → judge
+15:24:39   OK ACCEPTED 15s 0x1554d34d374500f1087d2d9428879a7af9d7e233de679501e63465765393d14d {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17."}
+15:24:40 → rule
+15:24:55   OK ACCEPTED 14s 0xccbd391aa0c3e760dcaa0f5641894015dc5cc5d749819ac61f992fd167611dca {"check_id":3,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+15:24:56 check #3 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17.
+
+=== seed 4/15: cow.eth CIP-28 send profits to the treasury (67 WETH)
+15:24:58 → read_execution
+15:25:14   OK ACCEPTED 16s 0xaf179cdb60f7db116a3523c39bd16afbb89e7a76e9d73b3a59b36a31fd8b4048 {"actions":1,"block":19948199,"exec_id":4,"safe_tx_hash":"0xe433a1f48f5428a19e8b67a82634d2546295ea0998b12810e06e0bc64e5b65bd"}
+15:25:18 → read_proposal
+15:25:31   OK ACCEPTED 14s 0x524963f798b17aaceff64c14d46b9ed174f4192e7d7e28b0f515a277e87a5503 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":4}
+15:25:34 → file_check
+15:25:48   OK ACCEPTED 14s 0x603e1554dec9c9dc4de602697b42b42bb96045c122ee9a2d6e0bbf703eefc0aa {"check_id":4,"judge_deadline":1792337140,"ok":true}
+15:25:49 check #4
+15:25:51 → judge
+15:26:06   OK ACCEPTED 15s 0xcbfd101ddfdab63565ae431f3d8c1315d4ff8f355b3d341aefd5d7ab0d1884eb {"overall":"UNCLEAR","round":0,"summary":"Execution 0x2d3d227c… on 2024-05-25 could not be fully matched to the proposal of 2023-08-02: 0 of 1 actions settled."}
+15:26:07 → rule
+15:26:23   OK ACCEPTED 16s 0xa6f35c0940a17b18b9d1d4ca8436c0a18e35ad40a892959516b6a16eeefc7466 {"check_id":4,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+15:26:24 check #4 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0x2d3d227c… on 2024-05-25 could not be fully matched to the proposal of 2023-08-02: 0 of 1 actions settled.
+
+=== seed 5/15: cow.eth CIP-24 continued funding for development services
+15:26:26 → read_execution
+15:26:40   OK ACCEPTED 14s 0xe36082a8148bd93d4cfb8ba91ac69ec2085ee7869fdd191a93bf5f37015a10ad {"actions":1,"block":16935646,"exec_id":5,"safe_tx_hash":"0xcddb9a2ed5e226a7b96775e75ef698548240e7a15c7606b6a2ecd10733e30670"}
+15:26:43 → read_proposal
+15:26:58   OK ACCEPTED 15s 0xf4931af2bd577f3d00916d17ac724ffea4bacd97f6a9c717ab3c3970b02ec2ad {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":5}
+15:27:02 → file_check
+15:27:16   OK ACCEPTED 15s 0xa8a7e9e43835ccdab5b1b025d9bd12e87def88b469081c8b01f1fa5c27f84369 {"check_id":5,"judge_deadline":1792337228,"ok":true}
+15:27:17 check #5
+15:27:19 → judge
+15:27:33   OK ACCEPTED 14s 0xce78f4b0719b69f5e8d603e5073dc77b94708577c11d1e63f913651b8a9d6500 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27."}
+15:27:34 → rule
+15:27:48   OK ACCEPTED 14s 0xe85ac28d07abfc411f2595b90355bc11a04fbbf5962a081e50953f869cc2d5d2 {"check_id":5,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+15:27:49 check #5 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27.
+
+=== seed 6/15: cow.eth CIP-30 oSnap
+15:27:51 → read_execution
+15:28:06   OK ACCEPTED 15s 0x70ce5e68d2cebfbf275b165a4f20c6e289b2b9e5c4ff441859f5c35bc32c9eb0 {"actions":2,"block":17974009,"exec_id":6,"safe_tx_hash":"0xf4f6c090408e169a2620114a721b1ff2ecf457e8a8183e713dfa200724c2d5c6"}
+15:28:09 → read_proposal
+15:28:23   OK ACCEPTED 14s 0xfea81b08da8e7fb9d7d7ea3ce685e857085ee030e1efa44812b6d1c31077db5a {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":6}
+15:28:42 → file_check
+15:28:56   OK ACCEPTED 14s 0xdb7266198714dd324be62e04951bff278bdd271ca71f3e3359d1f5a028252847 {"check_id":6,"judge_deadline":1792337328,"ok":true}
+15:29:02 check #6
+15:29:04 → judge
+15:29:19   OK ACCEPTED 14s 0x5976e0a5bbeec4a55f8962e5c181e4f200e331d6a8ec9228909fb9fff98789fc {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0x6b5e48e3… on 2023-08-23 is named in the proposal of 2023-08-17."}
+15:29:20 → rule
+15:29:33   OK ACCEPTED 13s 0xa6bb5053840ff09bca7cc3f3514017ad423cfb6c8df5df47b457ae3b94506c05 {"check_id":6,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+15:29:34 check #6 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0x6b5e48e3… on 2023-08-23 is named in the proposal of 2023-08-17.
+
+=== seed 7/15: cow.eth CIP-16 claim and delegate SAFE tokens
+15:29:37 → read_execution
+15:29:51   OK ACCEPTED 14s 0x2f19a86360bc03e990f2baca6fd3d3d54b56ca75dd44d758f6dbeaefc41650b6 {"actions":4,"block":17974015,"exec_id":7,"safe_tx_hash":"0xdf657f2c95f41dd3013349dd905a99a447b896b5aaed4fcab82c78565ef0e0f1"}
+15:29:54 → read_proposal
+15:30:09   OK ACCEPTED 15s 0x1f77b9b86b2a9e682fdad138bfdf9f86b3d766eac2ade6e77e67b65c8a8ecfb0 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":7}
+15:30:13 → read_names_at
+15:30:27   OK ACCEPTED 14s 0xa5e66f7674a5ada48e7568c277db44937ce712fc2505c0af445998f4b2c5e59c {"ens":{"cowguardian.eth":"0x4f84b52b1e9ee3e910c54af366078058e316a178","middleway.eth":"0xa11da8b2d9a7883eb636d7de426025e5fd9fda1a"},"l1_block":17974015,"moved":{},"unresolved":false,"vote_id":7}
+15:30:27 → file_check
+15:30:41   OK ACCEPTED 14s 0x3eaed24063416eaa8ef254a9eb3ad9f5f49f237c84ca6a6bd874caf11456ae3e {"check_id":7,"judge_deadline":1792337433,"ok":true}
+15:30:42 check #7
+15:30:44 → judge
+15:30:58   OK ACCEPTED 15s 0xc1da5466192d7885499882385035e40a92e92918408eebcb011d443b8185e988 {"overall":"DEVIATES","round":0,"summary":"Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention."}
+15:30:59 → rule
+15:31:21   OK ACCEPTED 22s 0x0d891234c76606cf7072cd4239ba033684b5da7eda0ad22dd6fa6f150dc69a48 {"check_id":7,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+15:31:22 check #7 CONTESTABLE ruling=DEVIATES final=- :: Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention.
+
+=== seed 8/15: cow.eth CIP-19 karpatkey core treasury team
+15:31:25 → read_execution
+15:31:40   OK ACCEPTED 15s 0x6b7f22618bad5e3e792db9f7171d5cbe02a8b8281e6439ed2dad15c9f7d464ec {"actions":3,"block":16554166,"exec_id":8,"safe_tx_hash":"0x9a2ba659eb039bbbfab0120c3e0213e9d58fb0eb022c075e5f99d82cdd2ed167"}
+15:31:42 → read_proposal
+15:31:58   OK ACCEPTED 15s 0xec816f24ac93be393216581d28fd5d145ead5ede59e63d0e30e1d183676136f4 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":8}
+15:32:02 → read_names_at
+15:32:16   OK ACCEPTED 14s 0xece6b54de74367fdb6ff00a5fe0fa0f8e9df023c0be92c93f1b3eb6b8224846c {"ens":{"middleway.eth":"0xa11da8b2d9a7883eb636d7de426025e5fd9fda1a"},"l1_block":16554166,"moved":{},"unresolved":false,"vote_id":8}
+15:32:16 → file_check
+15:32:42   OK ACCEPTED 26s 0x77297636ce3c9005af7a2d694d5646b472ab877bcd14fc9257a21aab3a0be6c0 {"check_id":8,"judge_deadline":1792337554,"ok":true}
+15:32:43 check #8
+15:32:45 → judge
+15:33:01   OK ACCEPTED 16s 0x7351ae6dca98aacbd5843dc8a0216af4d3715a178cb05862ec37dd337676f01c {"overall":"UNCLEAR","round":0,"summary":"Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled."}
+15:33:02 → rule
+15:33:19   OK ACCEPTED 17s 0x9ed5eee5b7f55f681daf20dc6be753cb59b851c18c8a0d5773ba3fdd81d24e39 {"check_id":8,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+15:33:20 check #8 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0x1fd579d7… on 2023-02-04 could not be fully matched to the proposal of 2023-01-24: 0 of 3 actions settled.
+
+=== seed 9/15: paraswap-dao.eth PIP-59 return 40.203 WETH to Bybit
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+15:33:22 → read_space
+15:33:36   OK ACCEPTED 14s 0x544671c0853a7eab4028211eab6618a12c762bd2ac8ce3e27db4a9af737ad5c1 {"bind_id":2,"listed":true}
+15:33:36 → list_dao
+15:33:49   OK ACCEPTED 12s 0xb35c1ef64f7df1c675ef8766bd63716e1f4a9ae4ffd078c98ee4875139ca3a84 {"dao_id":2,"ok":true}
+15:33:50 → read_execution
+15:34:07   OK ACCEPTED 16s 0xced49f00b2a6e98e662a0cf2f81cdc7d48dc3e8218945770893b01530439daee {"actions":1,"block":22102943,"exec_id":9,"safe_tx_hash":"0x9c2a2fc05793ce5cefabf6b417f4e454b8bb18a8edc7b324db868b9a9e0f49d0"}
+15:34:10 → read_proposal
+15:34:22   OK ACCEPTED 12s 0x9b0f11efb71028c3d6833bdb1d4efa97a4c4bb2f9a77018b724e29b7d1609d69 {"listed":true,"outcome":"PASSED","space":"paraswap-dao.eth","vote_id":9}
+15:34:25 → file_check
+15:34:38   OK ACCEPTED 14s 0x4773643134bf5e7fb2b73c4cc77a3892bacf4d479e58dbc141aaf1bc2cf654c6 {"check_id":9,"judge_deadline":1792337670,"ok":true}
+15:34:39 check #9
+15:34:41 → judge
+15:34:55   OK ACCEPTED 14s 0x968694f10b65fdbc7781d6ae1a1039804505e77d1fba4c902a2f22ad2f968331 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xb35fba26… on 2025-03-22 is named in the proposal of 2025-03-20."}
+15:34:56 → rule
+15:35:11   OK ACCEPTED 15s 0xe0f02abdd709e93586133ef201083650e2fa6ebcc35b8243863937276c6543a4 {"check_id":9,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+15:35:12 check #9 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xb35fba26… on 2025-03-22 is named in the proposal of 2025-03-20.
+
+=== seed 10/15: paraswap-dao.eth PIP-43 ParaTroopers grant
+15:35:14 → read_space
+15:35:31   OK ACCEPTED 17s 0x6210292b2c838da2d683e4536deab5564dcd9a9520ee7aa97fb97b7b8f80ffa3 {"bind_id":3,"listed":true}
+15:35:31 → list_dao
+15:35:58   OK ACCEPTED 27s 0xb2689d8c2a16ec4344d5769e3c75337a219eb57da250f5147d3323f77124d8f4 {"dao_id":3,"ok":true}
+15:36:01 → read_execution
+15:36:16   OK ACCEPTED 15s 0x5958e448649e3c1b41d81f800c74ac70c0b7f4bd0dd704f51f71942fac283c0d {"actions":1,"block":111847419,"exec_id":10,"safe_tx_hash":"0x84ed2d7858d6a9ffd44331c867a0d92b894f132935f2c0edae7588530015c335"}
+15:36:19 → read_proposal
+15:36:33   OK ACCEPTED 14s 0x0ea9cc24a0de85cd0537937003b7b8a0f292b1520163e9e81dd74e4633aeb9a3 {"listed":true,"outcome":"PASSED","space":"paraswap-dao.eth","vote_id":10}
+15:36:36 → file_check
+15:36:50   OK ACCEPTED 14s 0x8d9f34cee53c0bbeea2fd5e5fdb1a00a8b197f0b14ccc99feeba6e3e7fa41712 {"check_id":10,"judge_deadline":1792337802,"ok":true}
+15:36:51 check #10
+15:36:53 → judge
+15:37:08   OK ACCEPTED 15s 0xa04cbadf9c8c7de9cd5a2121fcb794e178b03342684dd96b3e4501e19c5fb57a {"overall":"UNCLEAR","round":0,"summary":"Execution 0x8a6a840a… on 2023-11-06 could not be fully matched to the proposal of 2023-10-31: 0 of 1 actions settled."}
+15:37:09 → rule
+15:37:27   OK ACCEPTED 18s 0xe7aa24598ad943a67afef4311dfa736a6bae346349b664c9b6674c93774cf589 {"check_id":10,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+15:37:28 check #10 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0x8a6a840a… on 2023-11-06 could not be fully matched to the proposal of 2023-10-31: 0 of 1 actions settled.
+
+=== seed 11/15: paraswap-dao.eth Gas refunds, epoch 35
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  pipeline exited 2 (attempt 1):  | Details: exec) | 15:38:35   FAILED ACCEPTED 12s 0x1275873b889ab48c1ab4e8e9a4127dcfde0d77e21e7e6e27682a64484cdc3744 REFUSED: RPC_UNREADABLE | 
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  pipeline exited 2 (attempt 2):  | Details: exec) | 15:38:54   FAILED ACCEPTED 12s 0xe57b44f7ceb03675057445cb79a51322b32a6c4ae8f9615b778b325ffdbb1b75 REFUSED: RPC_UNREADABLE | 
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  pipeline exited 2 (attempt 3):  | Details: exec) | 15:39:12   FAILED ACCEPTED 13s 0x88b21d4f9b9d694ca10387e7d22f6a6603be8ac982516e78134748560d6e3abd REFUSED: RPC_UNREADABLE | 
+
+=== seed 12/15: banklessvault.eth Season 9 seasonal funding
+15:39:16 → read_space
+15:39:31   OK ACCEPTED 16s 0xba26aa01e53ac70ddba1152edd7454ff0b2af4e056d4f32123842a7314c7952d {"bind_id":5,"listed":true}
+15:39:31 → list_dao
+15:39:45   OK ACCEPTED 14s 0x67c7b274b7cdadfc3509471602be1af5c44c1aae7d8739ff4e7edd1b89b542fe {"dao_id":5,"ok":true}
+15:40:01 → read_execution
+15:40:16   OK ACCEPTED 15s 0xe426dd79c8be12c5cf989b4a5c9dc431702cb5b1f1259874ca8d890a57714088 {"actions":2,"block":18171040,"exec_id":12,"safe_tx_hash":"0xfe183a9f42341967414d0d4f381d67652549e686ba3824e790432a9d08318208"}
+15:40:19 → read_proposal
+15:40:34   OK ACCEPTED 15s 0xda7681a7a1f3d007e3dc1884653971c1675cfdc5bbd96ed2ae740d37a26e993a {"listed":true,"outcome":"PASSED","space":"banklessvault.eth","vote_id":11}
+15:40:38 → file_check
+15:40:54   OK ACCEPTED 15s 0xdc63fd8631da14274fc990e57ff719b30522faa9211fcd70ccc2ecec53464958 {"check_id":11,"judge_deadline":1792338046,"ok":true}
+15:40:55 check #11
+15:40:57 → judge
+15:41:12   OK ACCEPTED 15s 0x467ec3953ccbf323984ebe5fbe9601ae3b359e5ebee9e67d5fa3dda18a1ff698 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xb204790c… on 2023-09-19 is named in the proposal of 2023-08-29."}
+15:41:13 → rule
+15:41:39   OK ACCEPTED 26s 0x1149e090500aecc85d40ae8ff9eadcbdca2c8bf89bca42972e1103d0dbbc491a {"check_id":11,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+15:41:40 check #11 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xb204790c… on 2023-09-19 is named in the proposal of 2023-08-29.
+
+=== seed 13/15: morpho.eth MIP79 Credit Guild acqui-hire
+15:41:43 → read_space
+15:41:57   OK ACCEPTED 14s 0xab0d6b5cbec4fd8c5592801d55f84550f579f3f785bcfc12afc397e5cf85e003 {"bind_id":6,"listed":true}
+15:41:57 → list_dao
+15:45:30   OK ACCEPTED 213s 0x0a897d46df4c0ae47b84c30284441aa9f145c1d3a242e7cc3a3697b3e189e9a2 {"dao_id":6,"ok":true}
+15:45:32 → read_execution
+15:45:48   OK ACCEPTED 16s 0xb0b8e388bd3ed129358797b04dfcdb56758c1e6c93ababf5d6c6d6f1549fb758 {"actions":1,"block":21292309,"exec_id":13,"safe_tx_hash":"0x913aa66aac3a8b12b3a8bbb5d0ed4fad67c66f1e7208c0619545ffdb0a3a567d"}
+15:45:51 → read_proposal
+15:46:08   OK ACCEPTED 17s 0x11e936b59fc238a6f4215e8ecb831b87f6cf6d4fb5dca6abe9d21446bb43e213 {"listed":true,"outcome":"PASSED","space":"morpho.eth","vote_id":12}
+15:46:11 → file_check
+15:46:25   OK ACCEPTED 14s 0x25b1eba33171ad81afc28ef9784ebf835acf1b3e80fc7701629b8d529bd3b70a {"check_id":12,"judge_deadline":1792338377,"ok":true}
+15:46:26 check #12
+15:46:28 → judge
+15:46:42   OK ACCEPTED 15s 0xaa21969d75f5ae6e731f8c51d614b3ba0b0d8e3f75abf4ad9296b04a1fd911af {"overall":"UNCLEAR","round":0,"summary":"Execution 0xc2e1137c… on 2024-11-29 could not be fully matched to the proposal of 2024-11-15: 0 of 1 actions settled."}
+15:46:43 → rule
+15:46:59   OK ACCEPTED 16s 0xc577930074d95868db45eff8be7194e2f021181e5410e0f7c67a85c7389e2bad {"check_id":12,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+15:47:02 check #12 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0xc2e1137c… on 2024-11-29 could not be fully matched to the proposal of 2024-11-15: 0 of 1 actions settled.
+
+=== seed 14/15: safe.eth SEP #22 unpause SAFE token (later module call)
+15:47:04 → read_space
+15:47:18   OK ACCEPTED 13s 0x325a43c09ad39139ade52c083d1b22ef7d55da07906d9151aceee90b2e426c8e {"bind_id":7,"listed":true}
+15:47:18 → list_dao
+15:47:32   OK ACCEPTED 14s 0x10b3bda65eb41362ada081a076e740b446e81d0b4ef1f5e06a0087f37b42f1a9 {"dao_id":7,"ok":true}
+15:47:37 → read_execution
+15:47:53   OK ACCEPTED 16s 0x3b0347219fc613d9861de1732d5a0cc3a57a9f13cba5339b78c3db204fc1c21d {"actions":1,"block":21336506,"exec_id":14,"safe_tx_hash":"0x90be3e86a67f6c7ac31e18f2d729c19c4790b43388c4b47daa9c50d161836274"}
+15:47:56 → read_proposal
+15:48:12   OK ACCEPTED 16s 0x69e02e91cba3d5b0a00e14f1ee3b51fcda27de86fc7207eb92134c8c554c2804 {"listed":true,"outcome":"PASSED","space":"safe.eth","vote_id":13}
+15:48:16 → file_check
+15:48:33   OK ACCEPTED 17s 0xb8859a32da712462e7c2a058d9e93aa8cbe94a4f3f63c35e113216a636301cbf {"check_id":13,"judge_deadline":1792338505,"ok":true}
+15:48:34 check #13
+15:48:36 → judge
+15:48:54   OK ACCEPTED 18s 0xaa264dd760636a3dea9b17f665cdcbe3c8e100908ac90f1cc758223f9ca7acdd {"overall":"DEVIATES","round":0,"summary":"Execution 0x59a5c685… on 2024-12-05 includes an action the proposal of 2024-04-15 does not mention."}
+15:48:55 → rule
+15:49:11   OK ACCEPTED 15s 0x029afde765b13acb770b0b0107585aac77a4b54511acdb338278165547f3f9d8 {"check_id":13,"ok":true,"ruling":"DEVIATES","status":"CONTESTABLE"}
+15:49:12 check #13 CONTESTABLE ruling=DEVIATES final=- :: Execution 0x59a5c685… on 2024-12-05 includes an action the proposal of 2024-04-15 does not mention.
+
+=== seed 15/15: krausehouse.eth 2nd Annual Krause House x Guatemala tournament
+GenLayer RPC error (gen_call): The GenLayer RPC did not respond within 45s.
+file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/buildRequest.js:53
+                        throw new InternalRpcError(err);
+                              ^
+
+InternalRpcError: An internal error was received.
+
+Details: The GenLayer RPC did not respond within 45s.
+Version: viem@2.57.7
+    at withRetry.delay.count.count (file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/buildRequest.js:53:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async attemptRetry (file:///Users/kenilvakariya/dev/asvoted/test/node_modules/viem/_esm/utils/promise/withRetry.js:24:30) {
+  details: 'The GenLayer RPC did not respond within 45s.',
+  docsPath: undefined,
+  metaMessages: undefined,
+  shortMessage: 'An internal error was received.',
+  version: '2.57.7',
+  code: -32603,
+  [cause]: {
+    code: -32603,
+    message: 'The GenLayer RPC did not respond within 45s.',
+    data: { cause: 'The operation was aborted due to timeout' }
+  }
+}
+
+Node.js v22.22.2
+  pipeline exited 1 (attempt 1): 15:50:04 execution #15 | 15:50:06 → read_proposal | 15:50:22   OK ACCEPTED 16s 0xcb8c62532edadcd1fd1b4e6442824243803ea44645432f6d871fbb152e77a1ab {"listed":true,"outcome":"UNCLEAR","space":"krausehouse.eth","vote_id":14} | 
+15:51:45 → file_check
+15:51:59   OK ACCEPTED 14s 0x73208043a030809980c963f44372f846d8d9f2ede9549e06e966af2a5c0de993 {"check_id":14,"judge_deadline":1792338711,"ok":true}
+15:52:00 check #14
+15:52:02 → judge
+15:52:17   OK ACCEPTED 15s 0xc88606a2ffd2d738aeb55ff4a7fcbc6052de6757fa50be4142b1e046be862a42 {"overall":"UNCLEAR","round":0,"summary":"Execution 0x06a19d45… on 2023-08-16 could not be matched: whether the proposal of 2023-07-30 passed is not something the contract can compute from its voting type and scores."}
+15:52:18 → rule
+15:52:33   OK ACCEPTED 15s 0x918f5bc57a0f1a2b44b459ec38daeb28df238fca42543dbc1a85606c63a17a98 {"check_id":14,"ok":true,"ruling":"UNCLEAR","status":"FINAL"}
+15:52:34 check #14 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0x06a19d45… on 2023-08-16 could not be matched: whether the proposal of 2023-07-30 passed is not something the contract can compute from its voting type and scores.
+
+done
+exit 0
+
+=== seed 11/15: paraswap-dao.eth Gas refunds, epoch 35
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+15:52:50 → read_proposal
+15:53:02   OK ACCEPTED 13s 0xada2666dbf9d0326b25e95b752b6f764721925d4aaf1061bb787e2618bfd0699 {"listed":true,"outcome":"PASSED","space":"paraswap-dao.eth","vote_id":15}
+15:53:05 → file_check
+15:53:19   OK ACCEPTED 14s 0xf8f618c77f9922142ee5742036118351e63fdf769cba0c964f24a2bc343ec7f3 {"check_id":15,"judge_deadline":1792338791,"ok":true}
+15:53:22 check #15
+15:53:26 → judge
+15:53:41   OK ACCEPTED 16s 0x0b78e5d8d271799fe9cdffb3b297b09e7cd042c83b12ccb9532006165522b3f1 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xea8e4391… on 2025-10-10 is named in the proposal of 2025-10-09."}
+15:53:44 → rule
+15:53:59   OK ACCEPTED 15s 0xa44a2aadff7e4a4307c85dda3aa7d65457b744508071cfd03bfa7cf852833d14 {"check_id":15,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+15:54:01 check #15 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xea8e4391… on 2025-10-10 is named in the proposal of 2025-10-09.
+
+=== seed 12/15: banklessvault.eth Season 9 seasonal funding
+15:54:04 check #11
+15:54:05 check #11 CONTESTABLE ruling=AS_VOTED final=- :: Every action in execution 0xb204790c… on 2023-09-19 is named in the proposal of 2023-08-29.
+
+=== seed 13/15: morpho.eth MIP79 Credit Guild acqui-hire
+15:54:09 check #12
+15:54:10 check #12 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0xc2e1137c… on 2024-11-29 could not be fully matched to the proposal of 2024-11-15: 0 of 1 actions settled.
+
+=== seed 14/15: safe.eth SEP #22 unpause SAFE token (later module call)
+15:54:13 check #13
+15:54:14 check #13 CONTESTABLE ruling=DEVIATES final=- :: Execution 0x59a5c685… on 2024-12-05 includes an action the proposal of 2024-04-15 does not mention.
+
+=== seed 15/15: krausehouse.eth 2nd Annual Krause House x Guatemala tournament
+15:54:17 check #14
+15:54:19 check #14 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0x06a19d45… on 2023-08-16 could not be matched: whether the proposal of 2023-07-30 passed is not something the contract can compute from its voting type and scores.
+
+done
