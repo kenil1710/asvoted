@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600"><rect width="1600" height="600" fill="#0A1F47"/><g transform="translate(112,60) scale(0.4688)">
+  <rect x="192" y="192" width="640" height="640" rx="150" fill="#12306B"/>
+  <rect x="216" y="216" width="592" height="592" rx="128" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+  <g transform="translate(512,512) scale(0.8) translate(-520,-506)"><g transform="translate(-36,-40)">
+    <path d="M330 545 L450 665 L625 490 L700 490" fill="none" stroke="#2BF08A" stroke-width="92" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M668 392 L818 490 L668 588 Z" fill="#2BF08A" stroke="#2BF08A" stroke-width="20" stroke-linejoin="round"/>
+  </g></g>
+</g><text x="572" y="372" font-family="Avenir Next" font-weight="700" font-size="200" letter-spacing="2" fill="#FFFFFF">AsVoted</text></svg>
