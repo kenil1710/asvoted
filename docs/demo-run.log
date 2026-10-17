@@ -1,3 +1,8 @@
+# CORRECTION (2026-10-17): the ledger lines below carry the contract's note "claim() posts a value transfer; on Studio Dev
+# those are queued and not delivered". That note was wrong. The transfers were not queued: Studio Dev recorded every claim's
+# transfer as skipped and refunded to the registry (message_value_effects.skipped). None of the 8 claims below paid anyone,
+# and eth_getBalance of 0x65dB1CD4b79Bc87e5d6dbA315ea8F4239eAea028 is still 13100000000000000002.
+# Cause and fix: docs/research/PAYOUT_PROBE.md.
 13:52:23 → filer list_dao ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
 13:52:38   OK ACCEPTED 14s 0x5c467d26b03c246b83895a0e44649c8efc7d1118ad15eede10aff3c0b6652077 {"dao_id":1,"ok":true}
 13:52:44 → filer read_space ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]

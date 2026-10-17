@@ -11,6 +11,7 @@ const require = createRequire(new URL("../test/package.json", import.meta.url));
 const { createClient } = require("genlayer-js");
 const { studioDevnet } = require("genlayer-js/chains");
 const root = new URL("..", import.meta.url).pathname;
+const { balanceOf, getTx, transferProof, netFee } = await import("./payouts.mjs");
 const SITE = "https://asvoted.vercel.app";
 const relay = process.env.STUDIO_RPC;
 const chain = relay ? { ...studioDevnet, rpcUrls: { ...studioDevnet.rpcUrls, default: { ...studioDevnet.rpcUrls.default, http: [relay] } } } : studioDevnet;
@@ -54,8 +55,33 @@ const R = dep.AsVotedRegistry.address, RD = dep.AsVotedRegistryDemo.address;
 const L = await view(R, "get_ledger"), LD = await view(RD, "get_ledger");
 check("Ledger invariant holds on both registries (counters and recomputation)", L.invariant_holds && LD.invariant_holds && L.views_match_storage && LD.views_match_storage,
   `canonical received ${L.received} = pledges ${L.pledges} + open ${L.open} + claimable ${L.claimable} + claimed ${L.claimed}; demo received ${LD.received} = ${LD.pledges} + ${LD.open} + ${LD.claimable} + ${LD.claimed}`);
-check("Demo registry drained to exactly 0 held", LD.held_now === "0" && LD.pledges === "0" && LD.open === "0" && LD.claimable === "0",
-  `demo held_now ${LD.held_now}, claimed ${LD.claimed}, on-chain balance ${LD.on_chain_balance} (Studio Dev queues claim transfers; see README)`);
+// 2b money on chain: eth_getBalance, not the contract's own books
+const BAL = { canonical: await balanceOf(R), demo: await balanceOf(RD) };
+check("Each registry's eth_getBalance equals what its books hold (every claimed wei has left)",
+  BAL.canonical === BigInt(L.held_now) && BAL.demo === BigInt(LD.held_now),
+  `canonical ${R}: eth_getBalance ${BAL.canonical}, held_now ${L.held_now}, claimed ${L.claimed}\ndemo ${RD}: eth_getBalance ${BAL.demo}, held_now ${LD.held_now}, claimed ${LD.claimed}`);
+check("Demo registry drained: eth_getBalance is 0 and the books hold 0", BAL.demo === 0n && LD.held_now === "0" && LD.pledges === "0" && LD.open === "0" && LD.claimable === "0",
+  `demo eth_getBalance ${BAL.demo}; held_now ${LD.held_now}, pledges ${LD.pledges}, open ${LD.open}, claimable ${LD.claimable}`);
+{
+  const sd = existsSync(root + "docs/seed-demo.json") ? JSON.parse(readFileSync(root + "docs/seed-demo.json", "utf8")) : {};
+  const payouts = sd.registry === RD ? sd.payouts ?? [] : [];
+  const lines = [];
+  let ok = payouts.length > 0, total = 0n;
+  for (const p of payouts) {
+    const tx = await getTx(p.tx).catch(() => null);
+    const pr = transferProof(tx, p.to, BigInt(p.amount));
+    const fee = netFee(tx);
+    const arith = BigInt(p.after) - BigInt(p.before) === BigInt(p.amount) - fee;
+    const toReg = String(tx?.to_address ?? "").toLowerCase() === RD.toLowerCase() && String(tx?.from_address ?? "").toLowerCase() === p.to;
+    const good = pr.ok && arith && toReg;
+    ok &&= good;
+    total += BigInt(p.amount);
+    lines.push(`${good ? "ARRIVED" : "NOT ARRIVED"} ${p.tx} claim by ${p.to}: ${p.amount} wei; balance ${p.before} -> ${p.after} (= +${p.amount} - fee ${fee}: ${arith ? "exact" : "MISMATCH"})${pr.reasons.length ? "; " + pr.reasons.join("; ") : ""}`);
+  }
+  ok &&= total === BigInt(LD.claimed);
+  check("Every demo payout arrived at its recipient (claim FINALIZED, external transfer executed, none skipped, recipient eth_getBalance moved by exactly amount - fee)", ok,
+    `${payouts.length} payouts, ${total} wei = demo claimed ${LD.claimed}\n` + lines.join("\n"));
+}
 // 3 nothing stuck
 {
   const stuck = [];
@@ -135,7 +161,7 @@ check("Disagreement behaviour documented exactly as on chain", t.status === 0 &&
 // 11 README sections
 {
   const r = readFileSync(root + "README.md", "utf8");
-  const need = ["What the model is never allowed to decide", "Known limitations", "How a reviewer can test", "Studio Dev value transfers"];
+  const need = ["What the model is never allowed to decide", "Known limitations", "How a reviewer can test", "Payouts on chain"];
   const missing = need.filter((s) => !r.includes(s));
   const loud = ["guaranteed", "100%", " stole", "fraud", "malicious"].filter((w) => r.toLowerCase().includes(w.toLowerCase()));
   check("README: required sections, neutral wording, no guaranteed/100%", missing.length === 0 && loud.length === 0, `missing: ${missing.join(",") || "none"}; flagged words: ${loud.join(",") || "none"}`);

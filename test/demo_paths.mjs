@@ -15,13 +15,17 @@
  *   consumer   GrantGateDemo before / after a final DEVIATES on a recent execution (standing dates a
  *              deviation by when the execution ran): CoW Treasury's 200,000 BAL transfer of 2026-10-15,
  *              filed against CIP-69, which does not name the recipient
- *   drain      controller withdraws the pledge, everyone claims; held_now == 0
+ *   drain      controller withdraws the pledge, everyone claims; each claim must
+ *              finalize with an external transfer that lands on the claimer
+ *              (eth_getBalance before/after), and the registry's own
+ *              eth_getBalance must reach 0
  *
  *   node demo_paths.mjs [--from=step]
  * Writes docs/demo-run.log (stdout) and docs/seed-demo.json.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { connect, accounts, argOf, returnedJson, sleep } from "./harness.mjs";
+import { balanceOf, provenClaim } from "../tools/payouts.mjs";
 
 const dep = JSON.parse(readFileSync(new URL("../deployments.json", import.meta.url), "utf8")).contracts;
 const A = { er: dep.ExecReader.address, vr: dep.VoteReader.address, jg: dep.AsVotedJudge.address, rg: dep.AsVotedRegistryDemo.address, gate: dep.GrantGateDemo.address };
@@ -272,14 +276,25 @@ for (const id of [cow, treas]) {
   const d = await v("rg", "get_dao", [id]);
   if (BigInt(d.withdraw_amount) > 0n) { await waitPast(d.withdraw_executable_at || d.withdraw_at, `dao #${id} withdrawal delay and late window`); await w("filer", "rg", "execute_withdrawal", [id]); }
 }
+const payouts = [];
+const rgBefore = await balanceOf(A.rg);
+log(`registry eth_getBalance before claims: ${rgBefore}`);
 for (const role of ["filer", "filer2", "dao", "appellant"]) {
-  const cl = await v("rg", "claimable_of", [who(role)]);
-  if (BigInt(cl.claimable) > 0n) await w(role, "rg", "claim", []);
+  const owed = BigInt((await v("rg", "claimable_of", [who(role)])).claimable);
+  if (owed === 0n) continue;
+  log(`→ ${role} claim [] (owed ${owed})`);
+  const p = await provenClaim(C[role].rg.send, who(role), owed);
+  payouts.push({ role, ...p });
+  log(`  ${p.ok ? "ARRIVED" : "NOT ARRIVED"} ${p.status} ${p.tx} ${p.to} before ${p.before} after ${p.after} (+${p.amount} - fee ${p.fee}) ${p.reasons.join("; ")}`);
+  expect(`payout to ${role} arrived on chain (${owed} wei)`, p.ok, `tx ${p.tx}: ${p.to} ${p.before} -> ${p.after}`);
 }
 const L = await v("rg", "get_ledger");
+const rgAfter = await balanceOf(A.rg);
+log(`registry eth_getBalance after claims: ${rgAfter}`);
 expect("ledger invariant holds", L.invariant_holds === true && L.views_match_storage === true, JSON.stringify(L));
-expect("demo drains to exactly 0 held (pledges, open stakes, claimable)", L.held_now === "0" && L.claimable === "0" && L.pledges === "0" && L.open === "0", `held_now ${L.held_now}`);
+expect("registry balance fell by exactly the total paid out", rgBefore - rgAfter === payouts.reduce((s, p) => s + BigInt(p.amount), 0n), `${rgBefore} -> ${rgAfter}`);
+expect("demo drained: books hold 0 and eth_getBalance of the registry is 0", L.held_now === "0" && L.claimable === "0" && L.pledges === "0" && L.open === "0" && rgAfter === 0n, `held_now ${L.held_now}, eth_getBalance ${rgAfter}`);
 const stats = await v("rg", "get_stats");
-writeFileSync(new URL("../docs/seed-demo.json", import.meta.url), JSON.stringify({ registry: A.rg, checks: D, results, ledger: L, stats,
+writeFileSync(new URL("../docs/seed-demo.json", import.meta.url), JSON.stringify({ registry: A.rg, checks: D, results, ledger: L, registry_balance: { before_claims: String(rgBefore), after_claims: String(rgAfter) }, payouts, stats,
   final: Object.fromEntries(Object.entries(R).map(([k, c]) => [k, { check_id: c.check_id, ruling: c.ruling, appeal_ruling: c.appeal_ruling, final: c.final_verdict, how: c.final_how, summary: c.appeal_summary || c.ruling_summary, settlement: c.settlement }])) }, null, 2) + "\n");
 log(`\n${results.filter((r) => r.ok).length}/${results.length} demo expectations passed`);

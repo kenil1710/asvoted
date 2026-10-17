@@ -108,6 +108,12 @@ Economics of a wrong pairing:
 - **Identity:** a DAO is the pair (Snapshot space, Safe on a chain); `DaoStanding.is_executing_as_voted_for(space, chain, safe, at)` answers by that pair. A listing is **verified** only when the Safe itself owns the space's ENS name (through the NameWrapper when wrapped), so changing the name takes the Safe's own threshold of signers and no single signer can earn the badge. The site shows the badge.
 - Ledger invariant `received == pledges + open stakes and bonds + claimable + claimed`, kept as counters and recomputed from records in `get_ledger`.
 
+### Payouts on chain
+
+Every payout (refunds, bounties, bonds, pledge withdrawals) is credited to a pull balance, and `claim()` is the only way GEN leaves. It pays through `_pay`, the single send site: an external transfer (`EthSend`, via a `gl.evm` interface handle) to the claimer. The call reverts, and nothing is marked paid, if the amount is 0, the address is zero or the contract's balance is short.
+
+Earlier deployments used `gl.chain.Account(who).emit_transfer(...)`. That posts an internal message, which only an Intelligent Contract can receive, so for an EOA Studio Dev skipped it and refunded the value to the registry. None of those claims paid anyone, and the old registries still hold that GEN (docs/superseded/). The probe that found this and tested the fix is in [docs/research/PAYOUT_PROBE.md](docs/research/PAYOUT_PROBE.md). With the fix, a registry's `eth_getBalance` equals its `held_now`. `tools/final_check.mjs` checks that on both registries, re-checks every demo claim on chain (FINALIZED, external transfer executed, none skipped, recipient `eth_getBalance` up by exactly amount minus the claim's fee), and counts the demo as drained only when the registry's `eth_getBalance` is 0.
+
 ## How a reviewer can test
 
 1. **Read a real verdict.** Open https://asvoted.vercel.app, pick any check. Left: the proposal as voted, CID-pinned, with the quoted lines highlighted. Right: every decoded action with its chip. Click the tx and block links to see the same execution on Etherscan / Basescan / Optimistic Etherscan.
@@ -149,7 +155,7 @@ What is left can't be fixed on Studio Dev, or is a deliberate choice:
 - **A link's target counts as naming an address; numbers inside it don't.** *By design:* the target is part of what voters read (on hover, in the raw text, behind every explorer link). HTML comments are dropped because Markdown never shows them.
 - **The filer chooses the proposal.** *By design:* one check per execution. A wrong pairing is corrected by the DAO's appeal naming the right proposal (demo check #12). On an unclaimed listing the DAO must claim it first (an admin of the space), which it can do within the window even after a stranger has appealed. Only the DAO's controller may name another proposal, and only when answering a DEVIATES.
 - **ENS names for Polygon-voting spaces are not resolved.** *Can't fix cheaply:* a Polygon block carries no Ethereum block number, so the vote's snapshot can't be placed on Ethereum. Such names never count as naming anyone, and an address they might name is UNCLEAR rather than NOT_AUTHORIZED.
-- **Studio Dev value transfers.** *Can't fix:* `claim()` posts the transfer, but Studio Dev queues it and never delivers it, so a registry's on-chain balance stays above what it holds by up to the claimed total. The books (`held_now`) are what drain to zero.
+- **Old deployments hold stuck GEN.** *Can't fix:* the registries before this one paid with an internal message that Studio Dev skips for an EOA (see Payouts on chain). Their claims are marked paid in their books, but the GEN never left those contracts, and no method can send it now.
 - **Demo control seam and short demo windows.** *By design:* this project controls no Safe or Snapshot space, so the demo registry lets one test address claim listings and uses 90 s windows. The canonical registry has neither.
 - **Public RPCs and gateways can be down.** *By design:* a read is then refused, never guessed, and anyone can retry.
 
