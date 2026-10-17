@@ -6,7 +6,11 @@ before:
   * TreeMap[key] on a missing key RAISES KeyError; `.get()` answers None for
     struct maps and the zero value for scalar maps.
   * Structs read out of a TreeMap are REFERENCES: mutating them mutates storage.
-  * Only gl.chain.Account(...).emit_transfer moves value.
+  * Value moves like it does on Studio Dev (docs/research/PAYOUT_PROBE.md):
+    an EVM-interface emit_transfer (external EthSend) DELIVERS to any address;
+    gl.chain.Account / get_at(...).emit_transfer (internal PostMessage) reaches
+    only a deployed Intelligent Contract, and to anything else it is SKIPPED
+    and the value stays with the sender.
   * A consensus round runs the leader, then a validator on gl.vm.Return. A round
     that does not settle raises _Rolled and World.call restores the contract as
     it was before the call: an UNDETERMINED transaction commits NOTHING.
@@ -211,8 +215,22 @@ class _Contract:
         raise AttributeError(name)
 
 
-TRANSFERS = []
+TRANSFERS = []          # delivered: (to, wei); World.call debits the sender
+SKIPPED = []            # internal messages to a non-contract: (to, wei), nothing moves
+EXTERNAL = []           # the delivered transfers that went out as EthSend
 BALANCES = {}
+IC_ADDRESSES = set()    # filled by World.deploy
+
+
+def _internal_transfer(address, value):
+    if int(value) <= 0:
+        raise ValueError("value must be greater than 0 for emit_transfer")
+    key = str(address)
+    if key not in IC_ADDRESSES:
+        SKIPPED.append((key, int(value)))
+        return
+    TRANSFERS.append((key, int(value)))
+    BALANCES[key] = BALANCES.get(key, 0) + int(value)
 
 
 class _Proxy:
@@ -234,24 +252,15 @@ class _Proxy:
         return None
 
     def emit_transfer(self, value, **_k):
-        if int(value) <= 0:
-            raise ValueError("value must be greater than 0 for emit_transfer")
-        key = str(self.address)
-        TRANSFERS.append((key, int(value)))
-        BALANCES[key] = BALANCES.get(key, 0) + int(value)
+        _internal_transfer(self.address, value)
 
 
 class _Account:
-    """gl.chain.Account - the wrapper the SDK documents for ANY on-chain
-    account, contract or EOA.
-
-    Its `emit_transfer` DELIVERS here. That is a deliberate difference from the
-    network the contract is deployed on: Studio Dev queues an `on="finalized"`
-    value transfer and never executes it, which is a property of that network
-    and not of this contract. This suite models the INTENDED semantics so the
-    money invariants can be proved end to end; `test/seed.mjs` asserts the other
-    half on chain - that the call posts a well-formed queued transfer to the
-    right address for the right amount. Neither check is sufficient alone."""
+    """gl.chain.Account. Its emit_transfer is get_at(...).emit_transfer: an
+    internal PostMessage. To an EOA that is skipped on chain and the value is
+    refunded to the sender, so here it moves nothing (stub.SKIPPED). This stub
+    once delivered it, and every claim on the old deployments was skipped
+    while this suite passed."""
 
     def __init__(self, address):
         self.address = address
@@ -261,11 +270,7 @@ class _Account:
         return BALANCES.get(str(self.address), 0)
 
     def emit_transfer(self, value, **_k):
-        if int(value) <= 0:
-            raise ValueError("value must be greater than 0 for emit_transfer")
-        key = str(self.address)
-        TRANSFERS.append((key, int(value)))
-        BALANCES[key] = BALANCES.get(key, 0) + int(value)
+        _internal_transfer(self.address, value)
 
 
 def _proxy_for(address):
@@ -278,8 +283,24 @@ def _contract_interface(cls):
 
 def _evm_contract_interface(cls):
     class _Handle:
+        """An EVM-interface handle. emit_transfer is an external EthSend, the
+        message that delivers to an EOA on Studio Dev."""
         def __init__(self, to):
+            if not isinstance(to, _Addr):
+                raise TypeError("address expected")
             self.to = to
+
+        @property
+        def address(self):
+            return self.to
+
+        def emit_transfer(self, *, value=0, **_k):
+            if int(value) <= 0:
+                raise ValueError("value must be greater than 0 for emit_transfer")
+            key = str(self.to)
+            TRANSFERS.append((key, int(value)))
+            EXTERNAL.append((key, int(value)))
+            BALANCES[key] = BALANCES.get(key, 0) + int(value)
     return _Handle
 
 

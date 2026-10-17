@@ -201,6 +201,7 @@ export interface Ledger {
   views_match_storage: boolean | null;
   on_chain_balance: string;
   balance_minus_held: string;
+  balance_matches_held: boolean;
   note: string;
 }
 

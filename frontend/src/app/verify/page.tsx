@@ -49,9 +49,10 @@ export default function VerifyPage() {
           <dt className="text-ink-3">Invariant</dt><dd className={l.invariant_holds ? "font-semibold text-ok" : "font-semibold text-dev"}>{l.invariant_holds ? "holds" : "broken"}</dd>
           <dt className="text-ink-3">Recomputed from records</dt><dd className={l.views_match_storage ? "text-ok" : "text-dev"}>{l.views_match_storage === null ? "paged" : l.views_match_storage ? "matches" : "differs"}</dd>
           <dt className="text-ink-3">Contract balance</dt><dd>{formatGen(l.on_chain_balance)} GEN</dd>
+          <dt className="text-ink-3">Balance = held now</dt><dd className={l.balance_matches_held ? "font-semibold text-ok" : "font-semibold text-dev"}>{l.balance_matches_held ? "yes" : "no"}</dd>
         </dl>
       )}
-      <p className="mt-2 text-xs text-ink-3">received = pledges + open + claimable + claimed. On Studio Dev a claim&apos;s transfer is queued and not delivered, so the balance can exceed what is held by up to the claimed total.</p>
+      <p className="mt-2 text-xs text-ink-3">received = pledges + open + claimable + claimed. A claim sends its GEN out of the contract to the claimer, so the contract balance equals what is held now.</p>
     </div>
   );
   return (

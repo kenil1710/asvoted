@@ -62,6 +62,10 @@ import typing
 #   3. Every state has a deadline and a permissionless exit.
 #   4. No owner, no admin, no setter. Addresses and windows are fixed at
 #      deployment.
+#   5. Money leaves only through claim() -> _pay(): an external EthSend
+#      (gl.evm interface emit_transfer). gl.chain.Account(...).emit_transfer
+#      posts an internal message that an EOA cannot receive; Studio Dev skips
+#      it and refunds the value to this contract (docs/research/PAYOUT_PROBE.md).
 
 VERSION = "1.0.0"
 
@@ -522,6 +526,17 @@ class Check:
     resp_json: str
     prior_all_json: str        # every other filing of the DAO that paid the same payees (any proposal)
     appeal_by_dao: bool        # round 1 was filed by the listing's controller
+
+
+@gl.evm.contract_interface
+class _Payee:
+    """Any chain-layer account. emit_transfer on this handle is an external
+    EthSend, the message that delivers value to an EOA."""
+    class View:
+        pass
+
+    class Write:
+        pass
 
 
 class AsVotedRegistry(gl.contract.Contract):
@@ -1440,21 +1455,35 @@ class AsVotedRegistry(gl.contract.Contract):
         self._bump("final:" + verdict)
         self._bump("how:" + how)
 
+    def _pay(self, who: str, amount: int) -> None:
+        """THE ONLY WAY MONEY LEAVES. Raises (so the whole call reverts and
+        nothing is marked paid) unless a well-formed external transfer of
+        exactly `amount` to `who` is issued."""
+        if amount <= 0:
+            raise gl.vm.UserError("REFUSED: PAY_NOTHING")
+        to = Address(who)
+        if to.as_hex.lower() == "0x" + "0" * 40:
+            raise gl.vm.UserError("REFUSED: PAY_ZERO_ADDRESS")
+        if int(self.balance) < amount:
+            raise gl.vm.UserError("REFUSED: BALANCE_SHORT_" + str(int(self.balance)) + "_OF_" + str(amount))
+        _Payee(to).emit_transfer(value=u256(amount))
+
     @gl.public.write
     def claim(self) -> typing.Any:
-        """Pull payment of everything credited to the caller. The balance is
-        zeroed before the transfer is posted."""
+        """Pull payment of everything credited to the caller. Every payout
+        path (refunds, bounties, bonds, pledge withdrawals) ends here. The
+        transfer is issued first; the books are marked paid only after it."""
         who = self._sender()
         owed = int(self.claimable.get(who, u256(0)))
         if owed <= 0:
             raise gl.vm.UserError("REFUSED: NOTHING_TO_CLAIM")
+        self._pay(who, owed)
         # --- writes
         self.claimable[who] = u256(0)
         self.claimable_total = u256(int(self.claimable_total) - owed)
         self.claimed[who] = u256(int(self.claimed.get(who, u256(0))) + owed)
         self.claimed_total = u256(int(self.claimed_total) + owed)
-        gl.chain.Account(Address(who)).emit_transfer(u256(owed))
-        return {"ok": True, "claimed": str(owed)}
+        return {"ok": True, "claimed": str(owed), "to": who}
 
     # --- views (storage only) -------------------------------------------------
 
@@ -1670,8 +1699,10 @@ class AsVotedRegistry(gl.contract.Contract):
                                          and r["claimable"] == int(self.claimable_total)
                                          and r["claimed"] == int(self.claimed_total)) if r is not None else None),
                 "on_chain_balance": str(bal), "balance_minus_held": str(bal - held),
-                "note": ("claim() posts a value transfer; on Studio Dev those are queued and not delivered, so "
-                         "on_chain_balance can exceed held_now by up to the claimed total.")}
+                "balance_matches_held": bal == held,
+                "note": ("claim() sends an external transfer that leaves this balance when the claim is "
+                         "executed, so on_chain_balance == held_now; final_check confirms each recipient's "
+                         "balance with eth_getBalance.")}
 
     @gl.public.view
     def get_ledger_page(self, offset: int, count: int) -> typing.Any:

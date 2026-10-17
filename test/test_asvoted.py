@@ -70,7 +70,35 @@ class Base(unittest.TestCase):
         self.assertTrue(L["invariant_holds"], L)
         self.assertTrue(L["views_match_storage"], L)
         self.assertEqual(int(L["on_chain_balance"]) - int(L["held_now"]), 0, L)
+        self.assertTrue(L["balance_matches_held"], L)
         return L
+
+    def assertPaysOut(self):
+        """Every payee claims; each claim must leave the registry as an
+        external transfer that lands on the payee, for exactly what was owed,
+        and leave the registry holding exactly held_now."""
+        D = self.D
+        inst = D.w.instances[D.rg]
+        payees = [str(p) for p in inst.payees]
+        self.assertTrue(payees, "no payout path was exercised")
+        paid = 0
+        for who in payees:
+            owed = int(D.view(D.rg, "claimable_of", who)["claimable"])
+            if owed == 0:
+                continue
+            before_to, before_rg, n_ext = stub.BALANCES.get(who, 0), D.balance(), len(stub.EXTERNAL)
+            r = D.call(D.rg, "claim", sender=who)
+            self.assertEqual(r, {"ok": True, "claimed": str(owed), "to": who})
+            self.assertEqual(stub.EXTERNAL[n_ext:], [(who, owed)])
+            self.assertEqual(stub.BALANCES.get(who, 0) - before_to, owed, who)
+            self.assertEqual(before_rg - D.balance(), owed, who)
+            paid += owed
+        self.assertGreater(paid, 0)
+        self.assertEqual(stub.SKIPPED, [])
+        L = self.assertLedger()
+        self.assertEqual(L["claimable"], "0")
+        self.assertEqual(D.balance(), int(L["held_now"]))
+        return paid
 
 
 # =============================================================================
@@ -547,6 +575,7 @@ class TestRegistry(Base):
         self.assertEqual((c["final_verdict"], c["slash"], c["bounty_to"]), ("DEVIATES", str(10 * GEN * 2500 // 10000), FILER))
         self.assertEqual(self.D.view(self.D.rg, "claimable_of", FILER)["claimable"], str(STAKE + 25 * GEN // 10))
         self.assertLedger()
+        self.assertPaysOut()
 
     def test_appeal_with_the_right_proposal_wins(self):
         self.pledge()
@@ -563,6 +592,7 @@ class TestRegistry(Base):
         self.assertEqual((c["appeal_ruling"], c["final_verdict"], c["final_how"]), ("AS_VOTED", "AS_VOTED", "APPEAL_RULED"))
         self.assertEqual(D.view(D.rg, "claimable_of", CONTROLLER)["claimable"], str(BOND))
         self.assertLedger()
+        self.assertPaysOut()
 
     def test_appeal_lost_bond_to_filer(self):
         self.pledge()
@@ -576,6 +606,7 @@ class TestRegistry(Base):
         self.assertEqual(c["final_verdict"], "DEVIATES")
         self.assertEqual(int(D.view(D.rg, "claimable_of", FILER)["claimable"]), STAKE + BOND + int(c["slash"]))
         self.assertLedger()
+        self.assertPaysOut()
 
     def test_appeal_rules(self):
         D = self.D
@@ -590,6 +621,7 @@ class TestRegistry(Base):
         self.assertEqual(D.call(D.rg, "appeal", cid, "a genuinely new argument about the recipient " * 2, 0,
                                 sender=STRANGER, value=BOND)["reason"], "CONTEST_WINDOW_CLOSED")
         self.assertLedger()
+        self.assertPaysOut()
 
     def test_expiries(self):
         D = self.D
@@ -611,6 +643,7 @@ class TestRegistry(Base):
         r = D.call(D.rg, "expire", cid2)
         self.assertEqual((r["final"], r["how"]), ("DEVIATES", "APPEAL_EXPIRED"))
         self.assertLedger()
+        self.assertPaysOut()
 
     def test_rule_needs_matching_evidence(self):
         D = self.D
@@ -641,14 +674,79 @@ class TestRegistry(Base):
             D.call(D.rg, "execute_withdrawal", self.dao, sender=STRANGER)
         D.w.advance(F.RG.MODES["DEMO"]["late"])
         D.call(D.rg, "execute_withdrawal", self.dao, sender=STRANGER)
-        D.call(D.rg, "claim", sender=CONTROLLER)
+        self.assertEqual(self.assertPaysOut(), 5 * GEN + STAKE)
         L = self.assertLedger()
-        self.assertEqual(L["held_now"], "0")
+        self.assertEqual((L["held_now"], L["on_chain_balance"]), ("0", "0"))
+        self.assertEqual(stub.BALANCES[CONTROLLER.lower()], 5 * GEN + STAKE)
 
     def test_canonical_refuses_demo_controllers(self):
         w = world.new_world()
         with self.assertRaisesRegex(stub._UserError, "CANONICAL takes no demo controllers"):
             w.deploy("AsVotedRegistry", "CANONICAL", F.addr(1), F.addr(2), F.addr(3), CONTROLLER)
+
+
+class TestPayouts(Base):
+    """Studio Dev skips an internal message to an EOA and refunds its value
+    (docs/research/PAYOUT_PROBE.md). A payout must be an external transfer."""
+
+    def test_claim_is_an_external_transfer_that_lands(self):
+        D = self.D
+        D.call(D.rg, "pledge", self.dao, sender=STRANGER, value=GEN)        # refused, credited
+        rg0 = D.balance()
+        self.assertEqual(rg0, GEN)
+        r = D.call(D.rg, "claim", sender=STRANGER)
+        self.assertEqual(r["to"], STRANGER.lower())
+        self.assertEqual(stub.EXTERNAL, [(STRANGER.lower(), GEN)])
+        self.assertEqual(stub.SKIPPED, [])
+        self.assertEqual(stub.BALANCES[STRANGER.lower()], GEN)
+        self.assertEqual(D.balance(), 0)
+        L = self.assertLedger()
+        self.assertEqual((L["claimed"], L["on_chain_balance"]), (str(GEN), "0"))
+
+    def test_the_old_internal_send_would_be_skipped(self):
+        """The call every earlier deployment used. Kept here so the stub can
+        never again report it as a delivery."""
+        to = stub._Addr(STRANGER)
+        stub._Account(to).emit_transfer(5)                                # gl.chain.Account
+        stub._proxy_for(to).emit_transfer(5)                              # gl.contract.get_at
+        self.assertEqual(stub.TRANSFERS, [])
+        self.assertTrue(stub.SKIPPED and all(x == (STRANGER.lower(), 5) for x in stub.SKIPPED))
+        self.assertEqual(stub.BALANCES.get(STRANGER.lower(), 0), 0)
+
+    def test_nothing_is_marked_paid_when_the_send_cannot_be_issued(self):
+        D = self.D
+        D.call(D.rg, "pledge", self.dao, sender=STRANGER, value=GEN)
+        D.w.instances[D.rg].balance = GEN - 1                               # short by one wei
+        with self.assertRaisesRegex(world.Reverted, "BALANCE_SHORT"):
+            D.call(D.rg, "claim", sender=STRANGER)
+        self.assertEqual(D.view(D.rg, "claimable_of", STRANGER)["claimable"], str(GEN))
+        L = D.ledger()
+        self.assertEqual((L["claimable"], L["claimed"]), (str(GEN), "0"))
+        self.assertEqual((stub.TRANSFERS, stub.EXTERNAL), ([], []))
+        D.w.instances[D.rg].balance = GEN
+        D.call(D.rg, "claim", sender=STRANGER)
+        self.assertEqual(stub.EXTERNAL, [(STRANGER.lower(), GEN)])
+
+    def test_one_send_site_and_it_is_external(self):
+        import ast
+        for f in sorted((ROOT / "contracts").glob("*.py")):
+            t = f.read_text()
+            tree = ast.parse(t)
+            sends = [n for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                     and n.func.attr in ("emit_transfer", "emit")]
+            self.assertNotIn("gl.chain.Account", [ast.unparse(n) for n in ast.walk(tree) if isinstance(n, ast.Attribute)], f.name)
+            if f.name != "AsVotedRegistry.py":
+                self.assertEqual(sends, [], f.name + " must not move value")
+                continue
+            self.assertEqual([ast.unparse(n) for n in sends], ["_Payee(to).emit_transfer(value=u256(amount))"])
+            pay = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "_pay"]
+            self.assertEqual(len(pay), 1)
+            self.assertIn(sends[0], list(ast.walk(pay[0])))
+            callers = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)
+                       and any(isinstance(c, ast.Call) and ast.unparse(c.func) == "self._pay" for c in ast.walk(n))]
+            self.assertEqual([c.name for c in callers], ["claim"])
+            iface = [n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "_Payee"]
+            self.assertEqual([ast.unparse(d) for d in iface[0].decorator_list], ["gl.evm.contract_interface"])
 
 
 class TestCanonical(Base):

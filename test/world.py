@@ -67,6 +67,7 @@ class World:
         inst = cls.__new__(cls)
         inst.balance = 0
         self.instances[address] = inst
+        stub.IC_ADDRESSES.add(address)
         self._msg(sender, 0, address)
         cls.__init__(inst, *args)
         return address
@@ -78,14 +79,19 @@ class World:
         gl.message.raw = {"datetime": self.now_iso}
 
     def _snapshot(self):
-        return {a: copy.deepcopy(i.__dict__) for a, i in self.instances.items()}, list(stub.TRANSFERS)
+        return ({a: copy.deepcopy(i.__dict__) for a, i in self.instances.items()}, list(stub.TRANSFERS),
+                list(stub.SKIPPED), list(stub.EXTERNAL), dict(stub.BALANCES))
 
     def _restore(self, snap):
-        state, transfers = snap
+        state, transfers, skipped, external, balances = snap
         for a, d in state.items():
             self.instances[a].__dict__.clear()
             self.instances[a].__dict__.update(d)
         stub.TRANSFERS[:] = transfers
+        stub.SKIPPED[:] = skipped
+        stub.EXTERNAL[:] = external
+        stub.BALANCES.clear()
+        stub.BALANCES.update(balances)
 
     def call(self, address, method, *args, sender="0x" + "a" * 40, value=0):
         inst = self.instances[address]

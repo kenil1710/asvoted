@@ -113,7 +113,7 @@ export function DaoView({ id }: { id: number }) {
             <p className="text-sm">Your claimable balance on this registry: <strong className="tabular">{mine.data ? formatGen(mine.data.claimable) : "…"} GEN</strong> (claimed so far {mine.data ? formatGen(mine.data.claimed) : "…"})</p>
             <Button variant="quiet" disabled={!mine.data || BigInt(mine.data.claimable) === 0n || tx.busy}
               onClick={() => void act("claim", [], 0n, async () => BigInt((await getClaimable(me)).claimable) === 0n)}>Claim payout</Button>
-            <span className="text-xs text-ink-3">On Studio Dev the transfer is posted but queued, not delivered.</span>
+            <span className="text-xs text-ink-3">The GEN is sent to your address when the claim finalizes.</span>
           </div>
         )}
         <TxStatus progress={tx.progress} />
