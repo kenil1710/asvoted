@@ -13,6 +13,9 @@
  *   DaoStanding x2 (30-day window), GrantGate x2
  *
  * --set=smoke writes to deployments.smoke.json instead (throwaway checks).
+ * --only=demo --commit=<sha> redeploys only the demo registry, standing and
+ * gate, from the bytes at <sha> (refused unless contracts/ is unchanged since
+ * <sha>), so every deployment still comes from that one commit.
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -25,7 +28,12 @@ const git = (...a) => execFileSync("git", ["-C", root, ...a]).toString();
 if (git("status", "--porcelain", "contracts").trim() !== "") {
   console.error("contracts/ has uncommitted changes; commit first"); process.exit(1);
 }
-const head = git("rev-parse", "HEAD").trim();
+const pinned = argOf("commit", null);
+const head = pinned ? git("rev-parse", pinned).trim() : git("rev-parse", "HEAD").trim();
+if (pinned && git("log", "--format=%H", `${head}..HEAD`, "--", "contracts").trim() !== "") {
+  console.error(`contracts/ changed since ${head}; cannot deploy from it`); process.exit(1);
+}
+const only = argOf("only", null);
 const set = argOf("set", "final");
 const chain = CHAINS.studiodev;
 const acc = accounts();
@@ -43,11 +51,12 @@ const sha = (b) => createHash("sha256").update(b).digest("hex");
 
 async function one(name, file, args, extra = {}) {
   const prev = doc.contracts[name];
-  if (prev?.commit === head && prev?.address && !process.argv.includes("--force")) {
+  const wanted = only !== "demo" || /Demo$/.test(name);
+  if (!wanted || (prev?.commit === head && prev?.address && !process.argv.includes("--force"))) {
     console.log(`${name} already deployed from HEAD at ${prev.address}`);
     return prev.address;
   }
-  const code = execFileSync("git", ["-C", root, "show", `HEAD:contracts/${file}.py`]);
+  const code = execFileSync("git", ["-C", root, "show", `${head}:contracts/${file}.py`]);
   console.log(`\n${name}  ${file}.py  args=${JSON.stringify(args)}  ${code.length} bytes  sha256 ${sha(code)}`);
   const res = await deploy({ chain, wallet, read, code: code.toString("utf8"), args, label: name });
   if (!res.ok) { console.error(`${name} FAILED`, res.out?.status, res.reason ?? "", res.out?.revertReason ?? "", res.out?.stderr?.slice(-2000) ?? ""); process.exit(1); }

@@ -10,7 +10,7 @@
  * external transfer of exactly the amount went to the recipient, and the
  * recipient's eth_getBalance moved by exactly amount - net fee of the claim.
  */
-const RPC = process.env.STUDIO_RPC || "https://studio-dev.genlayer.com/api";
+const RPC = process.env.STUDIO_READ_RPC || process.env.STUDIO_RPC || "https://studio-dev.genlayer.com/api";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function rpc(method, params) {

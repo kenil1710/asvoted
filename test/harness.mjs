@@ -29,6 +29,11 @@ const relay = process.env.STUDIO_RPC;
 export const CHAINS = {
   studiodev: relay ? { ...studioDevnet, rpcUrls: { ...studioDevnet.rpcUrls, default: { ...studioDevnet.rpcUrls.default, http: [relay] } } } : studioDevnet,
 };
+/** STUDIO_READ_RPC=<url> sends reads and polls elsewhere than writes, so the two draw on separate per-IP budgets. */
+const readRelay = process.env.STUDIO_READ_RPC;
+const READ_CHAINS = {
+  studiodev: readRelay ? { ...studioDevnet, rpcUrls: { ...studioDevnet.rpcUrls, default: { ...studioDevnet.rpcUrls.default, http: [readRelay] } } } : CHAINS.studiodev,
+};
 
 /** States that genuinely END a transaction. Not DECIDED_STATES — an
  *  UNDETERMINED transaction is finished as far as a caller is concerned even
@@ -373,7 +378,7 @@ export function connect({ networkName = argOf("network", "studiodev"), address, 
   if (!acc[role]?.key) throw new Error(`no key for role ${role} — run: node accounts.mjs`);
   const account = createAccount(acc[role].key);
   const wallet = createClient({ chain, account });
-  const read = createClient({ chain });
+  const read = createClient({ chain: READ_CHAINS[networkName] ?? chain });
   /**
    * How long to wait for a write to reach a terminal state.
    *
