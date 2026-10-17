@@ -170,6 +170,10 @@ if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "r
   expect("GrantGate carries out a request while the DAO is in good standing", g.r?.carried_out === true, JSON.stringify(g.r?.reasons));
 }
 
+// the proposal the winning appeal names, read before filing so judging starts inside every 600 s judge window
+const right = await freshVote(CID.cip37, COW);
+await namesAt(right, await execId("cip37"));
+
 // --- file everything
 D.asv = await file("filer", "cip30", "cip30", "demo: as voted");
 D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
@@ -191,14 +195,13 @@ log("checks", JSON.stringify(D));
 }
 
 // --- judge and rule; an appeal goes in right after its ruling (90 s window)
-const right = await freshVote(CID.cip37, COW);
-await namesAt(right, await execId("cip37"));
 const APPEAL = {
   won: ["dao", "This transfer of 6,000,000 COW to the Treasury Safe implements CIP-37, COW liquidity through programmatic orders, not CIP-30, the oSnap proposal it was filed against.", right],
   lost: ["dao", "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0],
   aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
 };
-for (const k of ["won", "lost", "aexp", "asv", "dev", "unc", "gate"]) {
+// in filing order, so each check is judged before its own judge deadline
+for (const k of ["asv", "dev", "won", "lost", "unc", "aexp", "gate"]) {
   let c = await v("rg", "get_check", [D[k]]);
   if (c.status === "PROVISIONAL") c = await judgeRule("filer", D[k]);
   if (APPEAL[k] && c.status === "CONTESTABLE") {
