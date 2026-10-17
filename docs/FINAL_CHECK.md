@@ -1,6 +1,6 @@
 # Final check
 
-Run 2026-10-17T22:03:44.719Z by `tools/final_check.mjs` against commit `6996a731fe`, the live site and Studio Dev. **19/25 PASS.**
+Run 2026-10-17T22:10:15.429Z by `tools/final_check.mjs` against commit `75815c0eec`, the live site and Studio Dev. **25/25 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
@@ -78,7 +78,7 @@ VoteReader.read_names_at                 first write L1439 self.names_at[key]   
 ## PASS · Views read storage only (no writes, no web/model calls in any view); get_ledger recomputation matches counters
 
 ```
-Ran 4 tests in 0.389s  OK
+Ran 4 tests in 0.392s  OK
 ```
 
 ## PASS · Evidence bound at filing to (chain, Safe, tx, proposal CID, block) and snapshotted (reader evidence hashes match every check)
@@ -105,10 +105,10 @@ Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mev
 8 canonical listings, each with a listed=true binding (bad: none); canonical demo_controllers = []; demo log: "claim by a non-admin is refused"
 ```
 
-## FAIL · All offline tests pass
+## PASS · All offline tests pass
 
 ```
-Ran 207 tests in 13.019s  FAILED (failures=1)
+Ran 207 tests in 13.056s  OK
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
@@ -117,25 +117,25 @@ Ran 207 tests in 13.019s  FAILED (failures=1)
 30/30 expectations passed (docs/demo-run.log)
 ```
 
-## FAIL · Partial or unreadable data refuses or is UNCLEAR, never a guess
+## PASS · Partial or unreadable data refuses or is UNCLEAR, never a guess
 
 ```
 tests: RPC disagreement, IPFS mismatch, hub mismatch, scores not final, unknown decimals, no amount stated, unsupported voting type, too deep, too many actions
 ```
 
-## FAIL · Replay / duplicate filings refused
+## PASS · Replay / duplicate filings refused
 
 ```
 test_duplicate_and_replay_refused, a40; demo: duplicate filing refused on chain
 ```
 
-## FAIL · What the model is never allowed to decide holds
+## PASS · What the model is never allowed to decide holds
 
 ```
 a60 (injection: nothing reaches the model when code settles), a61 (model sees only unsettled actions), overall/severity/money computed in code (finish, severity_of, _settle)
 ```
 
-## FAIL · Disagreement behaviour documented exactly as on chain
+## PASS · Disagreement behaviour documented exactly as on chain
 
 ```
 test_validator_disagreement_writes_nothing; test_leader_naming_an_old_block_is_rejected; README 'When validators disagree'
@@ -182,10 +182,10 @@ missing: none; flagged words: none
 / 375, /daos 375, /dao/1 375, /check/1 375, /check/7 375, /check/9 375, /check/11 375, /file 375, /patrol 375, /docs 375, /verify 375
 ```
 
-## FAIL · One set of addresses everywhere (deployments.json, site, ADDRESSES.md, SUBMISSION)
+## PASS · One set of addresses everywhere (deployments.json, site, ADDRESSES.md, SUBMISSION)
 
 ```
-missing: none; other addresses: 0x694E28e38D66C95E3A2138e5d22F8158939e21f8,0x7319257a270EE4D77A302f193Eff76878ec02BCa,0xC2aBc36E01DEab31C1F24A66A8D010Cd9F7F7dfF,0x4Ec22423528e64B4f1d41B7F647c0BD42464a30C,0x65dB1CD4b79Bc87e5d6dbA315ea8F4239eAea028,0xA74Bb08f0e497fc18138bF5383e5f65974eE3CCb,0x6EC6F4fABd87C7A7DCA24044ED011631106c408c,0x9848d38C85E1DFc8920c353124De3c82B519a62e,0x428727dF01a31202a66B2ED7d35F474Ba7B97C28
+missing: none; other addresses: none
 ```
 
 ## PASS · Vercel deployment live and green (site 200, patrol endpoint answers)
