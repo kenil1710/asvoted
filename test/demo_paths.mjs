@@ -76,7 +76,13 @@ async function freshVote(cid, safe) {
   let id = Number(await v("vr", "get_proposal_id", [cid, "ethereum", safe]));
   const p = id ? await v("vr", "get_proposal", [id]) : null;
   if (!p || now() - p.read_at > 3000) {
-    await w("filer", "vr", "read_proposal", [cid, "ethereum", safe]);
+    // an IPFS gateway or the hub failing inside GenVM is refused (RPC_UNREADABLE), never guessed: retry it
+    for (let i = 0; i < 4; i++) {
+      const out = await w("filer", "vr", "read_proposal", [cid, "ethereum", safe]);
+      if (out.ok || !/RPC_UNREADABLE/.test(out.revertReason ?? "")) break;
+      log(`  proposal unreadable (attempt ${i + 1}), retrying in 30s`);
+      await sleep(30_000);
+    }
     id = Number(await v("vr", "get_proposal_id", [cid, "ethereum", safe]));
   }
   return id;
