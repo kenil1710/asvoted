@@ -288,3 +288,11 @@ GenLayer RPC error (sim_estimateTransactionFees): execution failed
 15:54:19 check #14 FINAL ruling=UNCLEAR final=UNCLEAR :: Execution 0x06a19d45… on 2023-08-16 could not be matched: whether the proposal of 2023-07-30 passed is not something the contract can compute from its voting type and scores.
 
 done
+#3 finalize OK {"check_id":3,"final":"AS_VOTED","ok":true}
+#5 finalize OK {"check_id":5,"final":"AS_VOTED","ok":true}
+#6 finalize OK {"check_id":6,"final":"AS_VOTED","ok":true}
+#7 finalize OK {"check_id":7,"final":"DEVIATES","ok":true}
+#9 finalize OK {"check_id":9,"final":"AS_VOTED","ok":true}
+#11 finalize OK {"check_id":11,"final":"AS_VOTED","ok":true}
+#13 finalize OK {"check_id":13,"final":"DEVIATES","ok":true}
+#15 finalize OK {"check_id":15,"final":"AS_VOTED","ok":true}
