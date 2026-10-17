@@ -18,7 +18,7 @@ const steps = [
   "On the check page, judge and apply the ruling, then appeal within 90 seconds (only the DAO, answering a DEVIATES, may name another proposal) or finalize after it.",
   "Run the offline suite (cd test && python3 -m unittest test_asvoted test_attacks test_attacks_r2 test_attacks_r3 test_attacks_r4) and read docs/SEEDS.md and docs/FINAL_CHECK.md.",
 ];
-const verify = `All 9 contracts deployed from commit ${commit.slice(0, 7)}; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: ${seeds.checks.length} real seeds, ${nFinal === seeds.checks.length ? "all final" : "all ruled, final after the 6 h contest window"}, each linked to Etherscan and IPFS. Demo registry: every path run on chain, ${dOk}/${demo.results.length}, drained to 0. ${tests} offline tests incl. 4 attack rounds.`;
+const verify = `All 9 contracts deployed from commit ${commit.slice(0, 7)}; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: ${seeds.checks.length} real seeds, ${nFinal === seeds.checks.length ? `all ${seeds.checks.length} final` : "all ruled, final after the 6 h contest window"}, each linked to Etherscan and IPFS. Demo registry: every path run on chain, ${dOk}/${demo.results.length}, drained to 0. ${tests} offline tests incl. 4 attack rounds.`;
 const EX = "https://explorer-studio-dev.genlayer.com/address/";
 const ev = [
   ["Repository", "https://github.com/kenil1710/asvoted"], ["Live site", "https://asvoted.vercel.app"],

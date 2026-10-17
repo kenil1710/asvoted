@@ -16,9 +16,9 @@ Most DAOs vote on Snapshot and a Safe multisig executes the result; nothing chec
 4. On the check page, judge and apply the ruling, then appeal within 90 seconds (only the DAO, answering a DEVIATES, may name another proposal) or finalize after it. (162 chars)
 5. Run the offline suite (cd test && python3 -m unittest test_asvoted test_attacks test_attacks_r2 test_attacks_r3 test_attacks_r4) and read docs/SEEDS.md and docs/FINAL_CHECK.md. (176 chars)
 
-## Review verification (356/500)
+## Review verification (323/500)
 
-All 9 contracts deployed from commit 07ff3a3; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: 15 real seeds, all ruled, final after the 6 h contest window, each linked to Etherscan and IPFS. Demo registry: every path run on chain, 25/25, drained to 0. 203 offline tests incl. 4 attack rounds.
+All 9 contracts deployed from commit 07ff3a3; node tools/verify_source.mjs (or the site's /verify) shows each is byte-identical on chain. Canonical registry: 15 real seeds, all 15 final, each linked to Etherscan and IPFS. Demo registry: every path run on chain, 25/25, drained to 0. 203 offline tests incl. 4 attack rounds.
 
 ## Evidence
 
