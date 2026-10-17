@@ -4,11 +4,11 @@ export const ADDR = {
   voteReader: "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
   judge: "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
   registry: "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
-  registryDemo: "0xf0b5EDAad5A5263a750092880E9edE5f8645060B",
+  registryDemo: "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
   standing: "0xF12CA2B1440AAB7915879D84Abf04123D71d905f",
-  standingDemo: "0x8691A845B9D2d79631438b58e25065eEd608D4E5",
+  standingDemo: "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128",
   gate: "0xf4A21d3e39e6807202Cd9f656EAAF1F7C115e187",
-  gateDemo: "0xa60E3BD0c8117bf29cb540caCc833f1b1c3D8bB6",
+  gateDemo: "0x3C77CA433b10E71a414203a7FFeB20Bf10e20296",
 } as const;
 
 export const DEPLOY_COMMIT = "ab42d5c632d3c80ac11da5762be116962434e69f";
@@ -63,12 +63,12 @@ export const DEPLOYMENTS = {
     "mode": "CANONICAL"
   },
   "AsVotedRegistryDemo": {
-    "address": "0xf0b5EDAad5A5263a750092880E9edE5f8645060B",
+    "address": "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
     "file": "contracts/AsVotedRegistry.py",
     "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
     "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
     "bytes": 77645,
-    "deploy_tx": "0x5334117bca4560d5c6de54aed310da8658831f8ef2071657c19d436cab84ec28",
+    "deploy_tx": "0x6327f23d0a61aad891affa80a1f47392bf02314b917dc41753e00848892152bf",
     "constructor_args": [
       "DEMO",
       "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
@@ -92,14 +92,14 @@ export const DEPLOYMENTS = {
     "mode": "CANONICAL"
   },
   "DaoStandingDemo": {
-    "address": "0x8691A845B9D2d79631438b58e25065eEd608D4E5",
+    "address": "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128",
     "file": "contracts/DaoStanding.py",
     "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
     "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
     "bytes": 3799,
-    "deploy_tx": "0x60f9afc4a9e34118554e0be0f8ca1652e20ad33bd739f9eabae71714560c092f",
+    "deploy_tx": "0x680c570e104ff6c1780d93cb6ea95bd0ae4ad94090026b31efee82b824a254b6",
     "constructor_args": [
-      "0xf0b5EDAad5A5263a750092880E9edE5f8645060B",
+      "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
       30
     ],
     "mode": "DEMO"
@@ -117,14 +117,14 @@ export const DEPLOYMENTS = {
     "mode": "CANONICAL"
   },
   "GrantGateDemo": {
-    "address": "0xa60E3BD0c8117bf29cb540caCc833f1b1c3D8bB6",
+    "address": "0x3C77CA433b10E71a414203a7FFeB20Bf10e20296",
     "file": "contracts/GrantGate.py",
     "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
     "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
     "bytes": 4084,
-    "deploy_tx": "0x7de903638fbeb5a0acff3957f7f0477bc9cd7b25af16ba22eef61cb773de2b8d",
+    "deploy_tx": "0x52d771d5de7145f1c1b500084a92172066256e43f8c1d59702c35e1e8381c845",
     "constructor_args": [
-      "0x8691A845B9D2d79631438b58e25065eEd608D4E5"
+      "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128"
     ],
     "mode": "DEMO"
   }
