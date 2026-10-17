@@ -1,6 +1,6 @@
 # Final check
 
-Run 2026-10-16T15:34:11.723Z by `tools/final_check.mjs` against commit `dc0731c9cf`, the live site and Studio Dev. **23/23 PASS.**
+Run 2026-10-17T04:58:57.397Z by `tools/final_check.mjs` against commit `39cd7b98d9`, the live site and Studio Dev. **23/23 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
@@ -20,7 +20,7 @@ GrantGateDemo 0x428727dF01a31202a66B2ED7d35F474Ba7B97C28 sha256 2fc4477e774a6871
 ## PASS · Ledger invariant holds on both registries (counters and recomputation)
 
 ```
-canonical received 1500000000000000000 = pledges 0 + open 800000000000000000 + claimable 700000000000000000 + claimed 0; demo received 13100000000000000002 = 0 + 0 + 0 + 13100000000000000002
+canonical received 1500000000000000000 = pledges 600000000000000000 + open 0 + claimable 900000000000000000 + claimed 0; demo received 13100000000000000002 = 0 + 0 + 0 + 13100000000000000002
 ```
 
 ## PASS · Demo registry drained to exactly 0 held
@@ -91,7 +91,7 @@ Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mev
 ## PASS · All offline tests pass
 
 ```
-Ran 203 tests in 12.922s  OK
+Ran 203 tests in 12.891s  OK
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
@@ -141,22 +141,22 @@ missing: none; flagged words: none
 ```
 17 numbers compared, mismatches: []
 = checks: site "15" chain "15"
-= final:AS_VOTED: site "0" chain "0"
-= final:DEVIATES: site "0" chain "0"
+= final:AS_VOTED: site "6" chain "6"
+= final:DEVIATES: site "2" chain "2"
 = final:UNCLEAR: site "7" chain "7"
 = daos: site "8" chain "8"
-= pledges: site "0" chain "0"
+= pledges: site "0.6" chain "0.6"
 = Canonical registry:received: site "1.5 GEN" chain "1.5 GEN"
-= Canonical registry:open: site "0.8 GEN" chain "0.8 GEN"
-= Canonical registry:claimable: site "0.7 GEN" chain "0.7 GEN"
+= Canonical registry:open: site "0 GEN" chain "0 GEN"
+= Canonical registry:claimable: site "0.9 GEN" chain "0.9 GEN"
 = Canonical registry:held_now: site "1.5 GEN" chain "1.5 GEN"
 = Demo registry:received: site "13.1 GEN" chain "13.1 GEN"
 = Demo registry:held_now: site "0 GEN" chain "0 GEN"
 = Demo registry:claimed: site "13.1 GEN" chain "13.1 GEN"
-= dao:final as voted: site "0" chain "0"
-= dao:final deviates: site "0" chain "0"
+= dao:final as voted: site "3" chain "3"
+= dao:final deviates: site "1" chain "1"
 = dao:final unclear: site "4" chain "4"
-= dao:open checks: site "4" chain "4"
+= dao:open checks: site "0" chain "0"
 ```
 
 ## PASS · 375 px: no horizontal scroll on any page
