@@ -58,8 +58,8 @@
       "mode": "CANONICAL"
     },
     "AsVotedRegistryDemo": {
-      "address": "0x5d054EAb7Dc657e99598C76A795aA530592B5D6D",
-      "deploy_tx": "0x49b5ec311f0384d4ea073b1555eeb4ac49c29579f9382dac95df5a0a72d82ad7",
+      "address": "0x2aaabEC3480Be886203698300092ff82091D8eD2",
+      "deploy_tx": "0x6ae54ba0e78b0517311e93f652fd8b61e05f4c06c882ff9ad0086833196d066f",
       "file": "contracts/AsVotedRegistry.py",
       "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
       "bytes": 77645,
@@ -72,7 +72,7 @@
         "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:18:45.731Z",
+      "deployed_at": "2026-10-17T17:05:39.697Z",
       "mode": "DEMO"
     },
     "DaoStanding": {
@@ -91,18 +91,18 @@
       "mode": "CANONICAL"
     },
     "DaoStandingDemo": {
-      "address": "0xD2a03f4CDf35Dc430D50b1F4b4D508D3C6789914",
-      "deploy_tx": "0x2f8b5872da9541bed5ca1959a72fe5c8814865e56e5ad6fa652b724bd748426e",
+      "address": "0x97468c3e1Eef0C2cf54D83F983146F71c42A989E",
+      "deploy_tx": "0x97063e56e01cbab1425f08ee031a96903554f9b9184e233b3ee61099c5bac221",
       "file": "contracts/DaoStanding.py",
       "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
       "bytes": 3799,
       "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
       "constructor_args": [
-        "0x5d054EAb7Dc657e99598C76A795aA530592B5D6D",
+        "0x2aaabEC3480Be886203698300092ff82091D8eD2",
         30
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:18:56.048Z",
+      "deployed_at": "2026-10-17T17:05:46.265Z",
       "mode": "DEMO"
     },
     "GrantGate": {
@@ -120,17 +120,17 @@
       "mode": "CANONICAL"
     },
     "GrantGateDemo": {
-      "address": "0xB95F0E3fD33BAf56359F20Ce9d06c86965BB632D",
-      "deploy_tx": "0xd3802c79688bf44803bb57f8e563735f58c6c6c42e7f14e44161eb73c27d348b",
+      "address": "0x5FEE545271B684B886168f22e67D59dC26Aaf958",
+      "deploy_tx": "0xaaa52bfefa69962f9cfa59c820c87af7351a8d237632378de73279ab5775c363",
       "file": "contracts/GrantGate.py",
       "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
       "bytes": 4084,
       "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
       "constructor_args": [
-        "0xD2a03f4CDf35Dc430D50b1F4b4D508D3C6789914"
+        "0x97468c3e1Eef0C2cf54D83F983146F71c42A989E"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:19:10.079Z",
+      "deployed_at": "2026-10-17T17:05:52.086Z",
       "mode": "DEMO"
     }
   },
@@ -908,6 +908,62 @@
       "mode": "DEMO",
       "superseded_by": "0xB95F0E3fD33BAf56359F20Ce9d06c86965BB632D",
       "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x5d054EAb7Dc657e99598C76A795aA530592B5D6D",
+      "deploy_tx": "0x49b5ec311f0384d4ea073b1555eeb4ac49c29579f9382dac95df5a0a72d82ad7",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "DEMO",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:45.731Z",
+      "mode": "DEMO",
+      "superseded_by": "0x2aaabEC3480Be886203698300092ff82091D8eD2",
+      "why": "fresh demo set from ab42d5c: the previous demo registry's checks were judged after their deadlines under Studio's rate limit"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0xD2a03f4CDf35Dc430D50b1F4b4D508D3C6789914",
+      "deploy_tx": "0x2f8b5872da9541bed5ca1959a72fe5c8814865e56e5ad6fa652b724bd748426e",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x5d054EAb7Dc657e99598C76A795aA530592B5D6D",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:56.048Z",
+      "mode": "DEMO",
+      "superseded_by": "0x97468c3e1Eef0C2cf54D83F983146F71c42A989E",
+      "why": "fresh demo set from ab42d5c: the previous demo registry's checks were judged after their deadlines under Studio's rate limit"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0xB95F0E3fD33BAf56359F20Ce9d06c86965BB632D",
+      "deploy_tx": "0xd3802c79688bf44803bb57f8e563735f58c6c6c42e7f14e44161eb73c27d348b",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xD2a03f4CDf35Dc430D50b1F4b4D508D3C6789914"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:19:10.079Z",
+      "mode": "DEMO",
+      "superseded_by": "0x5FEE545271B684B886168f22e67D59dC26Aaf958",
+      "why": "fresh demo set from ab42d5c: the previous demo registry's checks were judged after their deadlines under Studio's rate limit"
     }
   ]
 }
