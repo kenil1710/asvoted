@@ -41,10 +41,29 @@ export async function waitFinalized(hash, { timeoutMs = 30 * 60_000, pollMs = 50
   }
 }
 
-/** What the sender of `tx` paid in fees, net of refunds. */
+/** What the sender of `tx` paid in fees, net of refunds: the fee refund at
+ *  finalization and the unused gas reservation of each external message,
+ *  which is paid back to the sender (external_message_fee_payouts). */
 export function netFee(tx) {
   const fa = tx?.data?.fee_accounting ?? {};
-  return BigInt(fa.paid_fee_value ?? 0) - BigInt(fa.total_refunded ?? 0);
+  const from = String(tx?.from_address ?? "").toLowerCase();
+  const back = (fa.external_message_fee_payouts ?? []).filter((p) => String(p.recipient).toLowerCase() === from)
+    .reduce((s, p) => s + BigInt(p.amount ?? 0), 0n);
+  return BigInt(fa.paid_fee_value ?? 0) - BigInt(fa.total_refunded ?? 0) - back;
+}
+
+/** Waits until `address`'s balance has not moved for `quietMs`: the fee
+ *  refunds of its earlier transactions land at their finalization, and one
+ *  landing inside a claim's window would blur the before/after arithmetic. */
+export async function settledBalance(address, { quietMs = 90_000, pollMs = 10_000, maxMs = 15 * 60_000 } = {}) {
+  const t0 = Date.now();
+  let last = await balanceOf(address), since = Date.now();
+  while (Date.now() - since < quietMs && Date.now() - t0 < maxMs) {
+    await sleep(pollMs);
+    const b = await balanceOf(address);
+    if (b !== last) { last = b; since = Date.now(); }
+  }
+  return last;
 }
 
 /** The transaction-level proof that `tx` sent `amount` wei to `to`. */
@@ -70,16 +89,17 @@ export function transferProof(tx, to, amount) {
  * transfer and the exact balance arithmetic. Returns a record for seed-demo.json.
  */
 export async function provenClaim(send, to, owed) {
-  const before = await balanceOf(to);
+  const before = await settledBalance(to);
   const out = await send("claim", []);
   const rec = { to: String(to).toLowerCase(), amount: String(owed), tx: out.hash, before: String(before) };
   if (!out.ok) return { ...rec, ok: false, reasons: [`claim ${out.status}: ${out.revertReason ?? ""}`] };
   const tx = await waitFinalized(out.hash);
   const proof = transferProof(tx, to, owed);
   const fee = netFee(tx);
-  // the claim's fee refund and the transfer both land at finalization; give the balance a moment
+  // the claim's fee refund and the transfer both land at finalization; wait for the balance to settle
   let after = await balanceOf(to);
   for (let i = 0; i < 12 && after - before !== owed - fee; i++) { await sleep(5000); after = await balanceOf(to); }
+  if (after - before !== owed - fee) after = await settledBalance(to);
   const reasons = [...proof.reasons];
   if (after - before !== owed - fee) reasons.push(`balance moved ${after - before}, expected ${owed - fee} (amount ${owed} - fee ${fee})`);
   return { ...rec, after: String(after), fee: String(fee), delta: String(after - before), status: tx?.status ?? "TIMEOUT", ok: reasons.length === 0, reasons };
