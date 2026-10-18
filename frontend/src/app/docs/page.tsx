@@ -10,7 +10,7 @@ const CONTRACTS = [
   ["VoteReader", "Fetches the Snapshot proposal by IPFS CID and hashes the bytes against the CID in the contract. Requires the hub to report the same proposal, closed, with final scores. Computes from the scores whether it passed. Records whether the Safe is listed in the space's treasuries. Resolves the proposal's ENS names as voters saw them, at the Ethereum block of the vote's snapshot (mapped from the space's own network), and notes where any had moved by the execution."],
   ["AsVotedJudge", "Rules on every action: code first for every address and amount, the model only for calls the proposal describes in words, with a verbatim quote that code checks."],
   ["AsVotedRegistry", "DAO listings, pledges, checks, appeals, deadlines and money. Holds the stakes and pays by pull balances."],
-  ["DaoStanding + GrantGate", "One question another contract can ask: has this DAO (a Snapshot space and its Safe) a final DEVIATES ruling on an execution from the last 30 days? GrantGate refuses to act for a DAO that has."],
+  ["DaoStanding + GrantGate", "One question another contract can ask about a DAO (a Snapshot space and its Safe), answered with a state: COMPLIANT (at least one final AS_VOTED ruling on an execution from the last 30 days, no open check, no final DEVIATES in that window, and a patrol coverage heartbeat no older than 6 hours), NO_COVERAGE, PENDING, DEVIATES or STALE_MONITORING. Absence of data is never a favourable answer. GrantGate carries a request out only on COMPLIANT."],
 ];
 
 export default function Docs() {
@@ -24,6 +24,17 @@ export default function Docs() {
         that what the signers executed is what passed. AsVoted reads both sides itself, rules on each action the Safe performed,
         and backs the ruling with money.
       </p>
+
+      <Section title="Scope">
+        <p className="text-ink-2">AsVoted verifies proposal-specific execution within declared coverage. It does not verify every action a DAO takes.</p>
+        <ul className="mt-3 list-disc space-y-1.5 pl-5 text-ink-2">
+          <li><strong className="text-ink">Proposal text:</strong> the IPFS CID proves it. VoteReader hashes the fetched bytes against the CID inside the contract.</li>
+          <li><strong className="text-ink">Vote scores:</strong> final scores come from the Snapshot hub, read only once the hub reports them final. The CID does not cover them.</li>
+          <li><strong className="text-ink">Executions:</strong> direct Safe execTransaction calls, and relayed SafeL2 executions from their own log. Safe module executions (execTransactionFromModule, used by Zodiac Reality and oSnap) are not supported; they are refused, not read.</li>
+          <li><strong className="text-ink">Ambiguous instructions:</strong> an action whose instruction in the proposal is ambiguous is ruled UNCLEAR, which refunds everyone and slashes nothing.</li>
+          <li><strong className="text-ink">Coverage:</strong> a check covers one execution against the one proposal named for it. The patrol covers the Safes listed on the canonical registry, each from its saved checkpoint forward, and records its coverage per DAO on chain. Executions it cannot match are listed on the <a className="underline" href="/unmatched">Unmatched executions</a> page and are not filed.</li>
+        </ul>
+      </Section>
 
       <Section title="Five contracts">
         <dl className="space-y-4">
