@@ -77,14 +77,24 @@ export const getConfig = (reg?: string) => rv<RegistryConfig>("get_config", [], 
 export const getStats = (reg?: string) => rv<Stats>("get_stats", [], reg);
 export const getLedger = (reg?: string) => rv<Ledger>("get_ledger", [], reg);
 export const getDao = (id: number) => rv<Dao>("get_dao", [id]);
-export const getDaos = (offset = 0, limit = 50) => rv<{ total: number; daos: Dao[] }>("get_daos", [offset, limit]);
+export const getDaos = (offset = 0, limit = 50) => rv<{ total: number; next_offset: number; done: boolean; daos: Dao[] }>("get_daos", [offset, limit]);
+/** Every listing: get_daos returns at most 50 per call. */
+export async function getAllDaos(): Promise<{ total: number; daos: Dao[] }> {
+  const daos: Dao[] = [];
+  for (let off = 0; ;) {
+    const p = await getDaos(off, 50);
+    daos.push(...p.daos);
+    if (p.done || p.next_offset <= off) return { total: p.total, daos };
+    off = p.next_offset;
+  }
+}
 export const getDaoId = (space: string, chain: string, safe: string) => rv<number>("get_dao_id", [space, chain, safe]);
 export const getCheck = (id: number) => rv<Check>("get_check", [id]);
 export const getChecks = (offset = 0, limit = 20, reg?: string) => rv<{ total: number; checks: Check[] }>("get_checks", [offset, limit], reg);
 export const getDaoChecks = (id: number, offset = 0, limit = 50) => rv<{ total: number; checks: Check[] }>("get_dao_checks", [id, offset, limit]);
 export const getCheckIdByTx = (chain: string, safe: string, tx: string) => rv<number>("get_check_id_by_tx", [chain, safe, tx]);
 export const getClaimable = (who: string) => rv<{ address: string; claimable: string; claimed: string }>("claimable_of", [who]);
-export const getOpenChecks = (offset = 0, limit = 50) => rv<{ checks: { check_id: number; status: string }[] }>("get_open_checks", [offset, limit]);
+export const getOpenChecks = (offset = 0, limit = 50) => rv<{ next_offset: number; done: boolean; checks: { check_id: number; status: string }[] }>("get_open_checks", [offset, limit]);
 
 export const getExecution = (id: number) => viewOf<Execution>(ADDR.execReader, "get_execution", [id]);
 export const getExecutionId = (chain: string, safe: string, tx: string) => viewOf<number>(ADDR.execReader, "get_execution_id", [chain, safe, tx]);

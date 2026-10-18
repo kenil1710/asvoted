@@ -18,8 +18,8 @@ export interface MockCheck {
 
 const hex = (n: number, w = 64) => "0x" + n.toString(16).padStart(w, "0");
 export const safeAddr = (i: number) => hex(0x5afe0000 + i, 40);
-export const txOf = (safe: string, block: number) => "0x" + (safe.slice(2, 10) + block.toString(16)).padStart(64, "a");
-export const safeTxOf = (safe: string, block: number) => "0x" + (safe.slice(2, 10) + block.toString(16)).padStart(64, "b");
+export const txOf = (safe: string, block: number) => "0x" + (safe.slice(-8) + block.toString(16).padStart(8, "0")).padStart(64, "a");
+export const safeTxOf = (safe: string, block: number) => "0x" + (safe.slice(-8) + block.toString(16).padStart(8, "0")).padStart(64, "b");
 
 export class World {
   t = 1_800_000_000;
@@ -39,6 +39,7 @@ export class World {
   unmatched: (lg: Log) => string | null = () => null;
   failWrite: (fn: string, args: unknown[]) => string | null = () => null;
   writeMs = 1000;
+  logMs = 0;
 
   addDao(i: number, chain = "ethereum"): Dao {
     const d = { dao_id: this.daos.length + 1, space: `dao${i}.eth`, chain, safe: safeAddr(i) };
@@ -136,6 +137,7 @@ export class World {
       finalized: async (c: string) => ({ number: this.heads[c], timestamp: this.t - 900 }),
       logs: async (c: string, safe: string, from: number, to: number) => {
         this.logCalls.push({ chain: c, safe, from, to });
+        this.ms += this.logMs;
         if (this.failLogs(c, safe, from, to)) throw new Error("rpc down");
         return (this.logs[`${c}|${safe}`] ?? []).filter((l) => l.block >= from && l.block <= to);
       },

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ADDR } from "@/lib/deployments";
-import { getBinding, getBindingId, getDaoId, getDaos, registry, send } from "@/lib/contract";
+import { getBinding, getBindingId, getDaoId, getAllDaos, registry, send } from "@/lib/contract";
 import { CHAIN_LABEL, formatGen, isAddress, shortAddress } from "@/lib/format";
 import { TxStatus, useTx } from "@/components/tx";
 import { useWallet } from "@/components/WalletProvider";
@@ -71,7 +71,7 @@ function ListForm({ onDone }: { onDone: () => void }) {
 
 export default function DaosPage() {
   const reg = registry();
-  const daos = useView(`daos:${reg}`, () => getDaos(0, 50), 60_000);
+  const daos = useView(`daos:${reg}`, () => getAllDaos(), 60_000);
   return (
     <div>
       <h1 className="mt-10 font-serif text-4xl font-semibold">DAOs</h1>

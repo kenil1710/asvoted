@@ -5,9 +5,12 @@
  *
  * One run, bounded by limits.maxWrites transactions and limits.timeBudgetMs:
  *   1. close its own filings: rule what is judged, judge what is not, finalize
- *      what is past its contest window, expire what is past a deadline;
+ *      what is past its contest window, expire what is past a deadline. Every
+ *      page of get_open_checks (each call scans at most the registry's
+ *      SCAN_CAP records and returns at most 50), from state.cursors;
  *   2. retry the executions queued by earlier runs whose backoff has passed;
- *   3. for every DAO on the registry, scan its Safe's ExecutionSuccess logs
+ *   3. for every DAO on the registry (every page of get_daos, round robin
+ *      from state.cursors.daos when a run runs out of time), scan its Safe's ExecutionSuccess logs
  *      from the Safe's checkpoint + 1 up to the chain's finalized block, at
  *      most limits.maxSpan blocks per run; every event is either processed
  *      (filed, already on the registry, or recorded as unmatched) or queued
@@ -72,6 +75,8 @@ export interface RunReport {
   registry: string;
   writes: WriteLog[];
   daos_watched: number;
+  open_pages: number;
+  open_seen: number;
   executions_seen: number;
   already_checked: number;
   filed: number;
@@ -91,7 +96,7 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
   const { addr } = deps;
   const rep: RunReport = {
     started: new Date(deps.now() * 1000).toISOString(), dry_run: deps.dry, patrol: deps.patrol, registry: addr.registry,
-    writes: [], daos_watched: 0, executions_seen: 0, already_checked: 0, filed: 0, queued: 0, retried: 0, unmatched: 0,
+    writes: [], daos_watched: 0, open_pages: 0, open_seen: 0, executions_seen: 0, already_checked: 0, filed: 0, queued: 0, retried: 0, unmatched: 0,
     scans: [], matched: [], closed: [], notes: [], seconds: 0,
   };
   const iso = () => new Date(deps.now() * 1000).toISOString();
@@ -104,20 +109,40 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
     return r;
   }
 
-  // 1. close our own filings
-  try {
+  // 1. close our own filings, every page of open checks, continuing where the last run stopped
+  const PAGE = 50;
+  type Open = { check_id: number; status: string; round: number; filer: string; judge_deadline: number; contest_deadline: number; appeal_deadline: number };
+  async function close(c: Open): Promise<void> {
     const now = deps.now();
-    const open = await deps.view<{ checks: { check_id: number; status: string; round: number; filer: string; judge_deadline: number; contest_deadline: number; appeal_deadline: number }[] }>(addr.registry, "get_open_checks", [0, 50]);
-    for (const c of open.checks) {
+    if (c.status === "CONTESTABLE" && now > c.contest_deadline) { rep.closed.push(`finalize #${c.check_id}`); await write(addr.registry, "finalize", [c.check_id]); return; }
+    if ((c.status === "PROVISIONAL" && now > c.judge_deadline) || (c.status === "APPEALED" && now > c.appeal_deadline)) { rep.closed.push(`expire #${c.check_id}`); await write(addr.registry, "expire", [c.check_id]); return; }
+    if (c.status === "PROVISIONAL" || c.status === "APPEALED") {
+      const j = await deps.view<{ found: boolean }>(addr.judge, "get_judgment", [addr.registry, c.check_id, c.round]);
+      if (!j.found) { rep.closed.push(`judge #${c.check_id}`); if (!(await write(addr.judge, "judge", [addr.registry, c.check_id])).ok) return; }
+      if (budgetLeft()) { rep.closed.push(`rule #${c.check_id}`); await write(addr.registry, "rule", [c.check_id]); }
+    }
+  }
+  try {
+    const start = state.cursors.open_checks;
+    let off = start;
+    let wrapped = false;
+    pages: for (;;) {
       if (!budgetLeft()) break;
-      if (!deps.patrol || c.filer !== deps.patrol) continue;
-      if (c.status === "CONTESTABLE" && now > c.contest_deadline) { rep.closed.push(`finalize #${c.check_id}`); await write(addr.registry, "finalize", [c.check_id]); continue; }
-      if ((c.status === "PROVISIONAL" && now > c.judge_deadline) || (c.status === "APPEALED" && now > c.appeal_deadline)) { rep.closed.push(`expire #${c.check_id}`); await write(addr.registry, "expire", [c.check_id]); continue; }
-      if (c.status === "PROVISIONAL" || c.status === "APPEALED") {
-        const j = await deps.view<{ found: boolean }>(addr.judge, "get_judgment", [addr.registry, c.check_id, c.round]);
-        if (!j.found) { rep.closed.push(`judge #${c.check_id}`); if (!(await write(addr.judge, "judge", [addr.registry, c.check_id])).ok) continue; }
-        if (budgetLeft()) { rep.closed.push(`rule #${c.check_id}`); await write(addr.registry, "rule", [c.check_id]); }
+      const page = await deps.view<{ next_offset: number; done: boolean; checks: Open[] }>(addr.registry, "get_open_checks", [off, PAGE]);
+      rep.open_pages++;
+      for (const c of page.checks) {
+        if (wrapped && c.check_id > start) { state.cursors.open_checks = start; break pages; }
+        if (!budgetLeft()) { state.cursors.open_checks = c.check_id - 1; break pages; }
+        rep.open_seen++;
+        if (!deps.patrol || c.filer !== deps.patrol) continue;
+        await close(c);
       }
+      off = page.done ? 0 : page.next_offset;
+      state.cursors.open_checks = off;
+      if (page.done) {
+        if (wrapped || start === 0) { state.cursors.open_checks = start; break; }
+        wrapped = true;
+      } else if (wrapped && off >= start) { state.cursors.open_checks = start; break; }
     }
   } catch (e) { rep.notes.push("open checks unreadable: " + short(e)); }
 
@@ -202,15 +227,29 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
     await handle({ dao_id: e.dao_id, space: e.space, chain: e.chain, safe: e.safe }, { tx: e.tx, block: e.block, safeTxHash: e.safe_tx_hash });
   }
 
-  // 3. scan every listed Safe from its checkpoint
-  let daos: Dao[] = [];
-  try { daos = (await deps.view<{ daos: Dao[] }>(addr.registry, "get_daos", [0, 50])).daos; } catch (e) { rep.notes.push("daos unreadable: " + short(e)); }
+  // 3. scan every listed Safe from its checkpoint: every page of get_daos,
+  // round robin from where the last run ran out of time
+  const daos: Dao[] = [];
+  try {
+    for (let off = 0; ;) {
+      const page = await deps.view<{ total: number; next_offset?: number; done?: boolean; daos: Dao[] }>(addr.registry, "get_daos", [off, PAGE]);
+      daos.push(...page.daos);
+      const next = page.next_offset ?? off + page.daos.length;
+      if (page.done ?? next >= page.total) break;
+      if (next <= off) throw new Error(`get_daos did not advance past ${off}`);
+      off = next;
+    }
+  } catch (e) { rep.notes.push("daos unreadable: " + short(e)); }
   rep.daos_watched = daos.length;
-  for (const d of daos) {
-    if (!timeLeft()) { rep.notes.push(`time budget used up before ${d.space}; next run`); break; }
+  const first = daos.length ? state.cursors.daos % daos.length : 0;
+  let scanned = 0;
+  for (; scanned < daos.length; scanned++) {
+    const d = daos[(first + scanned) % daos.length];
+    if (!timeLeft()) { rep.notes.push(`time budget used up before ${d.space}; next run starts there`); break; }
     if (!deps.supported(d.chain)) continue;
     await scan(d);
   }
+  state.cursors.daos = daos.length ? (first + scanned) % daos.length : 0;
 
   async function scan(d: Dao) {
     const sk = safeKey(d.chain, d.safe);

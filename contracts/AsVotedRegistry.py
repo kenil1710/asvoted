@@ -1570,6 +1570,8 @@ class AsVotedRegistry(gl.contract.Contract):
 
     @gl.public.view
     def get_daos(self, offset: int, limit: int) -> typing.Any:
+        """Oldest first, at most MAX_PAGE per call. Continue from next_offset
+        until done."""
         o = max(_as_int(offset, 0), 0)
         lim = min(max(_as_int(limit, 20), 0), MAX_PAGE)
         out = []
@@ -1579,7 +1581,7 @@ class AsVotedRegistry(gl.contract.Contract):
             if d is not None:
                 out.append(self._dao_view(d))
             i += 1
-        return {"total": int(self.n_daos), "daos": out}
+        return {"total": int(self.n_daos), "next_offset": i - 1, "done": i > int(self.n_daos), "daos": out}
 
     @gl.public.view
     def get_check(self, check_id: int) -> typing.Any:
@@ -1627,7 +1629,9 @@ class AsVotedRegistry(gl.contract.Contract):
     @gl.public.view
     def get_open_checks(self, offset: int, limit: int) -> typing.Any:
         """Open checks (oldest first) with what each needs next, for the
-        patrol bot and the site. Scans at most SCAN_CAP records from offset."""
+        patrol bot and the site. Scans at most SCAN_CAP records from offset
+        and returns at most MAX_PAGE: a page can be empty and not done.
+        Continue from next_offset until done."""
         o = max(_as_int(offset, 0), 0)
         lim = min(max(_as_int(limit, 20), 0), MAX_PAGE)
         out = []

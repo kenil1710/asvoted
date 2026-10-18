@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ADDR } from "@/lib/deployments";
-import { getCheckIdByTx, getDaos, getExecution, getExecutionId, getJudgment, getNamesAt, getProposal, getProposalId, registry, send } from "@/lib/contract";
+import { getCheckIdByTx, getAllDaos, getExecution, getExecutionId, getJudgment, getNamesAt, getProposal, getProposalId, registry, send } from "@/lib/contract";
 import { CHAIN_LABEL, isTxHash, shortAddress } from "@/lib/format";
 import { TxStatus, useTx } from "@/components/tx";
 import { useWallet } from "@/components/WalletProvider";
@@ -15,7 +15,7 @@ export default function FilePage() {
   const w = useWallet();
   const tx = useTx();
   const reg = registry();
-  const daos = useView(`daos:${reg}`, () => getDaos(0, 50));
+  const daos = useView(`daos:${reg}`, () => getAllDaos());
   const [daoId, setDaoId] = useState(0);
   const [hash, setHash] = useState("");
   const [cid, setCid] = useState("");

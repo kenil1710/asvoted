@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import useSWR from "swr";
-import { getChecks, getDaos, getLedger, getStats, registry } from "@/lib/contract";
+import { getChecks, getAllDaos, getLedger, getStats, registry } from "@/lib/contract";
 import { formatGen } from "@/lib/format";
 import { CheckList } from "@/components/CheckList";
 import { ErrorNote, Section, Skeleton } from "@/components/ui";
@@ -22,7 +22,7 @@ export default function Home() {
   const stats = useSWR(`stats:${reg}`, () => getStats(), { refreshInterval: 30_000 });
   const ledger = useSWR(`ledger:${reg}`, () => getLedger(), { refreshInterval: 60_000 });
   const checks = useSWR(`checks:${reg}`, () => getChecks(0, 12), { refreshInterval: 30_000 });
-  const daos = useSWR(`daos:${reg}`, () => getDaos(0, 50));
+  const daos = useSWR(`daos:${reg}`, () => getAllDaos());
   const names = Object.fromEntries((daos.data?.daos ?? []).map((d) => [d.dao_id, d.space]));
   const s = stats.data;
   const n = (k: string) => (s ? Number(s[k] ?? 0) : <Skeleton className="h-8 w-12" />);

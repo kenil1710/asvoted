@@ -14,6 +14,8 @@
  *   processed    "chain|safe|safeTxHash" -> what became of that execution
  *   retry        executions that failed or were deferred, with attempt counts
  *   unmatched    executions no passed proposal could be matched to
+ *   cursors      where a bounded run stopped in the registry's paginated
+ *                lists (DAOs, open checks); the next run continues there
  */
 
 export const STATE_VERSION = 1;
@@ -60,9 +62,15 @@ export interface Unmatched {
   at: string;
 }
 
+export interface Cursors {
+  daos: number;           // index of the next DAO to scan (round robin over every page of get_daos)
+  open_checks: number;    // get_open_checks offset to continue from
+}
+
 export interface PatrolState {
   version: number;
   updated: string;
+  cursors: Cursors;
   checkpoints: Record<string, Checkpoint>;
   processed: Record<string, Processed>;
   retry: RetryEntry[];
@@ -70,7 +78,7 @@ export interface PatrolState {
 }
 
 export const emptyState = (): PatrolState => ({
-  version: STATE_VERSION, updated: "", checkpoints: {}, processed: {}, retry: [], unmatched: [],
+  version: STATE_VERSION, updated: "", cursors: { daos: 0, open_checks: 0 }, checkpoints: {}, processed: {}, retry: [], unmatched: [],
 });
 
 /** A state document from untrusted JSON: anything missing or malformed starts empty. */
@@ -81,6 +89,9 @@ export function loadState(raw: unknown): PatrolState {
   const obj = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, never>) : {});
   const arr = (v: unknown) => (Array.isArray(v) ? (v as never[]) : []);
   s.updated = typeof r.updated === "string" ? r.updated : "";
+  const cur = obj(r.cursors) as Partial<Cursors>;
+  const nat = (v: unknown) => (Number.isInteger(v) && (v as number) >= 0 ? (v as number) : 0);
+  s.cursors = { daos: nat(cur.daos), open_checks: nat(cur.open_checks) };
   for (const [k, v] of Object.entries(obj(r.checkpoints))) {
     const c = v as Checkpoint;
     if (Number.isInteger(c?.block) && c.block >= 0) s.checkpoints[k] = { block: c.block, origin: Number(c.origin ?? c.block), updated: String(c.updated ?? "") };
