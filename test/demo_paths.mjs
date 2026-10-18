@@ -12,9 +12,14 @@
  *   UNCLEAR    CoW CIP-19                                -> final at once, refund
  *   expiry     CoW CIP-37 never judged                   -> expire after 600 s -> UNCLEAR
  *   appeal expiry  CoW CIP-29 AS_VOTED appealed, never judged -> expire -> ruling stands, bond back
- *   consumer   GrantGateDemo before / after a final DEVIATES on a recent execution (standing dates a
- *              deviation by when the execution ran): CoW Treasury's 200,000 BAL transfer of 2026-10-15,
- *              filed against CIP-69, which does not name the recipient
+ *   consumer   DaoStandingDemo states through GrantGateDemo, which acts only on COMPLIANT:
+ *              NO_COVERAGE   CoW Treasury listing with nothing verified yet
+ *              PENDING       ParaSwap PIP-59 (40.203 WETH returned to Bybit) filed, not final
+ *              COMPLIANT     PIP-59 FINAL AS_VOTED, and the patrol has scanned the ParaSwap Safe
+ *                            and recorded its coverage heartbeat (frontend/scripts/patrol-run.ts)
+ *              DEVIATES      CoW Treasury's 200,000 BAL transfer of 2026-10-15, filed against
+ *                            CIP-69, which does not name the recipient, FINAL
+ *              STALE_MONITORING  the ParaSwap heartbeat older than the demo's 1 h limit
  *   drain      controller withdraws the pledge, everyone claims; each claim must
  *              finalize with an external transfer that lands on the claimer
  *              (eth_getBalance before/after), and the registry's own
@@ -24,6 +29,7 @@
  * Writes docs/demo-run.log (stdout) and docs/seed-demo.json.
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { connect, accounts, argOf, returnedJson, sleep } from "./harness.mjs";
 import { balanceOf, provenClaim } from "../tools/payouts.mjs";
 
@@ -38,11 +44,14 @@ for (const role of ["filer", "filer2", "dao", "appellant", "demo"]) {
 const J = (v) => (typeof v === "string" ? JSON.parse(v) : v);
 const STAKE = 10n ** 17n, BOND = 10n ** 17n, GEN = 10n ** 18n;
 const COW = "0xcA771eda0c70aA7d053aB1B25004559B918FE662", TREAS = "0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669";
+const PARA = "0x619BBf92Fd6bA59893327676B2685A3762a49a33";
+const PATROL = who("patrol");
 const CID = {
   cip48: "bafkreigatik76cmd2amxbkav55jzrexyygnebausjg7isbb2akbnevw4xq", cip16: "bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4",
   cip43: "bafkreigqmaollb3qnv7tjrrqp2huwnds6dyxeh33lybvovdpowza6ms6sq", cip28: "bafkreie2zitrxqwtmz6ehbompehqnhy2duddhhp4z2udmw645dcbpt3i4m",
   cip69: "bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe", cip19: "bafkreigeksmh3n7sxmon5y7vhow2vieuxoyhyq3u42ent6cbwq7sfenwpq",
   cip37: "bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam", cip24: "bafkreidsqpnzeomzl5kyaashogdq3mztw7yhkoim35ndc7xysmuflq4xcm", cip30: "bafkreie7k2pbalnxl6hsupdmhd4i76tuc2vm52gwijqxatyzvo6yxf2m6q", cip29: "bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu",
+  pip59: "bafkreiand2nimf36noh3zzlsi7gw7bpijbz5g3fleqf6pty6krfyoixsum",
 };
 const TX = {
   cip48: ["0xf4631cc0ed16c718bd508f374b0064c7db0c36f72dc44a5dd46d73fb3f423b16", 27, COW], cip16: ["0x408905df9a2dad947be86dd4ae7b3eca6d90b0247aaef1d632c04a01e13c5fa1", 19, COW],
@@ -52,6 +61,7 @@ const TX = {
   cip29: ["0xaa412db50fb9cb384d56ddec01a00997d686927d332f13ddf93e7644a5f47c29", 17, COW],
   cip24: ["0x1af684f90ded18dcd55438f8c1acc64c427c8aa2cfa223d56a6d043d7f8e67f7", 13, COW],
   cip30: ["0x6b5e48e34bedc27312c5d3fb726d0764af95e62ff23b49e0c3d16f069bbccbaa", 18, COW],
+  pip59: ["0xb35fba262820083d4c3e262e95d9c2b2458452350409946bd9a67948afe986f6", 88, PARA, "paraswap-dao.eth"],
 };
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const results = [];
@@ -101,13 +111,19 @@ async function execId(key) {
   if (!id) { await w("filer", "er", "read_execution", ["ethereum", safe, tx, nonce]); id = Number(await v("er", "get_execution_id", ["ethereum", safe, tx])); }
   return id;
 }
-async function daoFor(safe) {
-  let id = Number(await v("rg", "get_dao_id", ["cow.eth", "ethereum", safe]));
-  if (!id) { await freshSpace("cow.eth", "ethereum", safe); await w("filer", "rg", "list_dao", ["cow.eth", "ethereum", safe]); id = Number(await v("rg", "get_dao_id", ["cow.eth", "ethereum", safe])); }
+async function daoFor(safe, space = "cow.eth") {
+  let id = Number(await v("rg", "get_dao_id", [space, "ethereum", safe]));
+  if (!id) { await freshSpace(space, "ethereum", safe); await w("filer", "rg", "list_dao", [space, "ethereum", safe]); id = Number(await v("rg", "get_dao_id", [space, "ethereum", safe])); }
   return id;
 }
+/** GrantGateDemo's answer for a DAO now: the request it logged, with DaoStandingDemo's state. */
+async function grant(dao, purpose) {
+  await w("demo", "gate", "request_grant", [dao, purpose]);
+  const last = J(await C.demo.gate.view("get_requests", [0, 1])).requests[0];
+  return last ?? {};
+}
 async function file(role, key, cidKey, note) {
-  const [tx, , safe] = TX[key];
+  const [tx, , safe, space] = TX[key];
   const existing = Number(await v("rg", "get_check_id_by_tx", ["ethereum", safe, tx]));
   if (existing) {
     // a check that expired unjudged (a stalled run) proved nothing: refile it,
@@ -116,7 +132,7 @@ async function file(role, key, cidKey, note) {
     if (!(ec.status === "FINAL" && ec.final_how === "EXPIRED_UNJUDGED" && key !== "cip24")) return existing;
     log(`  check #${existing} expired unjudged; refiling ${key}`);
   }
-  const dao = await daoFor(safe);
+  const dao = await daoFor(safe, space);
   const e = await execId(key);
   const vid = await freshVote(CID[cidKey], safe);
   await namesAt(vid, e);
@@ -143,6 +159,7 @@ const D = {};
 // --- refusals and claim
 const cow = await daoFor(COW);
 const treas = await daoFor(TREAS);
+const para = await daoFor(PARA, "paraswap-dao.eth");
 const randomSafe = "0x00000000000000000000000000000000000000a5";
 await freshSpace("cow.eth", "ethereum", randomSafe);
 {
@@ -154,7 +171,7 @@ await freshSpace("cow.eth", "ethereum", COW);
   const out = await w("filer", "rg", "claim_dao", [cow]);
   expect("claim by a non-admin is refused", !out.ok && /NOT_AN_ADMIN/.test(out.revertReason ?? ""), out.revertReason);
 }
-for (const id of [cow, treas]) {
+for (const id of [cow, treas, para]) {
   const d = await v("rg", "get_dao", [id]);
   if (d.controller !== who("dao")) await w("dao", "rg", "claim_dao", [id]);
 }
@@ -166,8 +183,8 @@ if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "r
   expect("pledge by a non-controller is credited back, ok:false", out.ok && out.r?.ok === false, out.r?.reason);
 }
 {
-  const g = await w("demo", "gate", "request_grant", [treas, "release tranche 1"]);
-  expect("GrantGate carries out a request while the DAO is in good standing", g.r?.carried_out === true, JSON.stringify(g.r?.reasons));
+  const g = await grant(treas, "release tranche 1");
+  expect("GrantGate refuses a DAO with nothing verified: NO_COVERAGE, never a favourable default", g.carried_out === false && g.state === "NO_COVERAGE", JSON.stringify(g));
 }
 
 // the proposal the winning appeal names, read before filing so judging starts inside every 600 s judge window
@@ -183,7 +200,12 @@ D.unc = await file("filer", "weth67", "cip28", "demo: unclear");
 D.exp = await file("filer", "cip24", "cip24", "demo: never judged, expires");
 D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
 D.gate = await file("filer", "bal200k", "cip69", "demo: a recent execution against a proposal that does not cover it, for GrantGate");
+D.para = await file("filer", "pip59", "pip59", "demo: as voted, for DaoStanding COMPLIANT");
 log("checks", JSON.stringify(D));
+{
+  const g = await grant(para, "release tranche 1");
+  expect("GrantGate refuses while the DAO's check is open: PENDING", g.carried_out === false && g.state === "PENDING", JSON.stringify(g));
+}
 {
   const [tx, , safe] = TX.cip30;
   const e = Number(await v("er", "get_execution_id", ["ethereum", safe, tx]));
@@ -201,7 +223,7 @@ const APPEAL = {
   aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
 };
 // in filing order, so each check is judged before its own judge deadline
-for (const k of ["asv", "dev", "won", "lost", "unc", "aexp", "gate"]) {
+for (const k of ["asv", "dev", "won", "lost", "unc", "aexp", "gate", "para"]) {
   let c = await v("rg", "get_check", [D[k]]);
   if (c.status === "PROVISIONAL") c = await judgeRule("filer", D[k]);
   if (APPEAL[k] && c.status === "CONTESTABLE") {
@@ -232,7 +254,7 @@ expect("appeal naming CIP-37 wins: AS_VOTED, bond refunded", R.won.final_verdict
 expect("appeal with words only loses: DEVIATES stands, bond to the filer", R.lost.final_verdict === "DEVIATES" && R.lost.settlement.some((m) => /appeal bond to the filer/.test(m[0])), JSON.stringify(R.lost.settlement));
 
 // --- finalize after the 90 s window
-for (const k of ["asv", "dev", "gate"]) {
+for (const k of ["asv", "dev", "gate", "para"]) {
   const c = await v("rg", "get_check", [D[k]]);
   if (c.status === "CONTESTABLE") { await waitPast(c.contest_deadline, `check #${D[k]} contest window`); await w("filer", "rg", "finalize", [D[k]]); }
 }
@@ -243,8 +265,23 @@ expect("DEVIATES final: pledge slashed, bounty to the filer", R.dev.final_verdic
 {
   R.gate = await v("rg", "get_check", [D.gate]);
   expect("recent 200,000 BAL transfer against CIP-69 is DEVIATES, final", R.gate.final_verdict === "DEVIATES", R.gate.ruling_summary);
-  const g = await w("demo", "gate", "request_grant", [treas, "release tranche 2"]);
-  { const log = J(await C.demo.gate.view("get_requests", [0, 5])); const last = log.requests[0]; expect("GrantGate refuses after a final DEVIATES on a recent execution", last?.carried_out === false, JSON.stringify(last?.reasons)); }
+  const g = await grant(treas, "release tranche 2");
+  expect("GrantGate refuses after a final DEVIATES on a recent execution: DEVIATES", g.carried_out === false && g.state === "DEVIATES", JSON.stringify(g));
+}
+// --- COMPLIANT: a FINAL AS_VOTED, no open check, and the patrol's own scan and heartbeat
+{
+  R.para = await v("rg", "get_check", [D.para]);
+  expect("ParaSwap PIP-59 (40.203 WETH back to Bybit) is AS_VOTED, final", R.para.final_verdict === "AS_VOTED", R.para.ruling_summary);
+  log(`→ patrol scans the ParaSwap Safe and records coverage on the demo registry (dao #${para})`);
+  const out = execFileSync("npx", ["tsx", "scripts/patrol-run.ts", `--registry=${A.rg}`, "--state=../docs/demo/patrol-state-demo.json", `--only=${para}`, "--backfill=7200"],
+    { cwd: new URL("../frontend/", import.meta.url).pathname, encoding: "utf8", timeout: 600_000 });
+  const rep = JSON.parse(out.trim().split("\n").pop());
+  log(`  patrol: scans ${JSON.stringify(rep.scans)} writes ${JSON.stringify(rep.writes.map((x) => [x.fn, x.ok, x.hash, x.note]))}`);
+  const cov = await v("rg", "get_coverage", [para, PATROL]);
+  expect("the patrol's coverage heartbeat is on chain (FINALIZED, read back)", cov.found === true && rep.writes.some((x) => x.fn === "record_coverage" && x.ok), JSON.stringify(cov));
+  D.coverage = cov;
+  const g = await grant(para, "release tranche 2");
+  expect("GrantGate carries out the request only now: COMPLIANT", g.carried_out === true && g.state === "COMPLIANT", JSON.stringify(g));
 }
 
 // --- expiries (600 s)
@@ -276,12 +313,21 @@ expect("never judged: expire -> FINAL UNCLEAR, stake refunded", R.exp.final_verd
 }
 expect("appeal never judged: expire -> ruling stands, bond refunded", R.aexp.final_verdict === "AS_VOTED" && R.aexp.final_how === "APPEAL_EXPIRED");
 
+// --- STALE_MONITORING: the same DAO once its heartbeat is older than the demo's 1 h limit
+{
+  const cfg = J(await connect({ address: dep.DaoStandingDemo.address, role: "filer" }).view("get_config", []));
+  const cov = await v("rg", "get_coverage", [para, PATROL]);
+  await waitPast(cov.block_time + cfg.stale_s, `the ParaSwap heartbeat to pass ${cfg.stale_s}s`);
+  const g = await grant(para, "release tranche 3");
+  expect("GrantGate refuses once coverage is stale: STALE_MONITORING", g.carried_out === false && g.state === "STALE_MONITORING", JSON.stringify(g));
+}
+
 // --- drain
-for (const id of [cow, treas]) {
+for (const id of [cow, treas, para]) {
   const d = await v("rg", "get_dao", [id]);
   if (BigInt(d.pledge) > 0n && BigInt(d.withdraw_amount) === 0n) await w("dao", "rg", "request_withdrawal", [id, d.pledge]);
 }
-for (const id of [cow, treas]) {
+for (const id of [cow, treas, para]) {
   const d = await v("rg", "get_dao", [id]);
   if (BigInt(d.withdraw_amount) > 0n) { await waitPast(d.withdraw_executable_at || d.withdraw_at, `dao #${id} withdrawal delay and late window`); await w("filer", "rg", "execute_withdrawal", [id]); }
 }

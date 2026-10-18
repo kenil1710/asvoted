@@ -86,10 +86,15 @@ check("Demo registry drained: eth_getBalance is 0 and the books hold 0", BAL.dem
 {
   const stuck = [];
   for (const reg of [R, RD]) {
-    const o = await view(reg, "get_open_checks", [0, 50]);
-    for (const c of o.checks) {
-      const dl = c.status === "PROVISIONAL" ? c.judge_deadline : c.status === "CONTESTABLE" ? c.contest_deadline : c.appeal_deadline;
-      if (now > dl + 3 * 3600) stuck.push(`${reg.slice(0, 8)} #${c.check_id} ${c.status} deadline ${dl}`);
+    // every page; the deadline that governs each check now (round 2: the DAO's response deadline)
+    for (let off = 0; ;) {
+      const o = await view(reg, "get_open_checks", [off, 50]);
+      for (const c of o.checks) {
+        const dl = c.active_deadline;
+        if (now > dl + 3 * 3600) stuck.push(`${reg.slice(0, 8)} #${c.check_id} ${c.status} round ${c.round} deadline ${dl}`);
+      }
+      if (o.done || o.next_offset <= off) break;
+      off = o.next_offset;
     }
   }
   check("Nothing stuck: no open check more than 3 h past its deadline (each has a permissionless exit)", stuck.length === 0, stuck.join("; ") || "none");
@@ -143,9 +148,12 @@ check("Demo registry drained: eth_getBalance is 0 and the books hold 0", BAL.dem
     `${daos.daos.length} canonical listings, each with a listed=true binding (bad: ${bad.join(",") || "none"}); canonical demo_controllers = []; demo log: "claim by a non-admin is refused"`);
 }
 // 9 tests: partial data, replay, model-never-decides, disagreement
-const t = sh("python3", ["-m", "unittest", "test_asvoted", "test_attacks", "test_attacks_r2", "test_attacks_r3", "test_attacks_r4"], root + "test");
+const t = sh("python3", ["-m", "unittest", "test_asvoted", "test_attacks", "test_attacks_r2", "test_attacks_r3", "test_attacks_r4", "test_steward"], root + "test");
 const tl = t.stderr.trim().split("\n");
-check("All offline tests pass", t.status === 0, tl.slice(-3).join(" "));
+const ft = sh("npm", ["test", "--silent"], root + "frontend");
+const fl = ft.stdout.split("\n").filter((l) => /^# (tests|pass|fail)/.test(l));
+check("All offline tests pass (contracts: python unittest; patrol: node --test against mocked chains and registries)", t.status === 0 && ft.status === 0,
+  tl.slice(-3).join(" ") + " | frontend: " + fl.join(", "));
 const demo = existsSync(root + "docs/seed-demo.json") ? JSON.parse(readFileSync(root + "docs/seed-demo.json", "utf8")) : { results: [] };
 const dpass = demo.results.filter((r) => r.ok).length;
 check("Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)", demo.results.length > 0 && dpass === demo.results.length, `${dpass}/${demo.results.length} expectations passed (docs/demo-run.log)`);
@@ -162,10 +170,16 @@ check("Disagreement behaviour documented exactly as on chain", t.status === 0 &&
 // 11 README sections
 {
   const r = readFileSync(root + "README.md", "utf8");
-  const need = ["What the model is never allowed to decide", "Known limitations", "How a reviewer can test", "Payouts on chain"];
+  const d = readFileSync(root + "frontend/src/app/docs/page.tsx", "utf8");
+  const need = ["## Scope", "What the model is never allowed to decide", "Design decisions", "How a reviewer can test", "Payouts on chain"];
   const missing = need.filter((s) => !r.includes(s));
-  const loud = ["guaranteed", "100%", " stole", "fraud", "malicious"].filter((w) => r.toLowerCase().includes(w.toLowerCase()));
-  check("README: required sections, neutral wording, no guaranteed/100%", missing.length === 0 && loud.length === 0, `missing: ${missing.join(",") || "none"}; flagged words: ${loud.join(",") || "none"}`);
+  const loud = ["guaranteed", "100%", " stole", "fraud", "malicious", "limitation", "todo"].filter((w) => (r + d).toLowerCase().includes(w.toLowerCase()));
+  const scope = r.slice(r.indexOf("## Scope"), r.indexOf("## How it works"));
+  const said = [/IPFS CID proves the proposal text/, /Final vote scores come from the Snapshot hub/, /module executions .* are not supported/, /ambiguous .* is ruled UNCLEAR/, /verifies proposal-specific execution within declared coverage/];
+  const site = [/IPFS CID proves it/, /final scores come from the Snapshot hub/, /module executions .* are not supported/, /ruled UNCLEAR/, /proposal-specific execution within declared coverage/];
+  const gaps = [...said.filter((x) => !x.test(scope)).map((x) => "README " + x.source), ...site.filter((x) => !x.test(d)).map((x) => "/docs " + x.source)];
+  check("README and /docs: Scope states what is proven and what is covered; required sections; neutral wording (no guaranteed/100%/limitation/TODO)", missing.length === 0 && loud.length === 0 && gaps.length === 0,
+    `missing sections: ${missing.join(",") || "none"}; flagged words: ${loud.join(",") || "none"}; Scope statements missing: ${gaps.join("; ") || "none"}`);
 }
 // 12 live site numbers vs chain, 375 px
 {
@@ -173,6 +187,30 @@ check("Disagreement behaviour documented exactly as on chain", t.status === 0 &&
   let j = null; try { j = JSON.parse(r.stdout.trim().split("\n").pop()); } catch { j = null; }
   check("Live site: 10+ numbers equal the chain", j && j.compared >= 10 && j.mismatch.length === 0, j ? `${j.compared} numbers compared, mismatches: ${JSON.stringify(j.mismatch)}\n${j.lines.join("\n")}` : r.stderr.slice(-400));
   check("375 px: no horizontal scroll on any page", j && j.widths.every((w) => w.w <= 375), j ? j.widths.map((w) => `${w.p} ${w.w}`).join(", ") : "");
+}
+// 12b patrol: durable state, coverage heartbeat, standing states
+{
+  const PATROL = (await import("node:fs")).readFileSync(root + "frontend/src/lib/deployments.ts", "utf8").match(/PATROL_ADDRESS = "(0x[0-9a-f]{40})"/)[1];
+  const st = sh("curl", ["-s", "-m", "60", "https://raw.githubusercontent.com/kenil1710/asvoted/patrol-state/patrol-state.json"]);
+  let ps = null; try { ps = JSON.parse(st.stdout); } catch { ps = null; }
+  const cps = ps ? Object.entries(ps.checkpoints ?? {}) : [];
+  check("Patrol state is durable: patrol-state branch holds per-Safe checkpoints for the canonical registry, a retry queue and unmatched executions",
+    ps && String(ps.registry).toLowerCase() === R.toLowerCase() && cps.length > 0 && Array.isArray(ps.retry) && Array.isArray(ps.unmatched),
+    ps ? `registry ${ps.registry}; updated ${ps.updated}; ${cps.length} checkpoints:\n${cps.map(([k, c]) => `  ${k} through block ${c.block} (from ${c.origin})`).join("\n")}\nretry queue ${ps.retry.length}; unmatched ${ps.unmatched.length}; pending txs ${ps.pending?.length ?? 0}` : "state file unreadable");
+  const daos = [];
+  for (let off = 0; ;) { const p = await view(R, "get_daos", [off, 50]); daos.push(...p.daos); if (p.done || p.next_offset <= off) break; off = p.next_offset; }
+  const lines = [];
+  let all = daos.length > 0;
+  for (const d of daos) {
+    const cov = await view(R, "get_coverage", [d.dao_id, PATROL]);
+    const sst = await view(dep.DaoStanding.address, "standing", [d.dao_id, now]);
+    all &&= cov.found === true && ["COMPLIANT", "NO_COVERAGE", "PENDING", "DEVIATES", "STALE_MONITORING"].includes(sst.state);
+    lines.push(`dao #${d.dao_id} ${d.space} ${d.chain} ${d.safe}: coverage ${cov.found ? `block ${cov.block} (block time ${new Date(cov.block_time * 1000).toISOString()}, recorded ${new Date(cov.recorded_at * 1000).toISOString()})` : "none"}; standing ${sst.state}${sst.reasons?.length ? " - " + sst.reasons[0] : ""}`);
+  }
+  check("Coverage heartbeat on chain for every canonical DAO (record_coverage by the patrol), and DaoStanding answers with a structured state", all, lines.join("\n"));
+  const demo2 = existsSync(root + "docs/seed-demo.json") ? JSON.parse(readFileSync(root + "docs/seed-demo.json", "utf8")) : { results: [] };
+  const states = ["NO_COVERAGE", "PENDING", "COMPLIANT", "DEVIATES", "STALE_MONITORING"].map((s) => [s, demo2.results.some((x) => x.ok && x.name.includes(s))]);
+  check("GrantGate acts only on COMPLIANT: every DaoStanding state shown on chain in the demo", states.every(([, ok]) => ok), states.map(([s, ok]) => `${s}: ${ok ? "shown" : "MISSING"}`).join("; "));
 }
 // 13 one set of addresses
 {

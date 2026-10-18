@@ -52,6 +52,8 @@ export interface Deps {
   logs(chain: string, safe: string, from: number, to: number): Promise<Log[]>;
   match(d: Dao, log: Log): Promise<Match>;
   supported(chain: string): boolean;
+  /** which listed DAOs this run watches (all when absent) */
+  watch?(d: Dao): boolean;
 }
 
 export interface Limits {
@@ -70,8 +72,8 @@ export interface Limits {
 // ~24 h of blocks per run (arbitrum ~7.5 h, at 0.25 s blocks); a first scan starts ~7 days back
 export const LIMITS: Limits = {
   maxWrites: 5,
-  timeBudgetMs: 200_000,
-  graceMs: 80_000,
+  timeBudgetMs: 150_000,
+  graceMs: 100_000,
   maxSpan: { ethereum: 7_200, optimism: 43_200, base: 43_200, polygon: 43_200, arbitrum: 108_000 },
   logChunk: 9_000,
   initialBackfill: { ethereum: 50_400, optimism: 302_400, base: 302_400, polygon: 302_400, arbitrum: 2_419_200 },
@@ -296,7 +298,7 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
   for (; scanned < daos.length; scanned++) {
     const d = daos[(first + scanned) % daos.length];
     if (!timeLeft()) { rep.notes.push(`time budget used up before ${d.space}; next run starts there`); break; }
-    if (!deps.supported(d.chain)) continue;
+    if (!deps.supported(d.chain) || (deps.watch && !deps.watch(d))) continue;
     await scan(d);
   }
   state.cursors.daos = daos.length ? (first + scanned) % daos.length : 0;
@@ -308,6 +310,7 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
   const beats: [number, number, number][] = [];
   const beatKeys: [string, number][] = [];
   for (const d of daos) {
+    if (deps.watch && !deps.watch(d)) continue;
     const sk = safeKey(d.chain, d.safe);
     const cp = state.checkpoints[sk];
     if (!cp) continue;

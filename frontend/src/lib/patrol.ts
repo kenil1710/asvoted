@@ -18,7 +18,7 @@ import { createPublicClient, fallback, http, type Hex } from "viem";
 import { mainnet } from "viem/chains";
 import { RPC, SUCCESS, findNonce, rpc } from "./safe";
 import { type Proposal, type Sources, decodeExecution, discover } from "./patrol/discover";
-import { type Dao, type Deps, type Log, type Match, type RunReport, runCore } from "./patrol/core";
+import { type Dao, type Deps, type Limits, type Log, type Match, type RunReport, LIMITS, runCore } from "./patrol/core";
 import type { TxView } from "./patrol/txlife";
 import { type PatrolState, loadState } from "./patrol/state";
 
@@ -34,14 +34,43 @@ const plain = (v: unknown): unknown => {
   return v;
 };
 
-export async function runPatrol(opts: { dry: boolean; key?: string; state?: unknown }): Promise<{ report: RunReport; state: PatrolState | null }> {
+/** Log scans may use any endpoint (ExecReader re-reads every execution from its own two RPCs); these allow 9,000-block ranges. */
+const LOG_RPC: Record<string, string[]> = {
+  ethereum: ["https://ethereum-rpc.publicnode.com"], optimism: ["https://optimism-rpc.publicnode.com"],
+  base: ["https://base-rpc.publicnode.com"], polygon: ["https://polygon-bor-rpc.publicnode.com"],
+};
+async function logRpc<T>(chain: string, method: string, params: unknown[]): Promise<T> {
+  for (const url of LOG_RPC[chain] ?? []) {
+    try {
+      const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }), signal: AbortSignal.timeout(20_000), cache: "no-store" });
+      const j = await r.json();
+      if (!j.error) return j.result as T;
+    } catch { /* next endpoint */ }
+  }
+  return rpc<T>(chain, method, params);
+}
+
+export interface PatrolOptions {
+  dry: boolean;
+  key?: string;
+  state?: unknown;
+  /** another registry than the canonical one (the demo registry) */
+  registry?: string;
+  /** only these DAO ids */
+  only?: number[];
+  limits?: Partial<Limits>;
+}
+
+export async function runPatrol(opts: PatrolOptions): Promise<{ report: RunReport; state: PatrolState | null }> {
   const t0 = Date.now();
   const chain = studioDevnet;
   const account = opts.key ? createAccount(opts.key as `0x${string}`) : null;
   const read = createClient({ chain });
   const wallet = account ? createClient({ chain, account }) : null;
   const dry = opts.dry || !wallet;
-  const state = loadState(opts.state, ADDR.registry);
+  const registry = opts.registry ?? ADDR.registry;
+  const state = loadState(opts.state, registry);
 
   async function submit(address: string, fn: string, args: CalldataEncodable[], value: bigint): Promise<string> {
     if (!wallet) throw new Error("no signer");
@@ -73,7 +102,7 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
     elapsedMs: () => Date.now() - t0,
     patrol: account?.address.toLowerCase() ?? "",
     dry,
-    addr: { registry: ADDR.registry, execReader: ADDR.execReader, voteReader: ADDR.voteReader, judge: ADDR.judge },
+    addr: { registry, execReader: ADDR.execReader, voteReader: ADDR.voteReader, judge: ADDR.judge },
     async view<T>(address: string, fn: string, args: CalldataEncodable[] = []) {
       const raw = await read.readContract({ address: address as `0x${string}`, functionName: fn, args });
       return (typeof raw === "string" ? (() => { try { return JSON.parse(raw); } catch { return raw; } })() : plain(raw)) as T;
@@ -90,7 +119,7 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
       return parseInt(b.timestamp, 16);
     },
     async logs(c: string, safe: string, from: number, to: number): Promise<Log[]> {
-      const got = await rpc<{ transactionHash: string; blockNumber: string; topics: string[]; data: string }[]>(c, "eth_getLogs",
+      const got = await logRpc<{ transactionHash: string; blockNumber: string; topics: string[]; data: string }[]>(c, "eth_getLogs",
         [{ address: safe, topics: [SUCCESS], fromBlock: "0x" + from.toString(16), toBlock: "0x" + to.toString(16) }]);
       // Safe 1.3 puts the safeTxHash in data, 1.4 indexes it
       return got.map((l) => ({ tx: l.transactionHash.toLowerCase(), block: parseInt(l.blockNumber, 16),
@@ -98,8 +127,9 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
     },
     match: matchProposal,
     supported: (c: string) => Boolean(RPC[c]),
+    ...(opts.only ? { watch: (d: Dao) => opts.only!.includes(d.dao_id) } : {}),
   };
-  const report = await runCore(deps, state);
+  const report = await runCore(deps, state, { ...LIMITS, ...opts.limits });
   return { report, state: dry ? null : state };
 }
 
