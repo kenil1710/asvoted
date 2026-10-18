@@ -1,0 +1,1081 @@
+{
+  "network": "studiodev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "explorer": "https://explorer-studio-dev.genlayer.com/",
+  "contracts": {
+    "ExecReader": {
+      "address": "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+      "deploy_tx": "0x25616ae8cce24fccd0c6b2f6471e5f2a4b90f4b8baf49e6c17b9c6768fbba916",
+      "file": "contracts/ExecReader.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 49781,
+      "sha256": "d2b6475e2272a3a4c02ee30f387609f0ea61bc49a9c4b08561bf9761071f95d6",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:19.750Z"
+    },
+    "VoteReader": {
+      "address": "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+      "deploy_tx": "0xcccaa5c5984a3dca64e33101dcfc0f74957a0bc97c7c87df95d4a77b2f997c08",
+      "file": "contracts/VoteReader.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 59149,
+      "sha256": "60079ef401ad17692e2aba3fd0dbecd33dcbfc57ca262a2153b40c0836c830d3",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:25.518Z"
+    },
+    "AsVotedJudge": {
+      "address": "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+      "deploy_tx": "0xbdfa6da6a698d9cd44f01dd8300efde590d42be536fa011ecc2702fa39b70aa9",
+      "file": "contracts/AsVotedJudge.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 80612,
+      "sha256": "17c929f28c1c3137d9cafe79352a1a35ab139d87dbbf0fa0e8fe135155da8ba9",
+      "constructor_args": [
+        "{\"ethereum\":{\"0xdef1ca1fb7fbcdc777520aa7f396b4e015f497ab\":\"COW\",\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\":\"WETH\",\"0x6810e776880c02933d47db1b9fc05908e5386b96\":\"GNO\",\"0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198\":\"BANK\",\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\":\"USDC\",\"0x58d97b57bb95320f9a05dc918aef65434969c2b2\":\"MORPHO\",\"0x5afe3855358e112b5647b952709e6165e1c1eeee\":\"SAFE\",\"0xba100000625a3754423978a60c9317c58a424e3d\":\"BAL\",\"0xdac17f958d2ee523a2206206994597c13d831ec7\":\"USDT\",\"0x6b175474e89094c44da98b954eedeac495271d0f\":\"DAI\",\"0xcafe001067cdef266afb7eb5a286dcfd277f3de5\":\"PSP\"},\"optimism\":{\"0xd3594e879b358f430e20f82bea61e83562d49d48\":\"PSP\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x0b2c639c533813f4aa9d7837caf62653d097ff85\":\"USDC\",\"0x4200000000000000000000000000000000000042\":\"OP\",\"0x94b008aa00579c1307b0ef2c499ad98a8ce58e58\":\"USDT\"},\"base\":{\"0x4e107a0000db66f0e9fd2039288bf811dd1f9c74\":\"VLR\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913\":\"USDC\"},\"arbitrum\":{\"0xaf88d065e77c8cc2239327c5edb3a432268e5831\":\"USDC\",\"0x82af49447d8a07e3bd95bd0d56f35241523fbab1\":\"WETH\",\"0x912ce59144191c1204e64559fe8253a0e49e6548\":\"ARB\",\"0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9\":\"USDT0\"},\"polygon\":{\"0x3c499c542cef5e3811e1192ce70d8cc03d5c3359\":\"USDC\",\"0x7ceb23fd6bc0add59e62ac25578270cff1b9f619\":\"WETH\",\"0xc2132d05d31c914a87c6611c10748aeb04b58e8f\":\"USDT0\"}}"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:34.510Z"
+    },
+    "AsVotedRegistry": {
+      "address": "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
+      "deploy_tx": "0xdcc2ef0d16cd28ac79a8e4e0cf73c67091c628a97ceea79b748c41effa13a635",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "CANONICAL",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        ""
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:39.989Z",
+      "mode": "CANONICAL"
+    },
+    "AsVotedRegistryDemo": {
+      "address": "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
+      "deploy_tx": "0x6327f23d0a61aad891affa80a1f47392bf02314b917dc41753e00848892152bf",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "DEMO",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T20:17:26.421Z",
+      "mode": "DEMO"
+    },
+    "DaoStanding": {
+      "address": "0xF12CA2B1440AAB7915879D84Abf04123D71d905f",
+      "deploy_tx": "0xcf58861072f86f2226dc3a8ca2fc02d9fe10db855eee310bf6f9b726f90fa4ee",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:51.089Z",
+      "mode": "CANONICAL"
+    },
+    "DaoStandingDemo": {
+      "address": "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128",
+      "deploy_tx": "0x680c570e104ff6c1780d93cb6ea95bd0ae4ad94090026b31efee82b824a254b6",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T20:17:32.724Z",
+      "mode": "DEMO"
+    },
+    "GrantGate": {
+      "address": "0xf4A21d3e39e6807202Cd9f656EAAF1F7C115e187",
+      "deploy_tx": "0x6da9c776142c9cd4e9fca268a10ba23b47a690da07f7cd8294f9f96baf5456ba",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xF12CA2B1440AAB7915879D84Abf04123D71d905f"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:19:04.448Z",
+      "mode": "CANONICAL"
+    },
+    "GrantGateDemo": {
+      "address": "0x3C77CA433b10E71a414203a7FFeB20Bf10e20296",
+      "deploy_tx": "0x52d771d5de7145f1c1b500084a92172066256e43f8c1d59702c35e1e8381c845",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T20:17:38.706Z",
+      "mode": "DEMO"
+    }
+  },
+  "superseded": [
+    {
+      "name": "ExecReader",
+      "address": "0xE2e7C95764F8B79f290fF6508615288892E2D3DF",
+      "deploy_tx": "0xad149e0297d38ae71b2941cc9759c6bc64fa4668984b9f46eeb14a8557e38230",
+      "file": "contracts/ExecReader.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 45164,
+      "sha256": "4909d23888c4da172d03bbceac4c67faf41b4cca122b6205ed161888275b30e9",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:38:40.870Z",
+      "superseded_by": "0x31EabbC7978d784e9EeaAf5c4FFD82eD9BC5eeB9",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "VoteReader",
+      "address": "0xCc11fecbc480F5504005310720ab6Acd28eB67fF",
+      "deploy_tx": "0xd373563864e1205cb5ebec1001ef12bbd626953e568a7c197cbd8e1d8aa01fab",
+      "file": "contracts/VoteReader.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 50014,
+      "sha256": "4ee549d44fd54eda89f3e10c06fe95fa35d887ab4c22b7fd36628b3636895e1c",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:38:50.656Z",
+      "superseded_by": "0xe00Cc656c9cED6F61505E9b7440Dad2B690C19FB",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "AsVotedJudge",
+      "address": "0xA551073A2aA7949AFE22997a6d261ecCE1e99D66",
+      "deploy_tx": "0x25cdf6549db3f473face81b3ca0c246c36bfc0d1b7ad1b6265821e7ca4f8bf96",
+      "file": "contracts/AsVotedJudge.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 49335,
+      "sha256": "97c7fc99c1953482038b42406bca9e99d36934b8e4df42460b6b330bfd40dc88",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:38:56.983Z",
+      "superseded_by": "0x4fFdAf25Fb27ba9bCeDAA0f94d93D14993a69Fb4",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "AsVotedRegistry",
+      "address": "0xE6cA8E64fBD3f2Cb68ACa2E8Af144e435EAe7528",
+      "deploy_tx": "0x13f203a5446e09d8888836fdae963c0a144c668a6b5a21ad4af7246b95bdd0c1",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 60800,
+      "sha256": "e2bc0b60ed49ba4064b024bd6854d2cf69cc4ff58a227f63005e342f5c55689d",
+      "constructor_args": [
+        "CANONICAL",
+        "0xE2e7C95764F8B79f290fF6508615288892E2D3DF",
+        "0xCc11fecbc480F5504005310720ab6Acd28eB67fF",
+        "0xA551073A2aA7949AFE22997a6d261ecCE1e99D66",
+        ""
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:39:03.933Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",
+      "deploy_tx": "0xfd1837bb1904199159bab5eb35109515ff7222d77e2a4484dade32be9197a628",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 60800,
+      "sha256": "e2bc0b60ed49ba4064b024bd6854d2cf69cc4ff58a227f63005e342f5c55689d",
+      "constructor_args": [
+        "DEMO",
+        "0xE2e7C95764F8B79f290fF6508615288892E2D3DF",
+        "0xCc11fecbc480F5504005310720ab6Acd28eB67fF",
+        "0xA551073A2aA7949AFE22997a6d261ecCE1e99D66",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:39:13.430Z",
+      "mode": "DEMO",
+      "superseded_by": "0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "DaoStanding",
+      "address": "0x16fec6B9ce8A069c9262a209884360378037083C",
+      "deploy_tx": "0x5358e37503a60dd352d4cca9d2522ed6e8de9ec3b799b080d66484fba634ccae",
+      "file": "contracts/DaoStanding.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 2845,
+      "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
+      "constructor_args": [
+        "0xE6cA8E64fBD3f2Cb68ACa2E8Af144e435EAe7528",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:39:18.978Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x2dee7BBc3e09E058B3AbEdfEeD2a2334ba69b870",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0xA8b2467277f32562ce01c789217D995C21982BCF",
+      "deploy_tx": "0xd98cbb7449d1fa092c0b51380bd0fb4c10fbd13ac5c0f13d2cef2fb84778ee2f",
+      "file": "contracts/DaoStanding.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 2845,
+      "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
+      "constructor_args": [
+        "0x9cCdDe5f5AAefC1387F437Baf96A1FC5E2be2F3F",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:39:27.527Z",
+      "mode": "DEMO",
+      "superseded_by": "0x5115162037A6aB89Bc70862b9C535e13f26D3693",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "GrantGate",
+      "address": "0x869752052e4dd8A8d1B9BB50d76fF1aEAeD09332",
+      "deploy_tx": "0x40bc50a2e2db2222664f7ccbb5d966374d643e7a4575ea27f4332db0a7199f7d",
+      "file": "contracts/GrantGate.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x16fec6B9ce8A069c9262a209884360378037083C"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:39:36.242Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x31EAFAAbd993be7F837569cf8aecBb44CaA233D4",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0xDadfBfC4bC8a08aD7485e4A31C7A2fc1bF21AA72",
+      "deploy_tx": "0xe04b8ebf9cb860797d5d52bef3df9d7dee5f2aa957ed1c2e156dfb0c931dd0f9",
+      "file": "contracts/GrantGate.py",
+      "commit": "790d6952d7bf6d7e3a39e485f02ec04f2e79f3fe",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xA8b2467277f32562ce01c789217D995C21982BCF"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T22:39:42.210Z",
+      "mode": "DEMO",
+      "superseded_by": "0x8e437a04970bc587adaE2764F8E18A171fe1d946",
+      "why": "attack rounds 1-2 fixes (H1 amount ownership, M1 withdrawal blocking, L1 wording)"
+    },
+    {
+      "name": "ExecReader",
+      "address": "0x31EabbC7978d784e9EeaAf5c4FFD82eD9BC5eeB9",
+      "deploy_tx": "0x614881c554aa58727a51966dfd34cb8f42332b37eb6bc5fe2e25d8838e959824",
+      "file": "contracts/ExecReader.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 45164,
+      "sha256": "4909d23888c4da172d03bbceac4c67faf41b4cca122b6205ed161888275b30e9",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:00:40.153Z",
+      "superseded_by": "0x995Dd0251F1b6ee07Ec50D599E4D426b1A0ee3E0",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "VoteReader",
+      "address": "0xe00Cc656c9cED6F61505E9b7440Dad2B690C19FB",
+      "deploy_tx": "0xbadcd1aec3ae56fc351c80e34d2c12f0913f5e62389e1349b6588399808fe74d",
+      "file": "contracts/VoteReader.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 50014,
+      "sha256": "4ee549d44fd54eda89f3e10c06fe95fa35d887ab4c22b7fd36628b3636895e1c",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:00:52.343Z",
+      "superseded_by": "0xE84085D2e047FD51797EA4a5567aAa6378ed4c4C",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "AsVotedJudge",
+      "address": "0x4fFdAf25Fb27ba9bCeDAA0f94d93D14993a69Fb4",
+      "deploy_tx": "0x04c4c0daf7a61aa425fe402d1d43695b8bbf4ab9b1a3029f88671f97098a954a",
+      "file": "contracts/AsVotedJudge.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 50632,
+      "sha256": "4c123527d890961dd9b445dd67eb7a617226403f8c4a503ee7f19b6f65b7d429",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:01:00.199Z",
+      "superseded_by": "0xbDF72F0600350f37634c317A4f3A508dB225A265",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "AsVotedRegistry",
+      "address": "0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc",
+      "deploy_tx": "0xb9824ec1b057ef1b713a85e3dde9640ae0d6b69b838e4988ca45b40faf8e7d2d",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 61947,
+      "sha256": "2810e1bb0f9a2e8974f68a94e6f5b0ae6c40ca6844595d3a37f1a72c7f03459b",
+      "constructor_args": [
+        "CANONICAL",
+        "0x31EabbC7978d784e9EeaAf5c4FFD82eD9BC5eeB9",
+        "0xe00Cc656c9cED6F61505E9b7440Dad2B690C19FB",
+        "0x4fFdAf25Fb27ba9bCeDAA0f94d93D14993a69Fb4",
+        ""
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:01:07.242Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x70e5Cfd6eE3e980792DF7588C501C2b547619C87",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",
+      "deploy_tx": "0x55db51e8a8aec3006a824e46ec7f4f70a12a68ff63e7a2bf50a300da07d8a025",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 61947,
+      "sha256": "2810e1bb0f9a2e8974f68a94e6f5b0ae6c40ca6844595d3a37f1a72c7f03459b",
+      "constructor_args": [
+        "DEMO",
+        "0x31EabbC7978d784e9EeaAf5c4FFD82eD9BC5eeB9",
+        "0xe00Cc656c9cED6F61505E9b7440Dad2B690C19FB",
+        "0x4fFdAf25Fb27ba9bCeDAA0f94d93D14993a69Fb4",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:01:16.999Z",
+      "mode": "DEMO",
+      "superseded_by": "0xbe11F753e6DC262097a6dF7d65A1bF1f01ca80c6",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "DaoStanding",
+      "address": "0x2dee7BBc3e09E058B3AbEdfEeD2a2334ba69b870",
+      "deploy_tx": "0x62f1b05c8d6c28cb3c81a1d509663b44847fa188fa5b907e499920ccaeafbf5a",
+      "file": "contracts/DaoStanding.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 2845,
+      "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
+      "constructor_args": [
+        "0x2B4ac2D50978fc4937E9a479e4706688a6c5cCdc",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:01:25.928Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x24685092D9B79A9198Dc0c18eA7D5E002D0900e8",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0x5115162037A6aB89Bc70862b9C535e13f26D3693",
+      "deploy_tx": "0x252977af942a64541256321aea5c60179ac7bd2c4415e9eeaf847d8522367448",
+      "file": "contracts/DaoStanding.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 2845,
+      "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
+      "constructor_args": [
+        "0x01AB66898cB6f1E949449f4a9B3D384f1079ea93",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:01:32.378Z",
+      "mode": "DEMO",
+      "superseded_by": "0x38C15757387F8a7a680A80ce4d36Fc1Bca145971",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "GrantGate",
+      "address": "0x31EAFAAbd993be7F837569cf8aecBb44CaA233D4",
+      "deploy_tx": "0xdc47be3939b7c53cb092258a2cffb6b7d2ff01785d510179d67b3b78d97b0bbb",
+      "file": "contracts/GrantGate.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x2dee7BBc3e09E058B3AbEdfEeD2a2334ba69b870"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:01:41.797Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x298b61AB164C8df97E1CEe74BF29139Cd6135B59",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0x8e437a04970bc587adaE2764F8E18A171fe1d946",
+      "deploy_tx": "0xcd320ade189e92a45ce7818cb3370bf71f34703a2e3a9fc8b4b199ae5a6a152e",
+      "file": "contracts/GrantGate.py",
+      "commit": "93d5be9a66b98ba6d0b0e5f36b8f44562c30a83b",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x5115162037A6aB89Bc70862b9C535e13f26D3693"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-15T23:01:54.135Z",
+      "mode": "DEMO",
+      "superseded_by": "0x1C35c963392EB503Abd09D9B426b4bDdc486d094",
+      "why": "round 3 attack fixes (b733e9e)"
+    },
+    {
+      "name": "ExecReader",
+      "address": "0x995Dd0251F1b6ee07Ec50D599E4D426b1A0ee3E0",
+      "deploy_tx": "0x68a76aa1787b4d4c2b873fdc32a1c1a3b931c26bf8f0518940c5591ee618fa1b",
+      "file": "contracts/ExecReader.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 45286,
+      "sha256": "7dd9e041c41cf4653db9e1cbe04dc634fc2711753b097d6970dd5e3dda699fd4",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:30:45.618Z",
+      "superseded_by": "0x6AFBFDE6D81b2DC3EbaE2Af822dF31f9D97dDC5a",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "VoteReader",
+      "address": "0xE84085D2e047FD51797EA4a5567aAa6378ed4c4C",
+      "deploy_tx": "0x51775045fcf4a71e07acc94f3f1479c125f963321e30c5137e1f03a55b00a811",
+      "file": "contracts/VoteReader.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 50241,
+      "sha256": "9534a440354bd60c25527bc077b3d7a8585e922ad8dde6c68345d018a9a3611d",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:30:56.576Z",
+      "superseded_by": "0x7e4a6F43Df5Bb28ECd6D4E3b8a9DB5186200Bb88",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "AsVotedJudge",
+      "address": "0xbDF72F0600350f37634c317A4f3A508dB225A265",
+      "deploy_tx": "0xebfcdcd6a543297b65dd17c57614ee9f8a8ba06d5ed8eff75ec025916d4498e9",
+      "file": "contracts/AsVotedJudge.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 70030,
+      "sha256": "b903bd1f4c8ade4e3f00d6132472ac06669cd55caad2825b9bb3bb41962646aa",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:31:06.681Z",
+      "superseded_by": "0xa75aF3785c25056589B0348a19b8fB10f5F66304",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "AsVotedRegistry",
+      "address": "0x70e5Cfd6eE3e980792DF7588C501C2b547619C87",
+      "deploy_tx": "0x23c7a6e51f9425ff93c36a981af1a82b2547fec9ac118c4a29f494ec0f5b38ce",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 63313,
+      "sha256": "e1567ceafbeacec6deb40d2ab7dd9937668ea3081ea3f7f05fcb64993b4dd587",
+      "constructor_args": [
+        "CANONICAL",
+        "0x995Dd0251F1b6ee07Ec50D599E4D426b1A0ee3E0",
+        "0xE84085D2e047FD51797EA4a5567aAa6378ed4c4C",
+        "0xbDF72F0600350f37634c317A4f3A508dB225A265",
+        ""
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:31:20.069Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x1C2891FE54a5CfE98436F439e40A3043050eFF44",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0xbe11F753e6DC262097a6dF7d65A1bF1f01ca80c6",
+      "deploy_tx": "0xacde822631df739bc2e1c04f9c0e528d3a972d0e256e2920a7f2f84150dbc61b",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 63313,
+      "sha256": "e1567ceafbeacec6deb40d2ab7dd9937668ea3081ea3f7f05fcb64993b4dd587",
+      "constructor_args": [
+        "DEMO",
+        "0x995Dd0251F1b6ee07Ec50D599E4D426b1A0ee3E0",
+        "0xE84085D2e047FD51797EA4a5567aAa6378ed4c4C",
+        "0xbDF72F0600350f37634c317A4f3A508dB225A265",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:31:30.064Z",
+      "mode": "DEMO",
+      "superseded_by": "0x8B904F094F5b2A25C5004Ab09301dc9041c17B7a",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "DaoStanding",
+      "address": "0x24685092D9B79A9198Dc0c18eA7D5E002D0900e8",
+      "deploy_tx": "0xca8f9ee4ab5ee2839ff3e7f819862fe4e0f2714fbc2d4161e37344baf27b96da",
+      "file": "contracts/DaoStanding.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 2845,
+      "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
+      "constructor_args": [
+        "0x70e5Cfd6eE3e980792DF7588C501C2b547619C87",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:31:38.556Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x785b9091dBFc1a45F76ccE89Eaa22Dd8fb9A6D1E",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0x38C15757387F8a7a680A80ce4d36Fc1Bca145971",
+      "deploy_tx": "0xa077067a592932b3eef496f843cae75a5bf0f6a459b0da535df1677d3f7a14c9",
+      "file": "contracts/DaoStanding.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 2845,
+      "sha256": "952d2995d8f12e541201cb8706ebc4164b0f0352de1311b8c1d613393bf550fb",
+      "constructor_args": [
+        "0xbe11F753e6DC262097a6dF7d65A1bF1f01ca80c6",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:31:44.707Z",
+      "mode": "DEMO",
+      "superseded_by": "0x659c4FE83ccFdfD0a6cC55A0004d70E574DfBDfa",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "GrantGate",
+      "address": "0x298b61AB164C8df97E1CEe74BF29139Cd6135B59",
+      "deploy_tx": "0xd7b13c18081daccbb3e94ea7bfec3ebd8d272b1ab6f611058e7785fb7e05cd5d",
+      "file": "contracts/GrantGate.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x24685092D9B79A9198Dc0c18eA7D5E002D0900e8"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:31:52.803Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x8691BaB8DB890C5B20F563dE9e6f0c33645ad4c4",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0x1C35c963392EB503Abd09D9B426b4bDdc486d094",
+      "deploy_tx": "0x700406d4dcd17d6f24b02afe58afa2c2a49baea5e6c4dfabf227e9e32cdca1f8",
+      "file": "contracts/GrantGate.py",
+      "commit": "829e156efcbaf799e227929eeb3b427f678d1099",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x38C15757387F8a7a680A80ce4d36Fc1Bca145971"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T05:32:01.394Z",
+      "mode": "DEMO",
+      "superseded_by": "0xCC8De1d9b971B7fF484bbFb1C0CB1F9B2045BA7F",
+      "why": "round 3 required design"
+    },
+    {
+      "name": "ExecReader",
+      "address": "0x6AFBFDE6D81b2DC3EbaE2Af822dF31f9D97dDC5a",
+      "deploy_tx": "0xa3d35292fe2abaa2a8ed17ba3392ae5088e5616ff213947779a46d5114255a50",
+      "file": "contracts/ExecReader.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 49781,
+      "sha256": "d2b6475e2272a3a4c02ee30f387609f0ea61bc49a9c4b08561bf9761071f95d6",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:24:33.446Z",
+      "superseded_by": "0x694E28e38D66C95E3A2138e5d22F8158939e21f8",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "VoteReader",
+      "address": "0x7e4a6F43Df5Bb28ECd6D4E3b8a9DB5186200Bb88",
+      "deploy_tx": "0x7ac65c4442e894dd67003eb6ff8d6b5cef00153ede3375d99257ddeb72d81fb4",
+      "file": "contracts/VoteReader.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 55934,
+      "sha256": "3f833fff652c40f8c01d0b79e8b0c4001e07064803b4a1fc3ccea76dd8f443e6",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:24:40.373Z",
+      "superseded_by": "0x7319257a270EE4D77A302f193Eff76878ec02BCa",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "AsVotedJudge",
+      "address": "0xa75aF3785c25056589B0348a19b8fB10f5F66304",
+      "deploy_tx": "0xad07914899a01af426a305ebdc7deacef959ac3cd45ac14abfb1ac392fe56720",
+      "file": "contracts/AsVotedJudge.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 72803,
+      "sha256": "e7d1482f09d32997e098fa762bf18fd3d79575105881166f789cf63c08c99cc0",
+      "constructor_args": [
+        "{\"ethereum\":{\"0xdef1ca1fb7fbcdc777520aa7f396b4e015f497ab\":\"COW\",\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\":\"WETH\",\"0x6810e776880c02933d47db1b9fc05908e5386b96\":\"GNO\",\"0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198\":\"BANK\",\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\":\"USDC\",\"0x58d97b57bb95320f9a05dc918aef65434969c2b2\":\"MORPHO\",\"0x5afe3855358e112b5647b952709e6165e1c1eeee\":\"SAFE\",\"0xba100000625a3754423978a60c9317c58a424e3d\":\"BAL\",\"0xdac17f958d2ee523a2206206994597c13d831ec7\":\"USDT\",\"0x6b175474e89094c44da98b954eedeac495271d0f\":\"DAI\",\"0xcafe001067cdef266afb7eb5a286dcfd277f3de5\":\"PSP\"},\"optimism\":{\"0xd3594e879b358f430e20f82bea61e83562d49d48\":\"PSP\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x0b2c639c533813f4aa9d7837caf62653d097ff85\":\"USDC\",\"0x4200000000000000000000000000000000000042\":\"OP\",\"0x94b008aa00579c1307b0ef2c499ad98a8ce58e58\":\"USDT\"},\"base\":{\"0x4e107a0000db66f0e9fd2039288bf811dd1f9c74\":\"VLR\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913\":\"USDC\"},\"arbitrum\":{\"0xaf88d065e77c8cc2239327c5edb3a432268e5831\":\"USDC\",\"0x82af49447d8a07e3bd95bd0d56f35241523fbab1\":\"WETH\",\"0x912ce59144191c1204e64559fe8253a0e49e6548\":\"ARB\",\"0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9\":\"USDT0\"},\"polygon\":{\"0x3c499c542cef5e3811e1192ce70d8cc03d5c3359\":\"USDC\",\"0x7ceb23fd6bc0add59e62ac25578270cff1b9f619\":\"WETH\",\"0xc2132d05d31c914a87c6611c10748aeb04b58e8f\":\"USDT0\"}}"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:24:51.060Z",
+      "superseded_by": "0xC2aBc36E01DEab31C1F24A66A8D010Cd9F7F7dfF",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "AsVotedRegistry",
+      "address": "0x1C2891FE54a5CfE98436F439e40A3043050eFF44",
+      "deploy_tx": "0x17f59a4cf19cf2c7a808ad3c55d7f578bf54ad6c1b8bdf3faa5011ac9a070db6",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 71481,
+      "sha256": "237bb7a1972032ebaac5e38c88541f8a1b5a22bee0489441a4f5c9fa73b461e1",
+      "constructor_args": [
+        "CANONICAL",
+        "0x6AFBFDE6D81b2DC3EbaE2Af822dF31f9D97dDC5a",
+        "0x7e4a6F43Df5Bb28ECd6D4E3b8a9DB5186200Bb88",
+        "0xa75aF3785c25056589B0348a19b8fB10f5F66304",
+        ""
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:25:03.415Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x4Ec22423528e64B4f1d41B7F647c0BD42464a30C",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x8B904F094F5b2A25C5004Ab09301dc9041c17B7a",
+      "deploy_tx": "0x071065a068542568075ae0ccbf1c0563c89b7a3aedc74ceec7e3d246d0f55407",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 71481,
+      "sha256": "237bb7a1972032ebaac5e38c88541f8a1b5a22bee0489441a4f5c9fa73b461e1",
+      "constructor_args": [
+        "DEMO",
+        "0x6AFBFDE6D81b2DC3EbaE2Af822dF31f9D97dDC5a",
+        "0x7e4a6F43Df5Bb28ECd6D4E3b8a9DB5186200Bb88",
+        "0xa75aF3785c25056589B0348a19b8fB10f5F66304",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:25:14.136Z",
+      "mode": "DEMO",
+      "superseded_by": "0x65dB1CD4b79Bc87e5d6dbA315ea8F4239eAea028",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "DaoStanding",
+      "address": "0x785b9091dBFc1a45F76ccE89Eaa22Dd8fb9A6D1E",
+      "deploy_tx": "0xe84803cba5e1dd28c6dbce6c2dd7eef365e663eabba7d60998bc68e444ccdb2f",
+      "file": "contracts/DaoStanding.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x1C2891FE54a5CfE98436F439e40A3043050eFF44",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:25:22.631Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0xA74Bb08f0e497fc18138bF5383e5f65974eE3CCb",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0x659c4FE83ccFdfD0a6cC55A0004d70E574DfBDfa",
+      "deploy_tx": "0xf17b048830d620928360f0673a23ebd98749aa42eecab9a11a72558337a7d9a4",
+      "file": "contracts/DaoStanding.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x8B904F094F5b2A25C5004Ab09301dc9041c17B7a",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:25:28.427Z",
+      "mode": "DEMO",
+      "superseded_by": "0x6EC6F4fABd87C7A7DCA24044ED011631106c408c",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "GrantGate",
+      "address": "0x8691BaB8DB890C5B20F563dE9e6f0c33645ad4c4",
+      "deploy_tx": "0xfb3e33a68efd495f8c9e78fce9276f8dbb163006cb9e2450c1dd0442dac55432",
+      "file": "contracts/GrantGate.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x785b9091dBFc1a45F76ccE89Eaa22Dd8fb9A6D1E"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:25:36.566Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x9848d38C85E1DFc8920c353124De3c82B519a62e",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0xCC8De1d9b971B7fF484bbFb1C0CB1F9B2045BA7F",
+      "deploy_tx": "0xb51a75d263061ce1b370a2b007042839ad3fd5fa7d98dc7e7831b06b2f7e14af",
+      "file": "contracts/GrantGate.py",
+      "commit": "7a746655daf01070f0cedfef806933ba243113dd",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x659c4FE83ccFdfD0a6cC55A0004d70E574DfBDfa"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T07:25:41.910Z",
+      "mode": "DEMO",
+      "superseded_by": "0x428727dF01a31202a66B2ED7d35F474Ba7B97C28",
+      "why": "round 4 fixes"
+    },
+    {
+      "name": "ExecReader",
+      "address": "0x694E28e38D66C95E3A2138e5d22F8158939e21f8",
+      "deploy_tx": "0xaa92084c3c997e090d06613f8707064fe11863e311cdaa95da8ba7b21352904e",
+      "file": "contracts/ExecReader.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 49781,
+      "sha256": "d2b6475e2272a3a4c02ee30f387609f0ea61bc49a9c4b08561bf9761071f95d6",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:14:07.828Z",
+      "superseded_by": "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "VoteReader",
+      "address": "0x7319257a270EE4D77A302f193Eff76878ec02BCa",
+      "deploy_tx": "0xe357030e5a3d25f5d21f58af8b758e5fdaef718264e50dfb81dbeeeb278d6aa1",
+      "file": "contracts/VoteReader.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 59149,
+      "sha256": "60079ef401ad17692e2aba3fd0dbecd33dcbfc57ca262a2153b40c0836c830d3",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:14:15.182Z",
+      "superseded_by": "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "AsVotedJudge",
+      "address": "0xC2aBc36E01DEab31C1F24A66A8D010Cd9F7F7dfF",
+      "deploy_tx": "0x0e1fc8605ca15279eac4d9776f57ccde6e43a3f4bc3314686e7cf57d3b0ab44a",
+      "file": "contracts/AsVotedJudge.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 80612,
+      "sha256": "17c929f28c1c3137d9cafe79352a1a35ab139d87dbbf0fa0e8fe135155da8ba9",
+      "constructor_args": [
+        "{\"ethereum\":{\"0xdef1ca1fb7fbcdc777520aa7f396b4e015f497ab\":\"COW\",\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\":\"WETH\",\"0x6810e776880c02933d47db1b9fc05908e5386b96\":\"GNO\",\"0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198\":\"BANK\",\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\":\"USDC\",\"0x58d97b57bb95320f9a05dc918aef65434969c2b2\":\"MORPHO\",\"0x5afe3855358e112b5647b952709e6165e1c1eeee\":\"SAFE\",\"0xba100000625a3754423978a60c9317c58a424e3d\":\"BAL\",\"0xdac17f958d2ee523a2206206994597c13d831ec7\":\"USDT\",\"0x6b175474e89094c44da98b954eedeac495271d0f\":\"DAI\",\"0xcafe001067cdef266afb7eb5a286dcfd277f3de5\":\"PSP\"},\"optimism\":{\"0xd3594e879b358f430e20f82bea61e83562d49d48\":\"PSP\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x0b2c639c533813f4aa9d7837caf62653d097ff85\":\"USDC\",\"0x4200000000000000000000000000000000000042\":\"OP\",\"0x94b008aa00579c1307b0ef2c499ad98a8ce58e58\":\"USDT\"},\"base\":{\"0x4e107a0000db66f0e9fd2039288bf811dd1f9c74\":\"VLR\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913\":\"USDC\"},\"arbitrum\":{\"0xaf88d065e77c8cc2239327c5edb3a432268e5831\":\"USDC\",\"0x82af49447d8a07e3bd95bd0d56f35241523fbab1\":\"WETH\",\"0x912ce59144191c1204e64559fe8253a0e49e6548\":\"ARB\",\"0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9\":\"USDT0\"},\"polygon\":{\"0x3c499c542cef5e3811e1192ce70d8cc03d5c3359\":\"USDC\",\"0x7ceb23fd6bc0add59e62ac25578270cff1b9f619\":\"WETH\",\"0xc2132d05d31c914a87c6611c10748aeb04b58e8f\":\"USDT0\"}}"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:14:26.262Z",
+      "superseded_by": "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "AsVotedRegistry",
+      "address": "0x4Ec22423528e64B4f1d41B7F647c0BD42464a30C",
+      "deploy_tx": "0x4718eb489978fb8a4220b189816544edefd7cf9d35c509473594dc5134e0fabc",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 76231,
+      "sha256": "0fe7b81ca80ff1f2b7b2fb73759a4d3e4f17ac29d397421b543be5e972c75191",
+      "constructor_args": [
+        "CANONICAL",
+        "0x694E28e38D66C95E3A2138e5d22F8158939e21f8",
+        "0x7319257a270EE4D77A302f193Eff76878ec02BCa",
+        "0xC2aBc36E01DEab31C1F24A66A8D010Cd9F7F7dfF",
+        ""
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:14:33.533Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x65dB1CD4b79Bc87e5d6dbA315ea8F4239eAea028",
+      "deploy_tx": "0xff4b9ea3956e1ab01e56b7711a879d84929e4cce0d5c6cc10b83ae9994ad6a37",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 76231,
+      "sha256": "0fe7b81ca80ff1f2b7b2fb73759a4d3e4f17ac29d397421b543be5e972c75191",
+      "constructor_args": [
+        "DEMO",
+        "0x694E28e38D66C95E3A2138e5d22F8158939e21f8",
+        "0x7319257a270EE4D77A302f193Eff76878ec02BCa",
+        "0xC2aBc36E01DEab31C1F24A66A8D010Cd9F7F7dfF",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:14:40.910Z",
+      "mode": "DEMO",
+      "superseded_by": "0x5d054EAb7Dc657e99598C76A795aA530592B5D6D",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "DaoStanding",
+      "address": "0xA74Bb08f0e497fc18138bF5383e5f65974eE3CCb",
+      "deploy_tx": "0x655e0930bdd9597df50c8115af37faa65c530a7f47905115097d7baf356330ec",
+      "file": "contracts/DaoStanding.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x4Ec22423528e64B4f1d41B7F647c0BD42464a30C",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:14:46.637Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0xF12CA2B1440AAB7915879D84Abf04123D71d905f",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0x6EC6F4fABd87C7A7DCA24044ED011631106c408c",
+      "deploy_tx": "0x3d6d6e6c3c5062b37e829d26849a8f5e1a6a59ae5d298a8461f914922d91acb9",
+      "file": "contracts/DaoStanding.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x65dB1CD4b79Bc87e5d6dbA315ea8F4239eAea028",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:14:55.802Z",
+      "mode": "DEMO",
+      "superseded_by": "0xD2a03f4CDf35Dc430D50b1F4b4D508D3C6789914",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "GrantGate",
+      "address": "0x9848d38C85E1DFc8920c353124De3c82B519a62e",
+      "deploy_tx": "0xf27471ff7f201355f518fec2f75dab477f9a6d42cfe5b02eb20a35739a237d31",
+      "file": "contracts/GrantGate.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xA74Bb08f0e497fc18138bF5383e5f65974eE3CCb"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:15:01.386Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0xf4A21d3e39e6807202Cd9f656EAAF1F7C115e187",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0x428727dF01a31202a66B2ED7d35F474Ba7B97C28",
+      "deploy_tx": "0x9e0e1cc312e92988f687be854ee91abf8b8425edd4096806d57c240bb9eabaaa",
+      "file": "contracts/GrantGate.py",
+      "commit": "07ff3a3d2add9702114feca11317dab78d9d8966",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x6EC6F4fABd87C7A7DCA24044ED011631106c408c"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-16T13:15:08.658Z",
+      "mode": "DEMO",
+      "superseded_by": "0xB95F0E3fD33BAf56359F20Ce9d06c86965BB632D",
+      "why": "claim() paid with an internal message that Studio Dev skips for EOAs; now an external EthSend"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x5d054EAb7Dc657e99598C76A795aA530592B5D6D",
+      "deploy_tx": "0x49b5ec311f0384d4ea073b1555eeb4ac49c29579f9382dac95df5a0a72d82ad7",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "DEMO",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:45.731Z",
+      "mode": "DEMO",
+      "superseded_by": "0x2aaabEC3480Be886203698300092ff82091D8eD2",
+      "why": "fresh demo set from ab42d5c: the previous demo registry's checks were judged after their deadlines under Studio's rate limit"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0xD2a03f4CDf35Dc430D50b1F4b4D508D3C6789914",
+      "deploy_tx": "0x2f8b5872da9541bed5ca1959a72fe5c8814865e56e5ad6fa652b724bd748426e",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x5d054EAb7Dc657e99598C76A795aA530592B5D6D",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:56.048Z",
+      "mode": "DEMO",
+      "superseded_by": "0x97468c3e1Eef0C2cf54D83F983146F71c42A989E",
+      "why": "fresh demo set from ab42d5c: the previous demo registry's checks were judged after their deadlines under Studio's rate limit"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0xB95F0E3fD33BAf56359F20Ce9d06c86965BB632D",
+      "deploy_tx": "0xd3802c79688bf44803bb57f8e563735f58c6c6c42e7f14e44161eb73c27d348b",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xD2a03f4CDf35Dc430D50b1F4b4D508D3C6789914"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:19:10.079Z",
+      "mode": "DEMO",
+      "superseded_by": "0x5FEE545271B684B886168f22e67D59dC26Aaf958",
+      "why": "fresh demo set from ab42d5c: the previous demo registry's checks were judged after their deadlines under Studio's rate limit"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x2aaabEC3480Be886203698300092ff82091D8eD2",
+      "deploy_tx": "0x6ae54ba0e78b0517311e93f652fd8b61e05f4c06c882ff9ad0086833196d066f",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "DEMO",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T17:05:39.697Z",
+      "mode": "DEMO",
+      "superseded_by": "0xf0b5EDAad5A5263a750092880E9edE5f8645060B",
+      "why": "fresh demo set from ab42d5c: three proposal reads were unreadable in the previous run (that registry is drained, eth_getBalance 0)"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0x97468c3e1Eef0C2cf54D83F983146F71c42A989E",
+      "deploy_tx": "0x97063e56e01cbab1425f08ee031a96903554f9b9184e233b3ee61099c5bac221",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x2aaabEC3480Be886203698300092ff82091D8eD2",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T17:05:46.265Z",
+      "mode": "DEMO",
+      "superseded_by": "0x8691A845B9D2d79631438b58e25065eEd608D4E5",
+      "why": "fresh demo set from ab42d5c: three proposal reads were unreadable in the previous run (that registry is drained, eth_getBalance 0)"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0x5FEE545271B684B886168f22e67D59dC26Aaf958",
+      "deploy_tx": "0xaaa52bfefa69962f9cfa59c820c87af7351a8d237632378de73279ab5775c363",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x97468c3e1Eef0C2cf54D83F983146F71c42A989E"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T17:05:52.086Z",
+      "mode": "DEMO",
+      "superseded_by": "0xa60E3BD0c8117bf29cb540caCc833f1b1c3D8bB6",
+      "why": "fresh demo set from ab42d5c: three proposal reads were unreadable in the previous run (that registry is drained, eth_getBalance 0)"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0xf0b5EDAad5A5263a750092880E9edE5f8645060B",
+      "deploy_tx": "0x5334117bca4560d5c6de54aed310da8658831f8ef2071657c19d436cab84ec28",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "DEMO",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T18:37:30.605Z",
+      "mode": "DEMO",
+      "superseded_by": "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
+      "why": "demo run 4 judged checks #1 and #2 past their deadline; fresh demo set for a clean run"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0x8691A845B9D2d79631438b58e25065eEd608D4E5",
+      "deploy_tx": "0x60f9afc4a9e34118554e0be0f8ca1652e20ad33bd739f9eabae71714560c092f",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0xf0b5EDAad5A5263a750092880E9edE5f8645060B",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T18:37:39.434Z",
+      "mode": "DEMO",
+      "superseded_by": "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128",
+      "why": "demo run 4 judged checks #1 and #2 past their deadline; fresh demo set for a clean run"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0xa60E3BD0c8117bf29cb540caCc833f1b1c3D8bB6",
+      "deploy_tx": "0x7de903638fbeb5a0acff3957f7f0477bc9cd7b25af16ba22eef61cb773de2b8d",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0x8691A845B9D2d79631438b58e25065eEd608D4E5"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T18:37:45.706Z",
+      "mode": "DEMO",
+      "superseded_by": "0x3C77CA433b10E71a414203a7FFeB20Bf10e20296",
+      "why": "demo run 4 judged checks #1 and #2 past their deadline; fresh demo set for a clean run"
+    }
+  ]
+}
