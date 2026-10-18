@@ -5,132 +5,136 @@
   "explorer": "https://explorer-studio-dev.genlayer.com/",
   "contracts": {
     "ExecReader": {
-      "address": "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
-      "deploy_tx": "0x25616ae8cce24fccd0c6b2f6471e5f2a4b90f4b8baf49e6c17b9c6768fbba916",
+      "address": "0x08E3E60e037af578D1c5f4189cDDd888ac497685",
+      "deploy_tx": "0x522d76b934a9df53979e9b04a027f4a0a323174b8067e82b7044212728b7371a",
       "file": "contracts/ExecReader.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
       "bytes": 49781,
       "sha256": "d2b6475e2272a3a4c02ee30f387609f0ea61bc49a9c4b08561bf9761071f95d6",
       "constructor_args": [],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:18:19.750Z"
+      "deployed_at": "2026-10-18T19:23:52.660Z"
     },
     "VoteReader": {
-      "address": "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
-      "deploy_tx": "0xcccaa5c5984a3dca64e33101dcfc0f74957a0bc97c7c87df95d4a77b2f997c08",
+      "address": "0xEb81fc7584fFf7f9414B52575c0151B1cE9b0bc7",
+      "deploy_tx": "0x328c30c7b6e0829a277ef0eb252f8d7c77c19b6dd47ccd0740bac6e22bccb3c0",
       "file": "contracts/VoteReader.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
       "bytes": 59149,
       "sha256": "60079ef401ad17692e2aba3fd0dbecd33dcbfc57ca262a2153b40c0836c830d3",
       "constructor_args": [],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:18:25.518Z"
+      "deployed_at": "2026-10-18T19:24:33.144Z"
     },
     "AsVotedJudge": {
-      "address": "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
-      "deploy_tx": "0xbdfa6da6a698d9cd44f01dd8300efde590d42be536fa011ecc2702fa39b70aa9",
+      "address": "0x73fA37dc86005942AA1045a82CcF9e48eAA557F6",
+      "deploy_tx": "0xf0e772da5eec123ecb45db0100d4b92de138a2f4b98cbb4321e0b821ab813b2d",
       "file": "contracts/AsVotedJudge.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
       "bytes": 80612,
       "sha256": "17c929f28c1c3137d9cafe79352a1a35ab139d87dbbf0fa0e8fe135155da8ba9",
       "constructor_args": [
         "{\"ethereum\":{\"0xdef1ca1fb7fbcdc777520aa7f396b4e015f497ab\":\"COW\",\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\":\"WETH\",\"0x6810e776880c02933d47db1b9fc05908e5386b96\":\"GNO\",\"0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198\":\"BANK\",\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\":\"USDC\",\"0x58d97b57bb95320f9a05dc918aef65434969c2b2\":\"MORPHO\",\"0x5afe3855358e112b5647b952709e6165e1c1eeee\":\"SAFE\",\"0xba100000625a3754423978a60c9317c58a424e3d\":\"BAL\",\"0xdac17f958d2ee523a2206206994597c13d831ec7\":\"USDT\",\"0x6b175474e89094c44da98b954eedeac495271d0f\":\"DAI\",\"0xcafe001067cdef266afb7eb5a286dcfd277f3de5\":\"PSP\"},\"optimism\":{\"0xd3594e879b358f430e20f82bea61e83562d49d48\":\"PSP\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x0b2c639c533813f4aa9d7837caf62653d097ff85\":\"USDC\",\"0x4200000000000000000000000000000000000042\":\"OP\",\"0x94b008aa00579c1307b0ef2c499ad98a8ce58e58\":\"USDT\"},\"base\":{\"0x4e107a0000db66f0e9fd2039288bf811dd1f9c74\":\"VLR\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913\":\"USDC\"},\"arbitrum\":{\"0xaf88d065e77c8cc2239327c5edb3a432268e5831\":\"USDC\",\"0x82af49447d8a07e3bd95bd0d56f35241523fbab1\":\"WETH\",\"0x912ce59144191c1204e64559fe8253a0e49e6548\":\"ARB\",\"0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9\":\"USDT0\"},\"polygon\":{\"0x3c499c542cef5e3811e1192ce70d8cc03d5c3359\":\"USDC\",\"0x7ceb23fd6bc0add59e62ac25578270cff1b9f619\":\"WETH\",\"0xc2132d05d31c914a87c6611c10748aeb04b58e8f\":\"USDT0\"}}"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:18:34.510Z"
+      "deployed_at": "2026-10-18T19:25:10.928Z"
     },
     "AsVotedRegistry": {
-      "address": "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
-      "deploy_tx": "0xdcc2ef0d16cd28ac79a8e4e0cf73c67091c628a97ceea79b748c41effa13a635",
+      "address": "0xc73438492c3F9604D99BfF7Aa268B7F77Aa3a9b1",
+      "deploy_tx": "0xd7ba80bf9a9045db551ca512834e0e20498d5d8e7df837f465749227737c90a5",
       "file": "contracts/AsVotedRegistry.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
-      "bytes": 77645,
-      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 82331,
+      "sha256": "8af77a788882dcd9ffaac2844d7d8d8bf29acc15198561119f3034941c3b8b24",
       "constructor_args": [
         "CANONICAL",
-        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
-        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
-        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x08E3E60e037af578D1c5f4189cDDd888ac497685",
+        "0xEb81fc7584fFf7f9414B52575c0151B1cE9b0bc7",
+        "0x73fA37dc86005942AA1045a82CcF9e48eAA557F6",
         ""
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:18:39.989Z",
+      "deployed_at": "2026-10-18T19:25:49.229Z",
       "mode": "CANONICAL"
     },
     "AsVotedRegistryDemo": {
-      "address": "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
-      "deploy_tx": "0x6327f23d0a61aad891affa80a1f47392bf02314b917dc41753e00848892152bf",
+      "address": "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
+      "deploy_tx": "0x410c3ae04e38ecee95d8d432485dc2fea02d1f669f7bfa9566db0f20199c1abe",
       "file": "contracts/AsVotedRegistry.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
-      "bytes": 77645,
-      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 82331,
+      "sha256": "8af77a788882dcd9ffaac2844d7d8d8bf29acc15198561119f3034941c3b8b24",
       "constructor_args": [
         "DEMO",
-        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
-        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
-        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x08E3E60e037af578D1c5f4189cDDd888ac497685",
+        "0xEb81fc7584fFf7f9414B52575c0151B1cE9b0bc7",
+        "0x73fA37dc86005942AA1045a82CcF9e48eAA557F6",
         "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T20:17:26.421Z",
+      "deployed_at": "2026-10-18T19:27:07.911Z",
       "mode": "DEMO"
     },
     "DaoStanding": {
-      "address": "0xF12CA2B1440AAB7915879D84Abf04123D71d905f",
-      "deploy_tx": "0xcf58861072f86f2226dc3a8ca2fc02d9fe10db855eee310bf6f9b726f90fa4ee",
+      "address": "0x7B0B239181CAF8AFaa261f95E2344594d09d53A0",
+      "deploy_tx": "0xe7b11c7bd5a22df42fa33b5d4c3271de4876c40bea2a82b6710e406981207c6c",
       "file": "contracts/DaoStanding.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
-      "bytes": 3799,
-      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 7129,
+      "sha256": "8f100112913a2820d21c1a95aaf28e052e7788fc68ed0e7dc60d23e7151b8ad2",
       "constructor_args": [
-        "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
-        30
+        "0xc73438492c3F9604D99BfF7Aa268B7F77Aa3a9b1",
+        30,
+        "0xf58f80cde7200b8cebccbe8671c40c4df4786762",
+        21600
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:18:51.089Z",
+      "deployed_at": "2026-10-18T19:27:53.536Z",
       "mode": "CANONICAL"
     },
     "DaoStandingDemo": {
-      "address": "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128",
-      "deploy_tx": "0x680c570e104ff6c1780d93cb6ea95bd0ae4ad94090026b31efee82b824a254b6",
+      "address": "0xf5B76b485AD2b709b043344772A3e9089b582B90",
+      "deploy_tx": "0xb0debb51f859be3731b42bb4ac075c9fab19455575665b6e35f3784b8234c0b5",
       "file": "contracts/DaoStanding.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
-      "bytes": 3799,
-      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 7129,
+      "sha256": "8f100112913a2820d21c1a95aaf28e052e7788fc68ed0e7dc60d23e7151b8ad2",
       "constructor_args": [
-        "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
-        30
+        "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
+        730,
+        "0xf58f80cde7200b8cebccbe8671c40c4df4786762",
+        3600
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T20:17:32.724Z",
+      "deployed_at": "2026-10-18T19:28:36.441Z",
       "mode": "DEMO"
     },
     "GrantGate": {
-      "address": "0xf4A21d3e39e6807202Cd9f656EAAF1F7C115e187",
-      "deploy_tx": "0x6da9c776142c9cd4e9fca268a10ba23b47a690da07f7cd8294f9f96baf5456ba",
+      "address": "0x638Ae4Cd8F0c62e373626E88F75490817bBD6877",
+      "deploy_tx": "0x0a51d13a08e072ecdec58891d1ef8bcf88522399fe8ac66d07980ccff7a8f167",
       "file": "contracts/GrantGate.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
-      "bytes": 4084,
-      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 4311,
+      "sha256": "6ef6823340a0871790dfdcf3ff0820b7ce8f4bc6777303b72f77e2c6a8c4e724",
       "constructor_args": [
-        "0xF12CA2B1440AAB7915879D84Abf04123D71d905f"
+        "0x7B0B239181CAF8AFaa261f95E2344594d09d53A0"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T15:19:04.448Z",
+      "deployed_at": "2026-10-18T19:29:17.182Z",
       "mode": "CANONICAL"
     },
     "GrantGateDemo": {
-      "address": "0x3C77CA433b10E71a414203a7FFeB20Bf10e20296",
-      "deploy_tx": "0x52d771d5de7145f1c1b500084a92172066256e43f8c1d59702c35e1e8381c845",
+      "address": "0x598302A10fFfe70Fc7Af51B20CB09c7bC5fF13C2",
+      "deploy_tx": "0xc84d0830d6cb1f8d7b8dbf974aa7b4d274f31a399493b60f205a922f8cf1aaf3",
       "file": "contracts/GrantGate.py",
-      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
-      "bytes": 4084,
-      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 4311,
+      "sha256": "6ef6823340a0871790dfdcf3ff0820b7ce8f4bc6777303b72f77e2c6a8c4e724",
       "constructor_args": [
-        "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128"
+        "0xf5B76b485AD2b709b043344772A3e9089b582B90"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-17T20:17:38.706Z",
+      "deployed_at": "2026-10-18T19:29:57.130Z",
       "mode": "DEMO"
     }
   },
@@ -1076,6 +1080,162 @@
       "mode": "DEMO",
       "superseded_by": "0x3C77CA433b10E71a414203a7FFeB20Bf10e20296",
       "why": "demo run 4 judged checks #1 and #2 past their deadline; fresh demo set for a clean run"
+    },
+    {
+      "name": "ExecReader",
+      "address": "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+      "deploy_tx": "0x25616ae8cce24fccd0c6b2f6471e5f2a4b90f4b8baf49e6c17b9c6768fbba916",
+      "file": "contracts/ExecReader.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 49781,
+      "sha256": "d2b6475e2272a3a4c02ee30f387609f0ea61bc49a9c4b08561bf9761071f95d6",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:19.750Z",
+      "superseded_by": "0x08E3E60e037af578D1c5f4189cDDd888ac497685",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "VoteReader",
+      "address": "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+      "deploy_tx": "0xcccaa5c5984a3dca64e33101dcfc0f74957a0bc97c7c87df95d4a77b2f997c08",
+      "file": "contracts/VoteReader.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 59149,
+      "sha256": "60079ef401ad17692e2aba3fd0dbecd33dcbfc57ca262a2153b40c0836c830d3",
+      "constructor_args": [],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:25.518Z",
+      "superseded_by": "0xEb81fc7584fFf7f9414B52575c0151B1cE9b0bc7",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "AsVotedJudge",
+      "address": "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+      "deploy_tx": "0xbdfa6da6a698d9cd44f01dd8300efde590d42be536fa011ecc2702fa39b70aa9",
+      "file": "contracts/AsVotedJudge.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 80612,
+      "sha256": "17c929f28c1c3137d9cafe79352a1a35ab139d87dbbf0fa0e8fe135155da8ba9",
+      "constructor_args": [
+        "{\"ethereum\":{\"0xdef1ca1fb7fbcdc777520aa7f396b4e015f497ab\":\"COW\",\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\":\"WETH\",\"0x6810e776880c02933d47db1b9fc05908e5386b96\":\"GNO\",\"0x2d94aa3e47d9d5024503ca8491fce9a2fb4da198\":\"BANK\",\"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\":\"USDC\",\"0x58d97b57bb95320f9a05dc918aef65434969c2b2\":\"MORPHO\",\"0x5afe3855358e112b5647b952709e6165e1c1eeee\":\"SAFE\",\"0xba100000625a3754423978a60c9317c58a424e3d\":\"BAL\",\"0xdac17f958d2ee523a2206206994597c13d831ec7\":\"USDT\",\"0x6b175474e89094c44da98b954eedeac495271d0f\":\"DAI\",\"0xcafe001067cdef266afb7eb5a286dcfd277f3de5\":\"PSP\"},\"optimism\":{\"0xd3594e879b358f430e20f82bea61e83562d49d48\":\"PSP\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x0b2c639c533813f4aa9d7837caf62653d097ff85\":\"USDC\",\"0x4200000000000000000000000000000000000042\":\"OP\",\"0x94b008aa00579c1307b0ef2c499ad98a8ce58e58\":\"USDT\"},\"base\":{\"0x4e107a0000db66f0e9fd2039288bf811dd1f9c74\":\"VLR\",\"0x4200000000000000000000000000000000000006\":\"WETH\",\"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913\":\"USDC\"},\"arbitrum\":{\"0xaf88d065e77c8cc2239327c5edb3a432268e5831\":\"USDC\",\"0x82af49447d8a07e3bd95bd0d56f35241523fbab1\":\"WETH\",\"0x912ce59144191c1204e64559fe8253a0e49e6548\":\"ARB\",\"0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9\":\"USDT0\"},\"polygon\":{\"0x3c499c542cef5e3811e1192ce70d8cc03d5c3359\":\"USDC\",\"0x7ceb23fd6bc0add59e62ac25578270cff1b9f619\":\"WETH\",\"0xc2132d05d31c914a87c6611c10748aeb04b58e8f\":\"USDT0\"}}"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:34.510Z",
+      "superseded_by": "0x73fA37dc86005942AA1045a82CcF9e48eAA557F6",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "AsVotedRegistry",
+      "address": "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
+      "deploy_tx": "0xdcc2ef0d16cd28ac79a8e4e0cf73c67091c628a97ceea79b748c41effa13a635",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "CANONICAL",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        ""
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:39.989Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0xc73438492c3F9604D99BfF7Aa268B7F77Aa3a9b1",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
+      "deploy_tx": "0x6327f23d0a61aad891affa80a1f47392bf02314b917dc41753e00848892152bf",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 77645,
+      "sha256": "f7e5a79b9323cba3a34807cfa24a6fbf150104dd38a760da3ea659565ae8ded8",
+      "constructor_args": [
+        "DEMO",
+        "0xA08486C9b6518B734D19Af58948db36FE3bdD961",
+        "0x029870D42f42f808eFE707fea6BB3D78dA48147F",
+        "0xa7c0123bBc8c1982C2cD037e723aA0d1AbB6a2a1",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T20:17:26.421Z",
+      "mode": "DEMO",
+      "superseded_by": "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "DaoStanding",
+      "address": "0xF12CA2B1440AAB7915879D84Abf04123D71d905f",
+      "deploy_tx": "0xcf58861072f86f2226dc3a8ca2fc02d9fe10db855eee310bf6f9b726f90fa4ee",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0x808bbc73B8C65312d14e421C51C774EB4E90121C",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:18:51.089Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x7B0B239181CAF8AFaa261f95E2344594d09d53A0",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128",
+      "deploy_tx": "0x680c570e104ff6c1780d93cb6ea95bd0ae4ad94090026b31efee82b824a254b6",
+      "file": "contracts/DaoStanding.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 3799,
+      "sha256": "d45495c84350bc8f3d62836a5c72d76dee92345e9c418fa483c849446564e311",
+      "constructor_args": [
+        "0xBcD9e80084C796CB3ca07126c5180CD0bdB537D1",
+        30
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T20:17:32.724Z",
+      "mode": "DEMO",
+      "superseded_by": "0xf5B76b485AD2b709b043344772A3e9089b582B90",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "GrantGate",
+      "address": "0xf4A21d3e39e6807202Cd9f656EAAF1F7C115e187",
+      "deploy_tx": "0x6da9c776142c9cd4e9fca268a10ba23b47a690da07f7cd8294f9f96baf5456ba",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xF12CA2B1440AAB7915879D84Abf04123D71d905f"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T15:19:04.448Z",
+      "mode": "CANONICAL",
+      "superseded_by": "0x638Ae4Cd8F0c62e373626E88F75490817bBD6877",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0x3C77CA433b10E71a414203a7FFeB20Bf10e20296",
+      "deploy_tx": "0x52d771d5de7145f1c1b500084a92172066256e43f8c1d59702c35e1e8381c845",
+      "file": "contracts/GrantGate.py",
+      "commit": "ab42d5c632d3c80ac11da5762be116962434e69f",
+      "bytes": 4084,
+      "sha256": "2fc4477e774a6871d6a18359ca96f31aad860eb9461d104ee2768817cd2c06db",
+      "constructor_args": [
+        "0xfcae1de4D6B42752bFeF59bEa9140B6e4e39c128"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-17T20:17:38.706Z",
+      "mode": "DEMO",
+      "superseded_by": "0x598302A10fFfe70Fc7Af51B20CB09c7bC5fF13C2",
+      "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
     }
   ]
 }
