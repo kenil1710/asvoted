@@ -58,8 +58,8 @@
       "mode": "CANONICAL"
     },
     "AsVotedRegistryDemo": {
-      "address": "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
-      "deploy_tx": "0x410c3ae04e38ecee95d8d432485dc2fea02d1f669f7bfa9566db0f20199c1abe",
+      "address": "0x5AF1254384965e7E21ab37853Ee6385448331C50",
+      "deploy_tx": "0xc230912ec2962a5de40e33d0727c3834628dc473a2af7f66c3c4c7b246403feb",
       "file": "contracts/AsVotedRegistry.py",
       "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
       "bytes": 82331,
@@ -72,7 +72,7 @@
         "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-18T19:27:07.911Z",
+      "deployed_at": "2026-10-18T22:44:14.042Z",
       "mode": "DEMO"
     },
     "DaoStanding": {
@@ -93,20 +93,20 @@
       "mode": "CANONICAL"
     },
     "DaoStandingDemo": {
-      "address": "0xf5B76b485AD2b709b043344772A3e9089b582B90",
-      "deploy_tx": "0xb0debb51f859be3731b42bb4ac075c9fab19455575665b6e35f3784b8234c0b5",
+      "address": "0x1dA328B19AbCaA8c30BA62c56D7e8775D7e0D380",
+      "deploy_tx": "0x18554be37243d03092cdf2661c0e7902e08d02d87611fe370d3548bd570e719d",
       "file": "contracts/DaoStanding.py",
       "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
       "bytes": 7129,
       "sha256": "8f100112913a2820d21c1a95aaf28e052e7788fc68ed0e7dc60d23e7151b8ad2",
       "constructor_args": [
-        "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
+        "0x5AF1254384965e7E21ab37853Ee6385448331C50",
         730,
         "0xf58f80cde7200b8cebccbe8671c40c4df4786762",
         3600
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-18T19:28:36.441Z",
+      "deployed_at": "2026-10-18T22:44:53.640Z",
       "mode": "DEMO"
     },
     "GrantGate": {
@@ -124,17 +124,17 @@
       "mode": "CANONICAL"
     },
     "GrantGateDemo": {
-      "address": "0x598302A10fFfe70Fc7Af51B20CB09c7bC5fF13C2",
-      "deploy_tx": "0xc84d0830d6cb1f8d7b8dbf974aa7b4d274f31a399493b60f205a922f8cf1aaf3",
+      "address": "0xecEb8c215fe63Fe1eBeF09f4Fe236087E106C50B",
+      "deploy_tx": "0x97761b38d35a27e81fe3db6cf89722394e4589fd1f00036cc1234de28789f0a9",
       "file": "contracts/GrantGate.py",
       "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
       "bytes": 4311,
       "sha256": "6ef6823340a0871790dfdcf3ff0820b7ce8f4bc6777303b72f77e2c6a8c4e724",
       "constructor_args": [
-        "0xf5B76b485AD2b709b043344772A3e9089b582B90"
+        "0x1dA328B19AbCaA8c30BA62c56D7e8775D7e0D380"
       ],
       "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
-      "deployed_at": "2026-10-18T19:29:57.130Z",
+      "deployed_at": "2026-10-18T22:45:31.584Z",
       "mode": "DEMO"
     }
   },
@@ -1236,6 +1236,64 @@
       "mode": "DEMO",
       "superseded_by": "0x598302A10fFfe70Fc7Af51B20CB09c7bC5fF13C2",
       "why": "steward changes: coverage heartbeat, structured standing, active deadlines, pagination fields"
+    },
+    {
+      "name": "AsVotedRegistryDemo",
+      "address": "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
+      "deploy_tx": "0x410c3ae04e38ecee95d8d432485dc2fea02d1f669f7bfa9566db0f20199c1abe",
+      "file": "contracts/AsVotedRegistry.py",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 82331,
+      "sha256": "8af77a788882dcd9ffaac2844d7d8d8bf29acc15198561119f3034941c3b8b24",
+      "constructor_args": [
+        "DEMO",
+        "0x08E3E60e037af578D1c5f4189cDDd888ac497685",
+        "0xEb81fc7584fFf7f9414B52575c0151B1cE9b0bc7",
+        "0x73fA37dc86005942AA1045a82CcF9e48eAA557F6",
+        "0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-18T19:27:07.911Z",
+      "mode": "DEMO",
+      "superseded_by": "0x5AF1254384965e7E21ab37853Ee6385448331C50",
+      "why": "demo run on 0x9ce6CEAA judged after its judge windows; fresh demo set from the same commit"
+    },
+    {
+      "name": "DaoStandingDemo",
+      "address": "0xf5B76b485AD2b709b043344772A3e9089b582B90",
+      "deploy_tx": "0xb0debb51f859be3731b42bb4ac075c9fab19455575665b6e35f3784b8234c0b5",
+      "file": "contracts/DaoStanding.py",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 7129,
+      "sha256": "8f100112913a2820d21c1a95aaf28e052e7788fc68ed0e7dc60d23e7151b8ad2",
+      "constructor_args": [
+        "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
+        730,
+        "0xf58f80cde7200b8cebccbe8671c40c4df4786762",
+        3600
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-18T19:28:36.441Z",
+      "mode": "DEMO",
+      "superseded_by": "0x1dA328B19AbCaA8c30BA62c56D7e8775D7e0D380",
+      "why": "demo run on 0x9ce6CEAA judged after its judge windows; fresh demo set from the same commit"
+    },
+    {
+      "name": "GrantGateDemo",
+      "address": "0x598302A10fFfe70Fc7Af51B20CB09c7bC5fF13C2",
+      "deploy_tx": "0xc84d0830d6cb1f8d7b8dbf974aa7b4d274f31a399493b60f205a922f8cf1aaf3",
+      "file": "contracts/GrantGate.py",
+      "commit": "b836f418da32f8bd1b2bb0e218a6512d35275cbb",
+      "bytes": 4311,
+      "sha256": "6ef6823340a0871790dfdcf3ff0820b7ce8f4bc6777303b72f77e2c6a8c4e724",
+      "constructor_args": [
+        "0xf5B76b485AD2b709b043344772A3e9089b582B90"
+      ],
+      "deployer": "0x141e1F6b3A945a07c49a56151279a1F308Ca7408",
+      "deployed_at": "2026-10-18T19:29:57.130Z",
+      "mode": "DEMO",
+      "superseded_by": "0xecEb8c215fe63Fe1eBeF09f4Fe236087E106C50B",
+      "why": "demo run on 0x9ce6CEAA judged after its judge windows; fresh demo set from the same commit"
     }
   ]
 }

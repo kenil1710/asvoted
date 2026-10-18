@@ -46,3 +46,27 @@ GrantGateDemo  GrantGate.py  args=["0xf5B76b485AD2b709b043344772A3e9089b582B90"]
   address 0x598302A10fFfe70Fc7Af51B20CB09c7bC5fF13C2
 
 wrote /Users/kenilvakariya/dev/asvoted/deployments.json
+deployer 0x141e1F6b3A945a07c49a56151279a1F308Ca7408  HEAD b836f418da32f8bd1b2bb0e218a6512d35275cbb  set final
+ExecReader already deployed from HEAD at 0x08E3E60e037af578D1c5f4189cDDd888ac497685
+VoteReader already deployed from HEAD at 0xEb81fc7584fFf7f9414B52575c0151B1cE9b0bc7
+AsVotedJudge already deployed from HEAD at 0x73fA37dc86005942AA1045a82CcF9e48eAA557F6
+AsVotedRegistry already deployed from HEAD at 0xc73438492c3F9604D99BfF7Aa268B7F77Aa3a9b1
+
+AsVotedRegistryDemo  AsVotedRegistry.py  args=["DEMO","0x08E3E60e037af578D1c5f4189cDDd888ac497685","0xEb81fc7584fFf7f9414B52575c0151B1cE9b0bc7","0x73fA37dc86005942AA1045a82CcF9e48eAA557F6","0x88fe8ab95e561a57ce2dd375355858a0893d5d2d"]  82331 bytes  sha256 8af77a788882dcd9ffaac2844d7d8d8bf29acc15198561119f3034941c3b8b24
+  fee        0.100000 GEN (estimated)
+  tx         0xc230912ec2962a5de40e33d0727c3834628dc473a2af7f66c3c4c7b246403feb
+  address 0x5AF1254384965e7E21ab37853Ee6385448331C50
+DaoStanding already deployed from HEAD at 0x7B0B239181CAF8AFaa261f95E2344594d09d53A0
+
+DaoStandingDemo  DaoStanding.py  args=["0x5AF1254384965e7E21ab37853Ee6385448331C50",730,"0xf58f80cde7200b8cebccbe8671c40c4df4786762",3600]  7129 bytes  sha256 8f100112913a2820d21c1a95aaf28e052e7788fc68ed0e7dc60d23e7151b8ad2
+  fee        0.100000 GEN (estimated)
+  tx         0x18554be37243d03092cdf2661c0e7902e08d02d87611fe370d3548bd570e719d
+  address 0x1dA328B19AbCaA8c30BA62c56D7e8775D7e0D380
+GrantGate already deployed from HEAD at 0x638Ae4Cd8F0c62e373626E88F75490817bBD6877
+
+GrantGateDemo  GrantGate.py  args=["0x1dA328B19AbCaA8c30BA62c56D7e8775D7e0D380"]  4311 bytes  sha256 6ef6823340a0871790dfdcf3ff0820b7ce8f4bc6777303b72f77e2c6a8c4e724
+  fee        0.100000 GEN (estimated)
+  tx         0x97761b38d35a27e81fe3db6cf89722394e4589fd1f00036cc1234de28789f0a9
+  address 0xecEb8c215fe63Fe1eBeF09f4Fe236087E106C50B
+
+wrote /Users/kenilvakariya/dev/asvoted/deployments.json
