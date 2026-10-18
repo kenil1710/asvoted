@@ -9,7 +9,7 @@ import { type PatrolState, emptyState, loadState, safeKey } from "../src/lib/pat
 import { MAX_PAGE, PATROL, SCAN_CAP, World } from "./mock";
 
 const HEAD = 1_000_000;
-const L: Limits = { maxWrites: 10_000, timeBudgetMs: 10_000_000, maxSpan: { ethereum: 1_000 }, logChunk: 1_000, initialBackfill: { ethereum: 500 } };
+const L: Limits = { maxWrites: 10_000, timeBudgetMs: 10_000_000, graceMs: 60_000, maxSpan: { ethereum: 1_000 }, logChunk: 1_000, initialBackfill: { ethereum: 500 } };
 async function run(w: World, s: PatrolState, lim: Limits = L) {
   w.ms = 0;
   const rep = await runCore(w.deps(), s, lim);

@@ -16,9 +16,14 @@
  *   unmatched    executions no passed proposal could be matched to
  *   heartbeats   "chain|safe" -> the block last sent to the registry as
  *                coverage (record_coverage), so an unchanged one is not resent
+ *   pending      transactions sent and not yet decided (hash, operation,
+ *                expected state change); resumed by hash, never resent
+ *   tx_log       the last decided transactions and how each ended
  *   cursors      where a bounded run stopped in the registry's paginated
  *                lists (DAOs, open checks); the next run continues there
  */
+
+import type { PendingTx } from "./txlife";
 
 export const STATE_VERSION = 1;
 
@@ -74,6 +79,8 @@ export interface PatrolState {
   updated: string;
   cursors: Cursors;
   heartbeats: Record<string, number>;
+  pending: PendingTx[];
+  tx_log: { id: string; fn: string; hash: string; outcome: string; at: string }[];
   checkpoints: Record<string, Checkpoint>;
   processed: Record<string, Processed>;
   retry: RetryEntry[];
@@ -81,7 +88,7 @@ export interface PatrolState {
 }
 
 export const emptyState = (): PatrolState => ({
-  version: STATE_VERSION, updated: "", cursors: { daos: 0, open_checks: 0 }, heartbeats: {}, checkpoints: {}, processed: {}, retry: [], unmatched: [],
+  version: STATE_VERSION, updated: "", cursors: { daos: 0, open_checks: 0 }, heartbeats: {}, pending: [], tx_log: [], checkpoints: {}, processed: {}, retry: [], unmatched: [],
 });
 
 /** A state document from untrusted JSON: anything missing or malformed starts empty. */
@@ -100,6 +107,8 @@ export function loadState(raw: unknown): PatrolState {
     if (Number.isInteger(c?.block) && c.block >= 0) s.checkpoints[k] = { block: c.block, origin: Number(c.origin ?? c.block), updated: String(c.updated ?? "") };
   }
   for (const [k, v] of Object.entries(obj(r.heartbeats))) if (Number.isInteger(v) && (v as number) >= 0) s.heartbeats[k] = v as number;
+  s.pending = arr(r.pending).filter((p: PendingTx) => typeof p?.id === "string" && typeof p?.hash === "string" && typeof p?.expect === "object");
+  s.tx_log = arr(r.tx_log);
   s.processed = obj(r.processed);
   s.retry = arr(r.retry).filter((e: RetryEntry) => typeof e?.key === "string");
   s.unmatched = arr(r.unmatched).filter((e: Unmatched) => typeof e?.key === "string");

@@ -10,7 +10,7 @@ import { emptyState, safeKey } from "../src/lib/patrol/state";
 import { PATROL, World } from "./mock";
 
 const HEAD = 1_000_000;
-const L: Limits = { maxWrites: 50, timeBudgetMs: 1e9, maxSpan: { ethereum: 1_000 }, logChunk: 1_000, initialBackfill: { ethereum: 500 } };
+const L: Limits = { maxWrites: 50, timeBudgetMs: 1e9, graceMs: 60_000, maxSpan: { ethereum: 1_000 }, logChunk: 1_000, initialBackfill: { ethereum: 500 } };
 const beats = (w: World) => w.writes.filter((x) => x.fn === "record_coverage").map((x) => JSON.parse(String(x.args[0])));
 
 test("after a scan the patrol records, per DAO, the checkpoint block and its timestamp", async () => {

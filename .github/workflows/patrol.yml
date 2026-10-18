@@ -39,6 +39,8 @@ jobs:
                                                  "filed", "queued", "retried", "unmatched", "closed", "seconds")}, indent=1))
           for s in r.get("scans", []):
               print("scan", s["dao"], s["chain"], s["from"], "->", s["to"], "checkpoint", s["checkpoint"], "events", s["events"])
+          for x in r.get("resumed", []):
+              print("resumed", x["id"], x["hash"], x["ok"], x["note"])
           for w in r.get("writes", []):
               print("write", w["fn"], w["ok"], w["note"], w["hash"])
           for n in r.get("notes", []):

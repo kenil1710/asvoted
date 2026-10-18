@@ -28,12 +28,12 @@
  */
 import type { CalldataEncodable } from "genlayer-js/types";
 import { type PatrolState, dequeue, enqueue, execKey, safeKey } from "./state";
+import { type Expect, type TxView, Lifecycle } from "./txlife";
 
 export const STAKE = 10n ** 17n;
 
 export interface Dao { dao_id: number; space: string; chain: string; safe: string }
 export interface Log { tx: string; block: number; safeTxHash: string }
-export interface WriteResult { ok: boolean; hash: string | null; note: string; dry?: boolean }
 export type Match = { cid: string; nonce: number; why: string } | { error: string; unmatched: boolean };
 
 export interface Deps {
@@ -43,7 +43,10 @@ export interface Deps {
   dry: boolean;
   addr: { registry: string; execReader: string; voteReader: string; judge: string };
   view<T>(address: string, fn: string, args?: CalldataEncodable[]): Promise<T>;
-  write(address: string, fn: string, args: CalldataEncodable[], value?: bigint): Promise<WriteResult>;
+  /** sends a transaction and returns its hash (fees estimated by simulating it) */
+  submit(address: string, fn: string, args: CalldataEncodable[], value: bigint): Promise<string>;
+  tx(hash: string): Promise<TxView | null>;
+  sleep(ms: number): Promise<void>;
   finalized(chain: string): Promise<{ number: number; timestamp: number }>;
   blockTime(chain: string, block: number): Promise<number>;
   logs(chain: string, safe: string, from: number, to: number): Promise<Log[]>;
@@ -54,6 +57,8 @@ export interface Deps {
 export interface Limits {
   maxWrites: number;
   timeBudgetMs: number;
+  /** how long past timeBudgetMs a sent transaction is still followed before it is left for the next run */
+  graceMs: number;
   /** most blocks of one Safe scanned in one run */
   maxSpan: Record<string, number>;
   /** blocks per eth_getLogs call */
@@ -65,7 +70,8 @@ export interface Limits {
 // ~24 h of blocks per run (arbitrum ~7.5 h, at 0.25 s blocks); a first scan starts ~7 days back
 export const LIMITS: Limits = {
   maxWrites: 5,
-  timeBudgetMs: 240_000,
+  timeBudgetMs: 200_000,
+  graceMs: 80_000,
   maxSpan: { ethereum: 7_200, optimism: 43_200, base: 43_200, polygon: 43_200, arbitrum: 108_000 },
   logChunk: 9_000,
   initialBackfill: { ethereum: 50_400, optimism: 302_400, base: 302_400, polygon: 302_400, arbitrum: 2_419_200 },
@@ -79,6 +85,7 @@ export interface RunReport {
   patrol: string;
   registry: string;
   writes: WriteLog[];
+  resumed: { id: string; hash: string; ok: boolean; note: string }[];
   daos_watched: number;
   open_pages: number;
   open_seen: number;
@@ -116,18 +123,25 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
   const { addr } = deps;
   const rep: RunReport = {
     started: new Date(deps.now() * 1000).toISOString(), dry_run: deps.dry, patrol: deps.patrol, registry: addr.registry,
-    writes: [], daos_watched: 0, open_pages: 0, open_seen: 0, executions_seen: 0, already_checked: 0, filed: 0, queued: 0, retried: 0, unmatched: 0, heartbeats: 0,
+    writes: [], resumed: [], daos_watched: 0, open_pages: 0, open_seen: 0, executions_seen: 0, already_checked: 0, filed: 0, queued: 0, retried: 0, unmatched: 0, heartbeats: 0,
     scans: [], matched: [], closed: [], notes: [], seconds: 0,
   };
   const iso = () => new Date(deps.now() * 1000).toISOString();
   const timeLeft = () => deps.elapsedMs() < limits.timeBudgetMs;
+  const lc = new Lifecycle(deps, addr, state, limits.timeBudgetMs + limits.graceMs);
   // one write is held back for the coverage heartbeat at the end of the run
-  const budgetLeft = () => rep.writes.length < limits.maxWrites - 1 && timeLeft();
+  const budgetLeft = () => lc.sent < limits.maxWrites - 1 && timeLeft();
 
-  async function write(address: string, fn: string, args: CalldataEncodable[], value = 0n): Promise<WriteResult> {
-    const r = await deps.write(address, fn, args, value);
+  /** One operation through the transaction lifecycle (./txlife.ts): verified on chain, or not ok. */
+  async function write(id: string, address: string, fn: string, args: CalldataEncodable[], expect: Expect, value = 0n) {
+    const r = await lc.send(id, address, fn, args, value, expect);
     rep.writes.push({ fn, args: JSON.stringify(args).slice(0, 160), ok: r.ok, hash: r.hash, note: r.note });
     return r;
+  }
+
+  // 0. transactions earlier runs left in flight: followed by their stored hash, never resent
+  for (const { p, outcome } of await lc.resumeAll(30_000)) {
+    rep.resumed.push({ id: p.id, hash: p.hash, ok: outcome.ok, note: outcome.note });
   }
 
   // 1. close our own filings, every page of open checks, continuing where the last run stopped
@@ -137,15 +151,20 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
   async function close(c: Open): Promise<void> {
     const now = deps.now();
     const deadline = activeDeadline(c);
+    const moved: Expect = { kind: "check_moved", check_id: c.check_id, status: c.status, round: c.round };
+    const at = `${c.check_id}|${c.round}|${c.status}`;
     if (c.status === "CONTESTABLE") {
-      if (now > deadline) { rep.closed.push(`finalize #${c.check_id}`); await write(addr.registry, "finalize", [c.check_id]); }
+      if (now > deadline) { rep.closed.push(`finalize #${c.check_id}`); await write(`finalize|${at}`, addr.registry, "finalize", [c.check_id], moved); }
       return;
     }
     if (c.status !== "PROVISIONAL" && c.status !== "APPEALED") return;
-    if (now > deadline) { rep.closed.push(`expire #${c.check_id}`); await write(addr.registry, "expire", [c.check_id]); return; }
+    if (now > deadline) { rep.closed.push(`expire #${c.check_id}`); await write(`expire|${at}`, addr.registry, "expire", [c.check_id], moved); return; }
     const j = await deps.view<{ found: boolean }>(addr.judge, "get_judgment", [addr.registry, c.check_id, c.round]);
-    if (!j.found) { rep.closed.push(`judge #${c.check_id} round ${c.round}`); if (!(await write(addr.judge, "judge", [addr.registry, c.check_id])).ok) return; }
-    if (budgetLeft()) { rep.closed.push(`rule #${c.check_id} round ${c.round}`); await write(addr.registry, "rule", [c.check_id]); }
+    if (!j.found) {
+      rep.closed.push(`judge #${c.check_id} round ${c.round}`);
+      if (!(await write(`judge|${at}`, addr.judge, "judge", [addr.registry, c.check_id], { kind: "judgment", check_id: c.check_id, round: c.round })).ok) return;
+    }
+    if (budgetLeft()) { rep.closed.push(`rule #${c.check_id} round ${c.round}`); await write(`rule|${at}`, addr.registry, "rule", [c.check_id], moved); }
   }
   try {
     const start = state.cursors.open_checks;
@@ -201,14 +220,15 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
       }
       rep.matched.push({ tx: lg.tx, dao: d.space, cid: m.cid, why: m.why });
       const now = deps.now();
-      const sent = async (address: string, fn: string, args: CalldataEncodable[], value = 0n) => {
-        const r = await write(address, fn, args, value);
-        return r.ok ? "" : r.dry ? "dry run" : `${fn}: ${r.note}`;
+      // "" when verified on chain; a deferral (dry run, or still in flight: resumed by hash) or a failure otherwise
+      const sent = async (id: string, address: string, fn: string, args: CalldataEncodable[], expect: Expect, value = 0n) => {
+        const r = await write(id, address, fn, args, expect, value);
+        return r.ok ? null : r.dry || r.uncertain ? defer(`${fn}: ${r.note}`) : fail(`${fn}: ${r.note}`);
       };
       let execId = Number(await deps.view<number>(addr.execReader, "get_execution_id", [d.chain, d.safe, lg.tx]));
       if (!execId) {
-        const err = await sent(addr.execReader, "read_execution", [d.chain, d.safe, lg.tx, m.nonce]);
-        if (err) return err === "dry run" ? defer(err) : fail(err);
+        const err = await sent(`read_execution|${key}`, addr.execReader, "read_execution", [d.chain, d.safe, lg.tx, m.nonce], { kind: "exec_id", chain: d.chain, safe: d.safe, tx: lg.tx });
+        if (err) return err;
         execId = Number(await deps.view<number>(addr.execReader, "get_execution_id", [d.chain, d.safe, lg.tx]));
         if (!execId) return fail("read_execution left no record");
       }
@@ -216,8 +236,9 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
       let voteId = Number(await deps.view<number>(addr.voteReader, "get_proposal_id", [m.cid, d.chain, d.safe]));
       const v = voteId ? await deps.view<{ read_at: number }>(addr.voteReader, "get_proposal", [voteId]) : null;
       if (!v || now - v.read_at > 3000) {
-        const err = await sent(addr.voteReader, "read_proposal", [m.cid, d.chain, d.safe]);
-        if (err) return err === "dry run" ? defer(err) : fail(err);
+        const err = await sent(`read_proposal|${m.cid}|${d.chain}|${d.safe}`, addr.voteReader, "read_proposal", [m.cid, d.chain, d.safe],
+          { kind: "fresh_vote", cid: m.cid, chain: d.chain, safe: d.safe, after: now - 60 });
+        if (err) return err;
         voteId = Number(await deps.view<number>(addr.voteReader, "get_proposal_id", [m.cid, d.chain, d.safe]));
         if (!voteId) return fail("read_proposal left no record");
       }
@@ -226,15 +247,16 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
       const pv = await deps.view<{ ens_names?: string[] }>(addr.voteReader, "get_proposal", [voteId]);
       const ev = await deps.view<{ l1_block: number }>(addr.execReader, "get_execution", [execId]);
       if (pv.ens_names?.length && ev.l1_block > 0 && !(await deps.view<{ found: boolean }>(addr.voteReader, "get_names_at", [voteId, ev.l1_block])).found) {
-        const err = await sent(addr.voteReader, "read_names_at", [voteId, ev.l1_block]);
-        if (err) return err === "dry run" ? defer(err) : fail(err);
+        const err = await sent(`read_names_at|${voteId}|${ev.l1_block}`, addr.voteReader, "read_names_at", [voteId, ev.l1_block], { kind: "names", vote_id: voteId, l1: ev.l1_block });
+        if (err) return err;
         if (!budgetLeft()) return defer("budget used up after read_names_at; next run");
       }
       // the registry once more, right before the only write that costs a stake
       const again = Number(await deps.view<number>(addr.registry, "get_check_id_by_tx", [d.chain, d.safe, lg.tx]));
       if (again) { rep.already_checked++; return done("on_registry", again); }
-      const err = await sent(addr.registry, "file_check", [d.dao_id, execId, voteId, `patrol: ${m.why}`.slice(0, 200)], STAKE);
-      if (err) return err === "dry run" ? defer(err) : fail(err);
+      const err = await sent(`file_check|${key}`, addr.registry, "file_check", [d.dao_id, execId, voteId, `patrol: ${m.why}`.slice(0, 200)],
+        { kind: "check_by_tx", chain: d.chain, safe: d.safe, tx: lg.tx }, STAKE);
+      if (err) return err;
       const filed = Number(await deps.view<number>(addr.registry, "get_check_id_by_tx", [d.chain, d.safe, lg.tx]));
       if (!filed) return fail("file_check left no check on the registry");
       rep.filed++;
@@ -295,8 +317,10 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
       beatKeys.push([sk, held]);
     } catch (e) { rep.notes.push(`${d.space}: block ${held} time unreadable (${short(e)}); heartbeat next run`); }
   }
-  for (let i = 0; i < beats.length && rep.writes.length < limits.maxWrites; i += PAGE) {
-    const r = await write(addr.registry, "record_coverage", [JSON.stringify(beats.slice(i, i + PAGE))]);
+  for (let i = 0; i < beats.length && lc.sent < limits.maxWrites && deps.elapsedMs() < limits.timeBudgetMs + limits.graceMs / 2; i += PAGE) {
+    const chunk = beats.slice(i, i + PAGE);
+    const r = await write(`record_coverage|${chunk.map((b) => `${b[0]}:${b[1]}`).join(",")}`, addr.registry, "record_coverage", [JSON.stringify(chunk)],
+      { kind: "coverage", reporter: deps.patrol, entries: chunk.map((b) => [b[0], b[1]] as [number, number]) });
     if (r.ok) for (const [sk, b] of beatKeys.slice(i, i + PAGE)) state.heartbeats[sk] = b;
     rep.heartbeats += r.ok ? Math.min(PAGE, beats.length - i) : 0;
   }

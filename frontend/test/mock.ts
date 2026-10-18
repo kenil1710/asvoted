@@ -4,7 +4,11 @@
  * and a clock. Pagination follows the registry's contract code: MAX_PAGE
  * records per call and SCAN_CAP records scanned per get_open_checks call.
  */
-import type { Dao, Deps, Log, Match, WriteResult } from "../src/lib/patrol/core";
+import type { Dao, Deps, Log, Match } from "../src/lib/patrol/core";
+import type { TxView } from "../src/lib/patrol/txlife";
+
+/** How a mocked transaction goes: the statuses successive polls see, and its GenVM result. */
+export interface TxPlan { script?: string[]; exec?: "SUCCESS" | "ERROR"; rolledBack?: boolean; noEffect?: boolean; error?: string }
 
 export const MAX_PAGE = 50;
 export const SCAN_CAP = 500;
@@ -39,6 +43,9 @@ export class World {
   failMatch: (lg: Log) => string | null = () => null;
   unmatched: (lg: Log) => string | null = () => null;
   failWrite: (fn: string, args: unknown[]) => string | null = () => null;
+  plan: (fn: string, args: unknown[]) => TxPlan = () => ({});
+  txs = new Map<string, { fn: string; args: unknown[]; script: string[]; exec: string; rolledBack: boolean; error: string; polls: number }>();
+  failSubmit = false;
   writeMs = 1000;
   logMs = 0;
 
@@ -103,11 +110,28 @@ export class World {
     throw new Error("mock: no view " + fn);
   }
 
-  write(fn: string, args: unknown[], value: bigint): WriteResult {
+  submit(fn: string, args: unknown[], value: bigint): string {
+    if (this.failSubmit) throw new Error("rpc down");
     this.ms += this.writeMs;
     this.writes.push({ fn, args, value });
+    const hash = hex(0x7000 + this.writes.length);
     const err = this.failWrite(fn, args);
-    if (err) return { ok: false, hash: hex(this.writes.length), note: err };
+    const p = err ? { exec: "ERROR" as const, error: err, noEffect: true } : this.plan(fn, args);
+    const exec = p.exec ?? "SUCCESS";
+    this.txs.set(hash, { fn, args, script: p.script ?? ["FINALIZED"], exec, rolledBack: !!p.rolledBack, error: p.error ?? "", polls: 0 });
+    if (exec === "SUCCESS" && !p.rolledBack && !p.noEffect) this.apply(fn, args);
+    return hash;
+  }
+
+  txView(hash: string): TxView | null {
+    const t = this.txs.get(hash);
+    if (!t) return null;
+    const status = t.script[Math.min(t.polls, t.script.length - 1)];
+    t.polls++;
+    return { status, exec: t.exec, rolledBack: t.rolledBack, error: t.error };
+  }
+
+  private apply(fn: string, args: unknown[]) {
     const a = args as never[];
     switch (fn) {
       case "read_execution": if (!this.execs.has(`${a[0]}|${String(a[1]).toLowerCase()}|${a[2]}`)) this.execs.set(`${a[0]}|${String(a[1]).toLowerCase()}|${a[2]}`, this.execs.size + 1); break;
@@ -129,7 +153,6 @@ export class World {
         break;
       case "finalize": case "expire": this.checks[Number(a[0]) - 1].status = "FINAL"; break;
     }
-    return { ok: true, hash: hex(this.writes.length), note: "FINALIZED" };
   }
 
   deps(over: Partial<Deps> = {}): Deps {
@@ -140,7 +163,9 @@ export class World {
       dry: false,
       addr: { registry: "0xregistry", execReader: "0xexec", voteReader: "0xvote", judge: "0xjudge" },
       view: async <T,>(_addr: string, fn: string, args: unknown[] = []) => this.view(fn, args) as T,
-      write: async (_addr: string, fn: string, args: unknown[], value = 0n) => this.write(fn, args, value),
+      submit: async (_addr: string, fn: string, args: unknown[], value: bigint) => this.submit(fn, args, value),
+      tx: async (hash: string) => this.txView(hash),
+      sleep: async (ms: number) => { this.ms += ms; },
       finalized: async (c: string) => ({ number: this.heads[c], timestamp: this.t - 900 }),
       blockTime: async (c: string, n: number) => this.t - 900 - (this.heads[c] - n) * 12,
       logs: async (c: string, safe: string, from: number, to: number) => {

@@ -117,7 +117,7 @@ test("an unmatched execution is recorded in the state file with its reason, and 
   w.unmatched = () => "no passed proposal names an address this execution touches (3 passed of 40 read); not filed";
   const s = emptyState();
   s.checkpoints[safeKey(d.chain, d.safe)] = { block: 999_900, origin: 0, updated: "" };
-  const rep = await runCore(w.deps(), s, { maxWrites: 10, timeBudgetMs: 1e9, maxSpan: { ethereum: 1000 }, logChunk: 1000, initialBackfill: {} });
+  const rep = await runCore(w.deps(), s, { maxWrites: 10, timeBudgetMs: 1e9, graceMs: 60_000, maxSpan: { ethereum: 1000 }, logChunk: 1000, initialBackfill: {} });
   assert.equal(rep.unmatched, 1);
   assert.deepEqual([s.unmatched[0].tx, s.unmatched[0].space, s.unmatched[0].safe_tx_hash], [lg.tx, d.space, lg.safeTxHash]);
   assert.match(s.unmatched[0].reason, /3 passed of 40 read/);

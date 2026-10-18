@@ -6,18 +6,20 @@
  *
  * What a run does is in ./patrol/core.ts; this file only wires it to Studio
  * Dev, the Safes' chains and the Snapshot hub. Every write estimates its fee
- * by simulating the call first. The bot holds a throwaway Studio Dev key
+ * by simulating the call first; what counts as a successful write (FINALIZED,
+ * GenVM success, the state change read back) is in ./patrol/txlife.ts. The bot holds a throwaway Studio Dev key
  * (PATROL_KEY) and nothing else.
  */
 import { createAccount, createClient } from "genlayer-js";
 import { studioDevnet } from "genlayer-js/chains";
-import type { CalldataEncodable, TransactionHash } from "genlayer-js/types";
+import { type CalldataEncodable, type TransactionHash, transactionsStatusNumberToName } from "genlayer-js/types";
 import { ADDR } from "./deployments";
 import { createPublicClient, fallback, http, type Hex } from "viem";
 import { mainnet } from "viem/chains";
 import { RPC, SUCCESS, findNonce, rpc } from "./safe";
 import { type Proposal, type Sources, decodeExecution, discover } from "./patrol/discover";
-import { type Dao, type Deps, type Log, type Match, type RunReport, type WriteResult, runCore } from "./patrol/core";
+import { type Dao, type Deps, type Log, type Match, type RunReport, runCore } from "./patrol/core";
+import type { TxView } from "./patrol/txlife";
 import { type PatrolState, loadState } from "./patrol/state";
 
 export type { RunReport } from "./patrol/core";
@@ -41,8 +43,8 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
   const dry = opts.dry || !wallet;
   const state = loadState(opts.state);
 
-  async function write(address: string, fn: string, args: CalldataEncodable[], value = 0n): Promise<WriteResult> {
-    if (dry || !wallet) return { ok: false, hash: null, note: "dry run: not sent", dry: true };
+  async function submit(address: string, fn: string, args: CalldataEncodable[], value: bigint): Promise<string> {
+    if (!wallet) throw new Error("no signer");
     let fees;
     try {
       const est = await wallet.estimateTransactionFeesForWrite({ address: address as `0x${string}`, functionName: fn, args, value });
@@ -50,26 +52,20 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
     } catch {
       try { const est = await wallet.estimateTransactionFees(); fees = est?.distribution ? { distribution: est.distribution, feeValue: est.feeValue } : undefined; } catch { fees = undefined; }
     }
-    let hash: string | null = null;
-    try {
-      hash = await wallet.writeContract({ address: address as `0x${string}`, functionName: fn, args, value, ...(fees ? { fees } : {}) });
-      for (let i = 0; i < 60; i++) {
-        await new Promise((r) => setTimeout(r, 3000));
-        const tx = (await read.getTransaction({ hash: hash as TransactionHash }).catch(() => null)) as Row | null;
-        const st = (tx?.statusName ?? tx?.status) as string | number | undefined;
-        const name = typeof st === "number" ? ["PENDING", "PROPOSING", "COMMITTING", "REVEALING", "ACCEPTED", "FINALIZED", "UNDETERMINED", "CANCELED"][st] : st;
-        if (name === "ACCEPTED" || name === "FINALIZED" || name === "UNDETERMINED" || name === "CANCELED") {
-          const rec = ((tx?.consensus_data as Row)?.leader_receipt as Row[] | undefined)?.[0] as Row | undefined;
-          const reverted = rec?.execution_result === "ERROR" || (rec?.result as Row)?.status === "rollback";
-          const ok = (name === "ACCEPTED" || name === "FINALIZED") && !reverted;
-          return { ok, hash, note: ok ? String(name) : reverted ? "reverted: " + String((rec?.result as Row)?.payload ?? "").slice(0, 120) : String(name) };
-        }
-        if (Date.now() - t0 > 280_000) break;
-      }
-      return { ok: false, hash, note: "still pending when the run ended; next run picks it up" };
-    } catch (e) {
-      return { ok: false, hash, note: String((e as Error).message ?? e).slice(0, 160) };
-    }
+    return String(await wallet.writeContract({ address: address as `0x${string}`, functionName: fn, args, value, ...(fees ? { fees } : {}) }));
+  }
+
+  /** A transaction as the lifecycle needs it: status name, GenVM result, rollback. */
+  async function tx(hash: string): Promise<TxView | null> {
+    const t = (await read.getTransaction({ hash: hash as TransactionHash })) as Row | null;
+    if (!t) return null;
+    const st = (t.statusName ?? t.status) as string | number | undefined;
+    const status = typeof st === "number" ? (transactionsStatusNumberToName as Record<number, string>)[st] ?? String(st) : String(st ?? "");
+    const rec = ((t.consensus_data as Row)?.leader_receipt as Row[] | undefined)?.[0] as Row | undefined;
+    const named = t.txExecutionResultName as string | undefined;
+    const exec = named === "FINISHED_WITH_ERROR" ? "ERROR" : (rec?.execution_result as string | undefined) ?? (named === "FINISHED_WITH_RETURN" ? "SUCCESS" : null);
+    const result = rec?.result as Row | undefined;
+    return { status, exec, rolledBack: result?.status === "rollback", error: typeof result?.payload === "string" ? result.payload : "" };
   }
 
   const deps: Deps = {
@@ -82,7 +78,9 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
       const raw = await read.readContract({ address: address as `0x${string}`, functionName: fn, args });
       return (typeof raw === "string" ? (() => { try { return JSON.parse(raw); } catch { return raw; } })() : plain(raw)) as T;
     },
-    write,
+    submit,
+    tx,
+    sleep: (ms: number) => new Promise((r) => setTimeout(r, ms)),
     async finalized(c: string) {
       const b = await rpc<{ number: string; timestamp: string }>(c, "eth_getBlockByNumber", ["finalized", false]);
       return { number: parseInt(b.number, 16), timestamp: parseInt(b.timestamp, 16) };

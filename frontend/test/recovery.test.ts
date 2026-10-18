@@ -9,7 +9,7 @@ import { type Limits, runCore } from "../src/lib/patrol/core";
 import { type PatrolState, backoff, emptyState, execKey, loadState, safeKey } from "../src/lib/patrol/state";
 import { World } from "./mock";
 
-const L: Limits = { maxWrites: 100, timeBudgetMs: 10_000_000, maxSpan: { ethereum: 1_000 }, logChunk: 250, initialBackfill: { ethereum: 3_000 } };
+const L: Limits = { maxWrites: 100, timeBudgetMs: 10_000_000, graceMs: 60_000, maxSpan: { ethereum: 1_000 }, logChunk: 250, initialBackfill: { ethereum: 3_000 } };
 const HEAD = 1_000_000;
 /** One run with the state round-tripped through JSON, as the Action stores it. */
 async function run(w: World, s: PatrolState, lim: Limits = L) {

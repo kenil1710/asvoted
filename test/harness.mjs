@@ -35,11 +35,12 @@ const READ_CHAINS = {
   studiodev: readRelay ? { ...studioDevnet, rpcUrls: { ...studioDevnet.rpcUrls, default: { ...studioDevnet.rpcUrls.default, http: [readRelay] } } } : CHAINS.studiodev,
 };
 
-/** States that genuinely END a transaction. Not DECIDED_STATES — an
- *  UNDETERMINED transaction is finished as far as a caller is concerned even
- *  though consensus never decided it, and a poll loop that waits for a decision
- *  waits forever on one. */
-export const TERMINAL_STATES = ["ACCEPTED", "FINALIZED", "UNDETERMINED", "CANCELED"];
+/** States that genuinely END a transaction. ACCEPTED is not one: an accepted
+ *  transaction can still be appealed and changed until FINALIZED, so a script
+ *  waits for FINALIZED and only then reads the outcome. UNDETERMINED and
+ *  CANCELED end it without a decision, and a poll loop that waits for a
+ *  decision would wait forever on one. */
+export const TERMINAL_STATES = ["FINALIZED", "UNDETERMINED", "CANCELED"];
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -59,7 +60,7 @@ export function outcomeOf(tx) {
   const settled = Boolean(status && TERMINAL_STATES.includes(status));
   const rolledBack = receipt?.result?.status === "rollback";
   const reverted = exec === "ERROR" || named === "FINISHED_WITH_ERROR" || rolledBack;
-  const accepted = status === "ACCEPTED" || status === "FINALIZED";
+  const accepted = status === "FINALIZED";
 
   return {
     settled,

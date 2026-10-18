@@ -10,7 +10,7 @@ import { activeDeadline, runCore } from "../src/lib/patrol/core";
 import { emptyState } from "../src/lib/patrol/state";
 import { PATROL, World } from "./mock";
 
-const L = { maxWrites: 10, timeBudgetMs: 1e9, maxSpan: {}, logChunk: 1000, initialBackfill: {} };
+const L = { maxWrites: 10, timeBudgetMs: 1e9, graceMs: 60_000, maxSpan: {}, logChunk: 1000, initialBackfill: {} };
 
 function responded(w: World) {
   // filed, ruled AS_VOTED, appealed (round 1 judged DEVIATES), the DAO responded (round 2)
