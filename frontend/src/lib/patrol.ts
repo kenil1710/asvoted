@@ -49,21 +49,35 @@ const LOG_RPC: Record<string, { url: string; max: number }[]> = {
 type RawLog = { transactionHash: string; blockNumber: string; topics: string[]; data: string };
 async function logRpc(chain: string, filter: { address: string; topics: string[] }, from: number, to: number): Promise<RawLog[]> {
   const hex = (n: number) => "0x" + n.toString(16);
+  const errors: string[] = [];
   for (const { url, max } of LOG_RPC[chain] ?? []) {
     try {
       const out: RawLog[] = [];
       for (let a = from; a <= to; a += max) {
-        const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [{ ...filter, fromBlock: hex(a), toBlock: hex(Math.min(to, a + max - 1)) }] }),
-          signal: AbortSignal.timeout(20_000), cache: "no-store" });
-        const j = await r.json();
-        if (j.error || !Array.isArray(j.result)) throw new Error(String(j.error?.message ?? "no result"));
-        out.push(...j.result);
+        // a public gateway may throttle a burst: each range gets three tries
+        for (let attempt = 1; ; attempt++) {
+          try {
+            const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [{ ...filter, fromBlock: hex(a), toBlock: hex(Math.min(to, a + max - 1)) }] }),
+              signal: AbortSignal.timeout(20_000), cache: "no-store" });
+            const j = await r.json().catch(() => ({ error: { message: `HTTP ${r.status}` } }));
+            if (j.error || !Array.isArray(j.result)) throw new Error(String(j.error?.message ?? "no result").slice(0, 80));
+            out.push(...j.result);
+            break;
+          } catch (e) {
+            if (attempt >= 3) throw e;
+            await new Promise((res) => setTimeout(res, 1500 * attempt));
+          }
+        }
       }
       return out;
-    } catch { /* next endpoint */ }
+    } catch (e) { errors.push(`${new URL(url).host}: ${(e as Error).message}`); }
   }
-  return rpc<RawLog[]>(chain, "eth_getLogs", [{ ...filter, fromBlock: hex(from), toBlock: hex(to) }]);
+  try {
+    return await rpc<RawLog[]>(chain, "eth_getLogs", [{ ...filter, fromBlock: hex(from), toBlock: hex(to) }]);
+  } catch (e) {
+    throw new Error([...errors, String((e as Error).message).slice(0, 80)].join("; "));
+  }
 }
 
 export interface PatrolOptions {
