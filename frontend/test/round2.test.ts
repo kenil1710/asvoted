@@ -45,7 +45,7 @@ test("the response is expired only once resp_deadline has passed", async () => {
   const w = new World();
   const c = responded(w);
   w.t = c.resp_deadline;
-  await runCore(w.deps(), emptyState(), { ...L, maxWrites: 1 });
+  await runCore(w.deps(), emptyState(), { ...L, maxWrites: 2 }); // one write, and the one held for the heartbeat
   assert.deepEqual(w.writes.map((x) => x.fn), ["judge"]); // at the deadline: still judgeable
   const w2 = new World();
   const c2 = responded(w2);

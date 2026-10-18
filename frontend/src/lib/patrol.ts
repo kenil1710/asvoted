@@ -84,6 +84,10 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
       const b = await rpc<{ number: string; timestamp: string }>(c, "eth_getBlockByNumber", ["finalized", false]);
       return { number: parseInt(b.number, 16), timestamp: parseInt(b.timestamp, 16) };
     },
+    async blockTime(c: string, n: number) {
+      const b = await rpc<{ timestamp: string }>(c, "eth_getBlockByNumber", ["0x" + n.toString(16), false]);
+      return parseInt(b.timestamp, 16);
+    },
     async logs(c: string, safe: string, from: number, to: number): Promise<Log[]> {
       const got = await rpc<{ transactionHash: string; blockNumber: string; topics: string[]; data: string }[]>(c, "eth_getLogs",
         [{ address: safe, topics: [SUCCESS], fromBlock: "0x" + from.toString(16), toBlock: "0x" + to.toString(16) }]);

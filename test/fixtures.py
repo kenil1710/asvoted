@@ -47,6 +47,8 @@ FILER2 = addr(0xf11f)
 CONTROLLER = addr(0xc0de)
 ADMIN = addr(0xad31)
 STRANGER = addr(0x5745)
+MONITOR = addr(0x3017)          # the monitor whose coverage heartbeat DaoStanding counts
+STALE_S = 6 * 3600
 
 SPACE = "acme.eth"
 TOKENS = {USDC: ("USDC", 6), COW: ("COW", 18), WETH: ("WETH", 18)}
@@ -269,7 +271,7 @@ class Deployment:
         self.jg = self.w.deploy("AsVotedJudge", json.dumps(TOKEN_LIST))
         dc = ",".join(demo_controllers if demo_controllers is not None else ([CONTROLLER] if mode == "DEMO" else []))
         self.rg = self.w.deploy("AsVotedRegistry", mode, self.er, self.vr, self.jg, dc)
-        self.st = self.w.deploy("DaoStanding", self.rg, 30)
+        self.st = self.w.deploy("DaoStanding", self.rg, 30, MONITOR, STALE_S)
         self.gate = self.w.deploy("GrantGate", self.st)
         self.mc = chain("ethereum")
         tokens(self.mc)
@@ -309,6 +311,11 @@ class Deployment:
         j = self.call(self.jg, "judge", self.rg, check_id)
         r = self.call(self.rg, "rule", check_id)
         return j, r
+
+    def heartbeat(self, dao_id, block=FIN, block_time=None, sender=None):
+        """The monitor records that it has scanned the DAO's Safe through `block`."""
+        bt = self.w.now() - 60 if block_time is None else block_time
+        return self.call(self.rg, "record_coverage", json.dumps([[dao_id, block, bt]]), sender=sender or MONITOR)
 
     def ledger(self):
         return self.view(self.rg, "get_ledger")

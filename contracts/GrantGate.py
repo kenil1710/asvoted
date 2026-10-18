@@ -8,13 +8,14 @@ import typing
 
 # GrantGate - a tiny consumer of DaoStanding. A DAO asks it to act (in a real
 # integration: release a grant tranche, list a token, open a credit line);
-# it carries the request out only if DaoStanding says the DAO is executing as
-# voted at this transaction's time, and refuses with DaoStanding's reasons
-# otherwise. Every request is logged either way. Nothing is written before
+# it carries the request out only if DaoStanding's state for the DAO at this
+# transaction's time is COMPLIANT, and refuses with the state and
+# DaoStanding's reasons otherwise (NO_COVERAGE, PENDING, DEVIATES,
+# STALE_MONITORING, or an unreadable answer). Every request is logged either way. Nothing is written before
 # DaoStanding has been read, and nothing after can revert. No value, no
 # owner, no setter.
 
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 MAX_PURPOSE = 200
 MAX_PAGE = 50
 
@@ -47,6 +48,7 @@ class Request:
     dao_id: u64
     purpose: str
     carried_out: bool
+    state: str
     reasons: str
     at: u64
 
@@ -74,22 +76,23 @@ class GrantGate(gl.contract.Contract):
             raw = gl.contract.get_at(self.standing).view().standing(int(dao_id), now)
             s = json.loads(raw) if isinstance(raw, str) else raw
         except Exception:
-            s = {"ok": False, "reasons": ["DaoStanding could not be read"]}
+            s = {"state": "UNREADABLE", "reasons": ["DaoStanding could not be read"]}
         if not isinstance(s, dict):
-            s = {"ok": False, "reasons": ["DaoStanding returned nothing usable"]}
-        ok = bool(s.get("ok")) and now > 0
+            s = {"state": "UNREADABLE", "reasons": ["DaoStanding returned nothing usable"]}
+        state = str(s.get("state") or "UNREADABLE")
+        ok = state == "COMPLIANT" and now > 0
         reasons = [str(r) for r in (s.get("reasons") or [])]
         rid = int(self.n) + 1
         self.requests[u64(rid)] = Request(
             request_id=u64(rid), sender=gl.message.sender_address.as_hex.lower(), dao_id=u64(max(int(dao_id), 0)),
-            purpose=" ".join(str(purpose).split())[:MAX_PURPOSE], carried_out=ok, reasons=json.dumps(reasons),
+            purpose=" ".join(str(purpose).split())[:MAX_PURPOSE], carried_out=ok, state=state, reasons=json.dumps(reasons),
             at=u64(max(now, 0)))
         self.n = u64(rid)
         if ok:
             self.carried = u64(int(self.carried) + 1)
         else:
             self.refused = u64(int(self.refused) + 1)
-        return {"request_id": rid, "carried_out": ok, "reasons": reasons}
+        return {"request_id": rid, "carried_out": ok, "state": state, "reasons": reasons}
 
     @gl.public.view
     def get_requests(self, offset: int, limit: int) -> typing.Any:
@@ -100,7 +103,7 @@ class GrantGate(gl.contract.Contract):
             r = self.requests.get(u64(i))
             if r is not None:
                 out.append({"request_id": int(r.request_id), "sender": r.sender, "dao_id": int(r.dao_id),
-                            "purpose": r.purpose, "carried_out": bool(r.carried_out),
+                            "purpose": r.purpose, "carried_out": bool(r.carried_out), "state": r.state,
                             "reasons": json.loads(r.reasons), "at": int(r.at)})
             i -= 1
         return {"total": int(self.n), "carried_out": int(self.carried), "refused": int(self.refused), "requests": out}

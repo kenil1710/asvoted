@@ -11,6 +11,14 @@ import { Addr, Button, ErrorNote, inputCls, Section, Skeleton, useView } from ".
 
 function now() { return Math.floor(Date.now() / 1000); }
 
+const STATE_LABEL: Record<string, string> = {
+  COMPLIANT: "Compliant: executing as voted",
+  NO_COVERAGE: "No coverage",
+  PENDING: "Pending: a check is open",
+  DEVIATES: "Deviates",
+  STALE_MONITORING: "Stale monitoring",
+};
+
 export function DaoView({ id }: { id: number }) {
   const reg = registry();
   const w = useWallet();
@@ -61,8 +69,9 @@ export function DaoView({ id }: { id: number }) {
           <p className="mt-1 text-ink-2">Snapshot space <strong>{d.space}</strong> with the Safe <Addr value={d.safe} chain={d.chain} size={6} /> on {CHAIN_LABEL[d.chain]}. This pair is the DAO: another space listing the same Safe is another record. Listed {isoDate(d.listed_at)} by <Addr value={d.lister} />{d.verified ? "; the Safe itself owns the space's ENS name, so only its signers together control the space." : "; not verified: Snapshot does not prove who controls a Safe, and the Safe does not own this space's ENS name."}</p>
         </div>
         <div className={`rounded-lg border-2 px-4 py-3 ${stand.data?.ok ? "border-ok bg-ok-soft" : "border-dev bg-dev-soft"}`}>
-          <p className={`font-semibold ${stand.data?.ok ? "text-ok" : "text-dev"}`}>{stand.data ? (stand.data.ok ? "Executing as voted" : "Not in good standing") : "Reading standing"}</p>
-          <p className="text-xs text-ink-2">{stand.data ? (stand.data.reasons[0] ?? `no final DEVIATES ruling on an execution from the last ${stand.data.window_days} days`) : ""} (DaoStanding)</p>
+          <p className={`font-semibold ${stand.data?.ok ? "text-ok" : "text-dev"}`}>{stand.data ? STATE_LABEL[stand.data.state] ?? stand.data.state : "Reading standing"}</p>
+          <p className="max-w-xs text-xs text-ink-2">{stand.data ? (stand.data.reasons[0] ?? `at least one final AS_VOTED ruling in the last ${stand.data.window_days} days, no open check, no final DEVIATES, coverage fresh`) : ""} (DaoStanding)</p>
+          {stand.data?.coverage?.found && <p className="text-xs text-ink-3">Patrol coverage through block {stand.data.coverage.block} ({isoDate(stand.data.coverage.block_time ?? 0)})</p>}
         </div>
       </div>
       <section aria-label="Record" className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-5">
@@ -132,7 +141,7 @@ export function DaoView({ id }: { id: number }) {
             {gateLog.data.requests.filter((r) => r.dao_id === id).map((r) => (
               <li key={r.request_id} className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
                 <span>#{r.request_id} {r.purpose}</span>
-                <span className={r.carried_out ? "text-ok" : "text-dev"}>{r.carried_out ? "carried out" : `refused: ${r.reasons.join("; ")}`}</span>
+                <span className={r.carried_out ? "text-ok" : "text-dev"}>{r.carried_out ? "carried out (COMPLIANT)" : `refused (${r.state ?? "not COMPLIANT"}): ${r.reasons.join("; ")}`}</span>
               </li>
             ))}
           </ul>

@@ -77,7 +77,7 @@ test("open checks over write-bounded runs: the cursor carries over and every che
   const w = new World();
   const openAt = [10, 520, 530, 1020, 1100, 1180];
   historical(w, 1200, openAt);
-  const lim = { ...L, maxWrites: 2 };
+  const lim = { ...L, maxWrites: 3 }; // two closings and the heartbeat
   let s = emptyState();
   const seen: number[] = [];
   for (let i = 0; i < 6; i++) { s = (await run(w, s, lim)).state; seen.push(s.cursors.open_checks); }

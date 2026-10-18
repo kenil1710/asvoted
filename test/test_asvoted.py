@@ -62,6 +62,18 @@ class Base(unittest.TestCase):
         j, r = self.D.judge_rule(cid)
         return cid, j, self.D.view(self.D.rg, "get_check", cid)
 
+    def make_compliant(self, dao=None):
+        """A FINAL AS_VOTED ruling on a recent execution, no open check, and a
+        fresh coverage heartbeat from the monitor: DaoStanding's COMPLIANT."""
+        D = self.D
+        cid, j, c = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(ALICE, U(5)))
+        self.assertEqual(c["ruling"], "AS_VOTED")
+        D.w.advance(91)
+        D.call(D.rg, "finalize", cid)
+        D.heartbeat(dao or self.dao)
+        self.assertEqual(D.view(D.st, "standing_state", dao or self.dao, D.w.now()), "COMPLIANT")
+        return cid
+
     def outcomes(self, check):
         return [a["outcome"] for a in check["ruling_detail"]["actions"]]
 
@@ -766,16 +778,21 @@ class TestCanonical(Base):
 class TestStanding(Base):
     def test_gate_refuses_after_final_deviates(self):
         D = self.D
+        self.make_compliant()
         r = D.call(D.gate, "request_grant", self.dao, "tranche 1")
         self.assertTrue(r["carried_out"])
-        cid, j, c = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(MALLORY, U(5)))
+        cid, j, c = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(MALLORY, U(5)), exec_kw={"nonce": 31})
         D.w.advance(91)
         D.call(D.rg, "finalize", cid)
         r = D.call(D.gate, "request_grant", self.dao, "tranche 2")
         self.assertFalse(r["carried_out"])
+        self.assertEqual(r["state"], "DEVIATES")
         self.assertIn("FINAL DEVIATES", r["reasons"][0])
         self.assertFalse(D.view(D.st, "is_executing_as_voted", self.dao, D.w.now()))
-        self.assertTrue(D.view(D.st, "is_executing_as_voted", self.dao, D.w.now() + 31 * DAY))
+        # past the window the deviation no longer counts, and neither does the old AS_VOTED: no favourable answer
+        later = D.view(D.st, "standing", self.dao, D.w.now() + 31 * DAY)
+        self.assertEqual(later["state"], "STALE_MONITORING")
+        self.assertFalse(D.view(D.st, "is_executing_as_voted", self.dao, D.w.now() + 31 * DAY))
         g = D.view(D.gate, "get_requests", 0, 10)
         self.assertEqual((g["carried_out"], g["refused"]), (1, 1))
 

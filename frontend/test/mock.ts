@@ -30,7 +30,8 @@ export class World {
   checks: MockCheck[] = [];
   execs = new Map<string, number>();       // "chain|safe|tx" -> exec id
   votes = new Map<string, { id: number; read_at: number }>();
-  judgments = new Set<string>();           // "check|round"
+  judgments = new Set<string>();
+  coverage = new Map<string, { block: number; block_time: number; recorded_at: number }>();           // "check|round"
   writes: { fn: string; args: unknown[]; value: bigint }[] = [];
   views: { fn: string; args: unknown[] }[] = [];
   logCalls: { chain: string; safe: string; from: number; to: number }[] = [];
@@ -97,7 +98,7 @@ export class World {
       case "get_proposal": { const v = [...this.votes.values()].find((x) => x.id === Number(a[0])); return { found: !!v, read_at: v?.read_at ?? 0, ens_names: [] }; }
       case "get_names_at": return { found: true };
       case "get_judgment": return { found: this.judgments.has(`${a[1]}|${a[2]}`) };
-      case "get_coverage": return { found: false };
+      case "get_coverage": { const c = this.coverage.get(`${a[0]}|${a[1]}`); return c ? { found: true, ...c } : { found: false }; }
     }
     throw new Error("mock: no view " + fn);
   }
@@ -120,6 +121,12 @@ export class World {
       }
       case "judge": this.judgments.add(`${a[1]}|${this.checks[Number(a[1]) - 1].round}`); break;
       case "rule": { const c = this.checks[Number(a[0]) - 1]; c.status = c.round === 2 ? "FINAL" : "CONTESTABLE"; c.contest_deadline = this.t + 21600; break; }
+      case "record_coverage":
+        for (const [dao, block, block_time] of JSON.parse(String(a[0])) as number[][]) {
+          const prev = this.coverage.get(`${dao}|${PATROL}`);
+          if (!prev || block > prev.block) this.coverage.set(`${dao}|${PATROL}`, { block, block_time, recorded_at: this.t });
+        }
+        break;
       case "finalize": case "expire": this.checks[Number(a[0]) - 1].status = "FINAL"; break;
     }
     return { ok: true, hash: hex(this.writes.length), note: "FINALIZED" };
@@ -135,6 +142,7 @@ export class World {
       view: async <T,>(_addr: string, fn: string, args: unknown[] = []) => this.view(fn, args) as T,
       write: async (_addr: string, fn: string, args: unknown[], value = 0n) => this.write(fn, args, value),
       finalized: async (c: string) => ({ number: this.heads[c], timestamp: this.t - 900 }),
+      blockTime: async (c: string, n: number) => this.t - 900 - (this.heads[c] - n) * 12,
       logs: async (c: string, safe: string, from: number, to: number) => {
         this.logCalls.push({ chain: c, safe, from, to });
         this.ms += this.logMs;

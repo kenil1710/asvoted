@@ -14,6 +14,8 @@
  *   processed    "chain|safe|safeTxHash" -> what became of that execution
  *   retry        executions that failed or were deferred, with attempt counts
  *   unmatched    executions no passed proposal could be matched to
+ *   heartbeats   "chain|safe" -> the block last sent to the registry as
+ *                coverage (record_coverage), so an unchanged one is not resent
  *   cursors      where a bounded run stopped in the registry's paginated
  *                lists (DAOs, open checks); the next run continues there
  */
@@ -71,6 +73,7 @@ export interface PatrolState {
   version: number;
   updated: string;
   cursors: Cursors;
+  heartbeats: Record<string, number>;
   checkpoints: Record<string, Checkpoint>;
   processed: Record<string, Processed>;
   retry: RetryEntry[];
@@ -78,7 +81,7 @@ export interface PatrolState {
 }
 
 export const emptyState = (): PatrolState => ({
-  version: STATE_VERSION, updated: "", cursors: { daos: 0, open_checks: 0 }, checkpoints: {}, processed: {}, retry: [], unmatched: [],
+  version: STATE_VERSION, updated: "", cursors: { daos: 0, open_checks: 0 }, heartbeats: {}, checkpoints: {}, processed: {}, retry: [], unmatched: [],
 });
 
 /** A state document from untrusted JSON: anything missing or malformed starts empty. */
@@ -96,6 +99,7 @@ export function loadState(raw: unknown): PatrolState {
     const c = v as Checkpoint;
     if (Number.isInteger(c?.block) && c.block >= 0) s.checkpoints[k] = { block: c.block, origin: Number(c.origin ?? c.block), updated: String(c.updated ?? "") };
   }
+  for (const [k, v] of Object.entries(obj(r.heartbeats))) if (Number.isInteger(v) && (v as number) >= 0) s.heartbeats[k] = v as number;
   s.processed = obj(r.processed);
   s.retry = arr(r.retry).filter((e: RetryEntry) => typeof e?.key === "string");
   s.unmatched = arr(r.unmatched).filter((e: Unmatched) => typeof e?.key === "string");

@@ -8,7 +8,9 @@ import unittest
 import fixtures as F
 import stub
 import world
-from fixtures import RG, SAFE, USDC, ALICE, MALLORY, CONTROLLER, FILER, STRANGER, TARGET, DAY, STAKE, BOND, GEN
+from fixtures import (RG, SAFE, USDC, ALICE, MALLORY, CONTROLLER, FILER, STRANGER, TARGET, DAY, STAKE, BOND, GEN,
+                      MONITOR, STALE_S, FIN)
+import json
 from test_asvoted import Base, U, model_says
 from test_attacks_r3 import QUOTE, ROUTER_BODY, DEPOSIT, APPEAL_TEXT
 
@@ -142,6 +144,163 @@ class TestRoundTwoDeadline(Base):
         r = D.call(D.rg, "expire", cid)
         self.assertEqual((r["how"], r["final"]), ("RESPONSE_EXPIRED", "DEVIATES"))
         self.assertLedger()
+
+
+
+class TestStandingStates(Base):
+    """DaoStanding never answers favourably on absence of data; GrantGate
+    carries a request out only on COMPLIANT."""
+
+    def state(self, dao=None, at=None):
+        D = self.D
+        return D.view(D.st, "standing", dao or self.dao, D.w.now() if at is None else at)
+
+    def gate(self, dao=None):
+        D = self.D
+        return D.call(D.gate, "request_grant", dao or self.dao, "tranche")
+
+    def assertRefused(self, state, dao=None):
+        r = self.gate(dao)
+        self.assertEqual((r["carried_out"], r["state"]), (False, state), r)
+        self.assertFalse(self.D.view(self.D.st, "is_executing_as_voted", dao or self.dao, self.D.w.now()))
+        return r
+
+    def test_no_coverage_unlisted_dao(self):
+        st = self.state(dao=99)
+        self.assertEqual((st["state"], st["found"], st["ok"]), ("NO_COVERAGE", False, False))
+        self.assertRefused("NO_COVERAGE", dao=99)
+
+    def test_no_coverage_listed_with_no_data_at_all(self):
+        st = self.state()
+        self.assertEqual(st["state"], "NO_COVERAGE")
+        self.assertIn("no coverage heartbeat from the monitor " + MONITOR, st["reasons"])
+        self.assertIn("no FINAL AS_VOTED ruling on an execution from the last 30 days", st["reasons"])
+        self.assertRefused("NO_COVERAGE")
+
+    def test_no_coverage_heartbeat_but_nothing_verified(self):
+        self.D.heartbeat(self.dao)
+        st = self.state()
+        self.assertEqual((st["state"], st["reasons"]), ("NO_COVERAGE", ["no FINAL AS_VOTED ruling on an execution from the last 30 days"]))
+        self.assertTrue(st["coverage"]["found"])
+        self.assertRefused("NO_COVERAGE")
+
+    def test_no_coverage_as_voted_but_no_heartbeat(self):
+        D = self.D
+        cid = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(ALICE, U(5)))[0]
+        D.w.advance(91)
+        D.call(D.rg, "finalize", cid)
+        st = self.state()
+        self.assertEqual((st["state"], st["last_as_voted_check"]), ("NO_COVERAGE", cid))
+        self.assertRefused("NO_COVERAGE")
+
+    def test_only_the_monitors_heartbeat_counts(self):
+        D = self.D
+        cid = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(ALICE, U(5)))[0]
+        D.w.advance(91)
+        D.call(D.rg, "finalize", cid)
+        D.heartbeat(self.dao, sender=STRANGER)
+        self.assertEqual(self.state()["state"], "NO_COVERAGE")
+        self.assertTrue(D.view(D.rg, "get_coverage", self.dao, STRANGER)["found"])
+
+    def test_pending_while_a_check_is_open(self):
+        D = self.D
+        self.make_compliant()
+        self.flow("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(ALICE, U(5)), exec_kw={"nonce": 31})
+        st = self.state()
+        self.assertEqual(st["state"], "PENDING")
+        self.assertRefused("PENDING")
+
+    def test_pending_during_a_provisional_ruling(self):
+        D = self.D
+        self.make_compliant()
+        cid, j, c = self.judged("Send 7 USDC to " + F.BOB, to=USDC, data=F.transfer(F.BOB, U(7)), exec_kw={"nonce": 31})
+        self.assertEqual((c["status"], c["ruling"]), ("CONTESTABLE", "AS_VOTED"), c["ruling_summary"])
+        self.assertRefused("PENDING")
+
+    def test_deviates_final_in_window(self):
+        D = self.D
+        self.make_compliant()
+        cid = self.judged("Send 5 USDC to " + ALICE, to=USDC, data=F.transfer(MALLORY, U(5)), exec_kw={"nonce": 31})[0]
+        D.w.advance(91)
+        D.call(D.rg, "finalize", cid)
+        D.heartbeat(self.dao, block=FIN + 1)
+        st = self.state()
+        self.assertEqual(st["state"], "DEVIATES")
+        self.assertIn("FINAL DEVIATES ruling (check #%d)" % cid, st["reasons"][0])
+        self.assertRefused("DEVIATES")
+
+    def test_stale_monitoring(self):
+        D = self.D
+        self.make_compliant()
+        D.w.advance(STALE_S + 120)
+        st = self.state()
+        self.assertEqual(st["state"], "STALE_MONITORING")
+        self.assertRefused("STALE_MONITORING")
+        D.heartbeat(self.dao, block=FIN + 100)
+        self.assertEqual(self.state()["state"], "COMPLIANT")
+
+    def test_compliant_grants(self):
+        D = self.D
+        self.make_compliant()
+        st = self.state()
+        self.assertEqual((st["state"], st["ok"], st["reasons"]), ("COMPLIANT", True, []))
+        r = self.gate()
+        self.assertEqual((r["carried_out"], r["state"], r["reasons"]), (True, "COMPLIANT", []))
+        self.assertTrue(D.view(D.st, "is_executing_as_voted", self.dao, D.w.now()))
+        g = D.view(D.gate, "get_requests", 0, 5)
+        self.assertEqual((g["carried_out"], g["requests"][0]["state"]), (1, "COMPLIANT"))
+
+    def test_as_voted_outside_the_window_is_no_coverage(self):
+        D = self.D
+        self.make_compliant()
+        later = D.w.now() + 31 * DAY
+        D.w.set_time(later)
+        D.heartbeat(self.dao, block=FIN + 1000)
+        self.assertEqual(self.state()["state"], "NO_COVERAGE")
+        self.assertRefused("NO_COVERAGE")
+
+    def test_every_state_listed_in_config(self):
+        cfg = self.D.view(self.D.st, "get_config")
+        self.assertEqual(set(cfg["states"]), {"COMPLIANT", "NO_COVERAGE", "PENDING", "DEVIATES", "STALE_MONITORING"})
+        self.assertEqual((cfg["monitor"], cfg["stale_s"]), (MONITOR, STALE_S))
+
+
+class TestCoverageHeartbeat(Base):
+    def test_recorded_per_reporter_and_forward_only(self):
+        D = self.D
+        r = D.heartbeat(self.dao, block=100)
+        self.assertEqual(r["recorded"], [self.dao])
+        cov = D.view(D.rg, "get_coverage", self.dao, MONITOR)
+        self.assertEqual((cov["found"], cov["block"], cov["recorded_at"]), (True, 100, D.w.now()))
+        r = D.heartbeat(self.dao, block=90)
+        self.assertEqual((r["recorded"], r["skipped"]), ([], [self.dao]))
+        self.assertEqual(D.view(D.rg, "get_coverage", self.dao, MONITOR)["block"], 100)
+        D.heartbeat(self.dao, block=150)
+        self.assertEqual(D.view(D.rg, "get_coverage", self.dao, MONITOR)["block"], 150)
+        self.assertFalse(D.view(D.rg, "get_coverage", self.dao, STRANGER)["found"])
+
+    def test_refusals(self):
+        D = self.D
+        for entries, why in (("x", "JSON"), ("[]", "ONE_TO_50"), (json.dumps([[self.dao, 1]]), "ENTRY_MUST_BE"),
+                             (json.dumps([[77, 1, D.w.now() - 1]]), "NO_SUCH_DAO"),
+                             (json.dumps([[self.dao, 1, D.w.now() + 60]]), "BAD_BLOCK_OR_TIME"),
+                             (json.dumps([[self.dao, -1, D.w.now() - 1]]), "BAD_BLOCK_OR_TIME")):
+            with self.assertRaisesRegex(world.Reverted, why):
+                D.call(D.rg, "record_coverage", entries, sender=MONITOR)
+        self.assertFalse(D.view(D.rg, "get_coverage", self.dao, MONITOR)["found"])
+
+    def test_one_bad_entry_writes_nothing(self):
+        D = self.D
+        with self.assertRaisesRegex(world.Reverted, "NO_SUCH_DAO"):
+            D.call(D.rg, "record_coverage", json.dumps([[self.dao, 5, D.w.now() - 1], [42, 5, D.w.now() - 1]]), sender=MONITOR)
+        self.assertFalse(D.view(D.rg, "get_coverage", self.dao, MONITOR)["found"])
+
+    def test_dao_view_shows_last_as_voted(self):
+        D = self.D
+        cid = self.make_compliant()
+        d = D.view(D.rg, "get_dao", self.dao)
+        self.assertEqual(d["last_as_voted_check"], cid)
+        self.assertGreater(d["last_as_voted_at"], 0)
 
 
 if __name__ == "__main__":

@@ -159,7 +159,7 @@ test("a failed write is queued, and the retry resumes the pipeline without repea
   w.failWrite = () => null;
   w.t += backoff(1);
   s = (await run(w, s)).state;
-  assert.deepEqual(w.writes.map((x) => x.fn), ["read_execution", "read_proposal", "file_check", "file_check"]);
+  assert.deepEqual(w.writes.map((x) => x.fn).filter((f) => f !== "record_coverage"), ["read_execution", "read_proposal", "file_check", "file_check"]);
   assert.equal(w.checks.length, 1);
 });
 
@@ -170,7 +170,7 @@ test("out of write budget: the rest of the span is deferred (attempts 0), the ch
   const sk = safeKey(d.chain, d.safe);
   let s = emptyState();
   s.checkpoints[sk] = { block: HEAD - 200, origin: 0, updated: "" };
-  const lim = { ...L, maxWrites: 6 }; // two executions per run
+  const lim = { ...L, maxWrites: 7 }; // two executions per run, and the heartbeat
   s = (await run(w, s, lim)).state;
   assert.equal(s.checkpoints[sk].block, HEAD);
   assert.equal(s.retry.length, 5);

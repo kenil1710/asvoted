@@ -110,9 +110,11 @@ export const getJudgeConfig = () => viewOf<Record<string, unknown>>(ADDR.judge, 
 export const getJudgment = (reg: string, checkId: number, round: number) =>
   viewOf<{ found: boolean; overall?: string; judged_at?: number }>(ADDR.judge, "get_judgment", [reg, checkId, round]);
 export const getStanding = (daoId: number, at: number) =>
-  viewOf<{ ok: boolean; found: boolean; reasons: string[]; window_days: number }>(standing(), "standing", [daoId, at]);
+  viewOf<{ state: StandingState; ok: boolean; found: boolean; reasons: string[]; window_days: number; stale_s: number; monitor: string;
+    coverage?: { found: boolean; block?: number; block_time?: number; recorded_at?: number } }>(standing(), "standing", [daoId, at]);
+export type StandingState = "COMPLIANT" | "NO_COVERAGE" | "PENDING" | "DEVIATES" | "STALE_MONITORING";
 export const getGateRequests = () =>
-  viewOf<{ total: number; carried_out: number; refused: number; requests: { request_id: number; sender: string; dao_id: number; purpose: string; carried_out: boolean; reasons: string[]; at: number }[] }>(gate(), "get_requests", [0, 20]);
+  viewOf<{ total: number; carried_out: number; refused: number; requests: { request_id: number; sender: string; dao_id: number; purpose: string; carried_out: boolean; state: string; reasons: string[]; at: number }[] }>(gate(), "get_requests", [0, 20]);
 
 // ── Writes ─────────────────────────────────────────────────────────────────
 

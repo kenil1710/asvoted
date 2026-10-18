@@ -10,7 +10,7 @@
  *   ExecReader, VoteReader, AsVotedJudge                  (shared by both registries)
  *   AsVotedRegistry  CANONICAL  (6 h contest window, no demo seam)
  *   AsVotedRegistry  DEMO       (90 s contest window, demo controller = the `dao` test account)
- *   DaoStanding x2 (30-day window), GrantGate x2
+ *   DaoStanding x2 (30-day window, the patrol as monitor, 6 h staleness), GrantGate x2
  *
  * --set=smoke writes to deployments.smoke.json instead (throwaway checks).
  * --only=demo --commit=<sha> redeploys only the demo registry, standing and
@@ -79,8 +79,10 @@ const tokenList = JSON.stringify(JSON.parse(readFileSync(new URL("./token_list.j
 const jg = await one("AsVotedJudge", "AsVotedJudge", [tokenList]);
 const rc = await one("AsVotedRegistry", "AsVotedRegistry", ["CANONICAL", er, vr, jg, ""], { mode: "CANONICAL" });
 const rd = await one("AsVotedRegistryDemo", "AsVotedRegistry", ["DEMO", er, vr, jg, acc.dao.address.toLowerCase()], { mode: "DEMO" });
-const sc = await one("DaoStanding", "DaoStanding", [rc, 30], { mode: "CANONICAL" });
-const sd = await one("DaoStandingDemo", "DaoStanding", [rd, 30], { mode: "DEMO" });
+// DaoStanding counts the patrol's coverage heartbeat, stale after 6 h
+const monitor = acc.patrol.address.toLowerCase();
+const sc = await one("DaoStanding", "DaoStanding", [rc, 30, monitor, 21600], { mode: "CANONICAL" });
+const sd = await one("DaoStandingDemo", "DaoStanding", [rd, 30, monitor, 21600], { mode: "DEMO" });
 await one("GrantGate", "GrantGate", [sc], { mode: "CANONICAL" });
 await one("GrantGateDemo", "GrantGate", [sd], { mode: "DEMO" });
 console.log(`\nwrote ${path.pathname}`);

@@ -17,7 +17,10 @@
  *      (filed, already on the registry, or recorded as unmatched) or queued
  *      for retry, and only then does the checkpoint move to the end of the
  *      span. A log range that cannot be read stops the scan there, and the
- *      checkpoint stays at the last range read in full.
+ *      checkpoint stays at the last range read in full;
+ *   4. record a coverage heartbeat on the registry (record_coverage): per
+ *      DAO, the last block through which every execution was handled. One
+ *      write is held back for it.
  *
  * Idempotency: an execution is keyed by (chain, Safe, safeTxHash). A key in
  * state.processed is never handled again, and before any filing the registry
@@ -42,6 +45,7 @@ export interface Deps {
   view<T>(address: string, fn: string, args?: CalldataEncodable[]): Promise<T>;
   write(address: string, fn: string, args: CalldataEncodable[], value?: bigint): Promise<WriteResult>;
   finalized(chain: string): Promise<{ number: number; timestamp: number }>;
+  blockTime(chain: string, block: number): Promise<number>;
   logs(chain: string, safe: string, from: number, to: number): Promise<Log[]>;
   match(d: Dao, log: Log): Promise<Match>;
   supported(chain: string): boolean;
@@ -84,6 +88,7 @@ export interface RunReport {
   queued: number;
   retried: number;
   unmatched: number;
+  heartbeats: number;
   scans: ScanLog[];
   matched: { tx: string; dao: string; cid: string; why: string }[];
   closed: string[];
@@ -111,12 +116,13 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
   const { addr } = deps;
   const rep: RunReport = {
     started: new Date(deps.now() * 1000).toISOString(), dry_run: deps.dry, patrol: deps.patrol, registry: addr.registry,
-    writes: [], daos_watched: 0, open_pages: 0, open_seen: 0, executions_seen: 0, already_checked: 0, filed: 0, queued: 0, retried: 0, unmatched: 0,
+    writes: [], daos_watched: 0, open_pages: 0, open_seen: 0, executions_seen: 0, already_checked: 0, filed: 0, queued: 0, retried: 0, unmatched: 0, heartbeats: 0,
     scans: [], matched: [], closed: [], notes: [], seconds: 0,
   };
   const iso = () => new Date(deps.now() * 1000).toISOString();
   const timeLeft = () => deps.elapsedMs() < limits.timeBudgetMs;
-  const budgetLeft = () => rep.writes.length < limits.maxWrites && timeLeft();
+  // one write is held back for the coverage heartbeat at the end of the run
+  const budgetLeft = () => rep.writes.length < limits.maxWrites - 1 && timeLeft();
 
   async function write(address: string, fn: string, args: CalldataEncodable[], value = 0n): Promise<WriteResult> {
     const r = await deps.write(address, fn, args, value);
@@ -246,6 +252,7 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
     await handle({ dao_id: e.dao_id, space: e.space, chain: e.chain, safe: e.safe }, { tx: e.tx, block: e.block, safeTxHash: e.safe_tx_hash });
   }
 
+  const fins: Record<string, { number: number; timestamp: number }> = {};
   // 3. scan every listed Safe from its checkpoint: every page of get_daos,
   // round robin from where the last run ran out of time
   const daos: Dao[] = [];
@@ -270,10 +277,34 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
   }
   state.cursors.daos = daos.length ? (first + scanned) % daos.length : 0;
 
+  // 4. the coverage heartbeat: for each Safe, the last block through which
+  // every execution has been handled (filed, already on the registry, or
+  // recorded as unmatched). A queued execution holds it back to the block
+  // before it, so coverage never claims more than was processed.
+  const beats: [number, number, number][] = [];
+  const beatKeys: [string, number][] = [];
+  for (const d of daos) {
+    const sk = safeKey(d.chain, d.safe);
+    const cp = state.checkpoints[sk];
+    if (!cp) continue;
+    const held = state.retry.filter((e) => safeKey(e.chain, e.safe) === sk).reduce((m, e) => Math.min(m, e.block - 1), cp.block);
+    if (held < cp.origin || held <= (state.heartbeats[sk] ?? -1)) continue;
+    try {
+      const t = fins[d.chain]?.number === held ? fins[d.chain].timestamp : await deps.blockTime(d.chain, held);
+      beats.push([d.dao_id, held, t]);
+      beatKeys.push([sk, held]);
+    } catch (e) { rep.notes.push(`${d.space}: block ${held} time unreadable (${short(e)}); heartbeat next run`); }
+  }
+  for (let i = 0; i < beats.length && rep.writes.length < limits.maxWrites; i += PAGE) {
+    const r = await write(addr.registry, "record_coverage", [JSON.stringify(beats.slice(i, i + PAGE))]);
+    if (r.ok) for (const [sk, b] of beatKeys.slice(i, i + PAGE)) state.heartbeats[sk] = b;
+    rep.heartbeats += r.ok ? Math.min(PAGE, beats.length - i) : 0;
+  }
+
   async function scan(d: Dao) {
     const sk = safeKey(d.chain, d.safe);
     let fin: number;
-    try { fin = (await deps.finalized(d.chain)).number; } catch (e) { rep.notes.push(`${d.space}: finalized block unreadable (${short(e)})`); return; }
+    try { fins[d.chain] ??= await deps.finalized(d.chain); fin = fins[d.chain].number; } catch (e) { rep.notes.push(`${d.space}: finalized block unreadable (${short(e)})`); return; }
     const cp = state.checkpoints[sk];
     const origin = cp ? cp.origin : Math.max(0, fin - (limits.initialBackfill[d.chain] ?? 0));
     const from = cp ? cp.block + 1 : origin;

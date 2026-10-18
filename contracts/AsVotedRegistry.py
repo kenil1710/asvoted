@@ -23,6 +23,12 @@ import typing
 #       WITHDRAW_DELAY and cannot execute while a check is open for an
 #       execution made before the unlock time.
 #
+# COVERAGE
+#   record_coverage([[dao_id, block, block_time], ...])   anyone; a monitor's
+#       heartbeat: it has scanned the DAO's Safe through `block`. Kept per
+#       reporter, forward only; get_coverage(dao_id, reporter) reads it.
+#       DaoStanding counts the heartbeat of the monitor fixed in it.
+#
 # CHECKS
 #   file_check(dao_id, exec_id, vote_id, note) + CHECK_STAKE. Evidence is
 #   bound at filing to (chain, Safe, tx, proposal CID, block) and the two
@@ -459,6 +465,8 @@ class Dao:
     last_deviates_check: u64
     slashed_total: u256
     verified: bool
+    last_as_voted_at: u64      # execution time of the latest FINAL AS_VOTED ruling
+    last_as_voted_check: u64
 
 
 @gl.storage.allow
@@ -567,6 +575,7 @@ class AsVotedRegistry(gl.contract.Contract):
     claimed: gl.storage.TreeMap[str, u256]
     payees: gl.storage.DynArray[str]
     payee_seen: gl.storage.TreeMap[str, bool]
+    coverage: gl.storage.TreeMap[str, str]         # "dao_id|reporter" -> {"block", "block_time", "recorded_at"}
     received_total: u256
     pledges_total: u256
     open_total: u256
@@ -751,7 +760,7 @@ class AsVotedRegistry(gl.contract.Contract):
             lister=self._sender(), controller="", pledge=u256(0), withdraw_amount=u256(0), withdraw_at=u64(0),
             withdraw_requested=u64(0), open_checks=u64(0), blocking_n=u64(0), n_checks=u64(0), as_voted=u64(0), deviates=u64(0), unclear=u64(0),
             last_deviates_at=u64(0), last_deviates_check=u64(0), slashed_total=u256(0),
-            verified=bool(b.get("verified")))
+            verified=bool(b.get("verified")), last_as_voted_at=u64(0), last_as_voted_check=u64(0))
         self.dao_by_key[key] = u64(did)
         self.n_daos = u64(did)
         return {"ok": True, "dao_id": did}
@@ -1447,6 +1456,9 @@ class AsVotedRegistry(gl.contract.Contract):
             d.blocking_n = u64(max(int(d.blocking_n) - 1, 0))
         if verdict == V_AS:
             d.as_voted = u64(int(d.as_voted) + 1)
+            if int(c.exec_time) >= int(d.last_as_voted_at):
+                d.last_as_voted_at = c.exec_time
+                d.last_as_voted_check = c.check_id
         elif verdict == V_DEV:
             d.deviates = u64(int(d.deviates) + 1)
         else:
@@ -1467,6 +1479,49 @@ class AsVotedRegistry(gl.contract.Contract):
         if int(self.balance) < amount:
             raise gl.vm.UserError("REFUSED: BALANCE_SHORT_" + str(int(self.balance)) + "_OF_" + str(amount))
         _Payee(to).emit_transfer(value=u256(amount))
+
+    @gl.public.write
+    def record_coverage(self, entries: str) -> typing.Any:
+        """A monitoring heartbeat: `entries` is a JSON list of
+        [dao_id, block, block_time], each saying the caller has scanned the
+        DAO's Safe on the DAO's chain through `block` (whose timestamp is
+        block_time). Anyone may record; each reporter has its own record, and
+        a consumer chooses whose coverage it trusts (DaoStanding fixes one
+        monitor at deployment). A record only moves forward: an entry whose
+        block is not past the reporter's last one is skipped. Carries no
+        rights and moves no money."""
+        now = self._now()
+        if now <= 0:
+            raise gl.vm.UserError("REFUSED: NO_CLOCK")
+        try:
+            rows = json.loads(str(entries))
+        except Exception:
+            raise gl.vm.UserError("REFUSED: ENTRIES_MUST_BE_JSON")
+        if not isinstance(rows, list) or len(rows) == 0 or len(rows) > MAX_PAGE:
+            raise gl.vm.UserError("REFUSED: ONE_TO_" + str(MAX_PAGE) + "_ENTRIES")
+        me = self._sender()
+        plan = []
+        skipped = []
+        for row in rows:
+            if not isinstance(row, list) or len(row) != 3:
+                raise gl.vm.UserError("REFUSED: ENTRY_MUST_BE_[DAO_ID,BLOCK,BLOCK_TIME]")
+            did = _as_int(row[0], -1)
+            blk = _as_int(row[1], -1)
+            bt = _as_int(row[2], -1)
+            if self._dao(did) is None:
+                raise gl.vm.UserError("REFUSED: NO_SUCH_DAO_" + str(row[0]))
+            if blk < 0 or bt <= 0 or bt > now:
+                raise gl.vm.UserError("REFUSED: BAD_BLOCK_OR_TIME_FOR_DAO_" + str(did))
+            key = str(did) + "|" + me
+            prev = str(self.coverage.get(key) or "")
+            if prev != "" and blk <= int(json.loads(prev)["block"]):
+                skipped.append(did)
+                continue
+            plan.append([key, did, blk, bt])
+        # --- writes
+        for p in plan:
+            self.coverage[p[0]] = _canon({"block": p[2], "block_time": p[3], "recorded_at": now})
+        return {"ok": True, "recorded": [p[1] for p in plan], "skipped": skipped, "reporter": me}
 
     @gl.public.write
     def claim(self) -> typing.Any:
@@ -1497,7 +1552,8 @@ class AsVotedRegistry(gl.contract.Contract):
                 "open_checks": int(d.open_checks), "n_checks": int(d.n_checks), "as_voted": int(d.as_voted),
                 "deviates": int(d.deviates), "unclear": int(d.unclear),
                 "last_deviates_at": int(d.last_deviates_at), "last_deviates_check": int(d.last_deviates_check),
-                "slashed_total": str(int(d.slashed_total)), "verified": bool(d.verified)}
+                "slashed_total": str(int(d.slashed_total)), "verified": bool(d.verified),
+                "last_as_voted_at": int(d.last_as_voted_at), "last_as_voted_check": int(d.last_as_voted_check)}
 
     def _active_deadline(self, c: Check) -> int:
         if c.status == ST_PROVISIONAL:
@@ -1671,7 +1727,19 @@ class AsVotedRegistry(gl.contract.Contract):
                 "controller": d.controller, "pledge": str(int(d.pledge)), "open_checks": int(d.open_checks),
                 "as_voted": int(d.as_voted), "deviates": int(d.deviates), "unclear": int(d.unclear),
                 "last_deviates_at": int(d.last_deviates_at), "last_deviates_check": int(d.last_deviates_check),
+                "last_as_voted_at": int(d.last_as_voted_at), "last_as_voted_check": int(d.last_as_voted_check),
                 "verified": bool(d.verified)}
+
+    @gl.public.view
+    def get_coverage(self, dao_id: int, reporter: str) -> typing.Any:
+        """The latest heartbeat `reporter` recorded for this DAO."""
+        raw = str(self.coverage.get(str(_as_int(dao_id, 0)) + "|" + _addr(reporter)) or "")
+        if raw == "":
+            return {"found": False}
+        out = json.loads(raw)
+        out["found"] = True
+        out["reporter"] = _addr(reporter)
+        return out
 
     @gl.public.view
     def claimable_of(self, who: str) -> typing.Any:

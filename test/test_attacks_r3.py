@@ -369,7 +369,10 @@ class Binding(R3):
         self.assertEqual(D.view(D.rg, "get_check", cid)["final_verdict"], "DEVIATES")
         real = D.view(D.rg, "get_dao", self.dao)
         self.assertEqual((real["deviates"], real["n_checks"], real["last_deviates_at"]), (0, 0, 0))
-        self.assertTrue(D.view(D.st, "is_executing_as_voted", self.dao, D.w.now()))
+        st = D.view(D.st, "standing", self.dao, D.w.now())
+        self.assertEqual(st["state"], "NO_COVERAGE")
+        self.assertFalse(any("DEVIATES" in r for r in st["reasons"]))
+        self.assertEqual(D.view(D.st, "standing", evil, D.w.now())["state"], "DEVIATES")
         # the real space's proposals cannot be filed on the rogue listing
         r = D.file(evil, D.read_exec(*F.safe_exec(D.mc, USDC, 0, F.transfer(ALICE, U(5)), nonce=31)),
                    D.read_vote(F.proposal("Send 5 USDC to " + ALICE)))
@@ -456,7 +459,9 @@ class Money(R3):
         D.judge_rule(cid)
         D.w.advance(91)
         D.call(D.rg, "finalize", cid)
-        self.assertTrue(D.view(D.st, "is_executing_as_voted", self.dao, D.w.now()))
+        st = D.view(D.st, "standing", self.dao, D.w.now())
+        self.assertNotEqual(st["state"], "DEVIATES")
+        self.assertFalse(any("DEVIATES" in r for r in st["reasons"]))
 
 
 class Policy(unittest.TestCase):
@@ -629,6 +634,7 @@ class Identity(R3):
 
     def test_r3_82_standing_is_keyed_by_space_and_safe(self):
         D = self.D
+        self.make_compliant()
         self.assertTrue(D.view(D.st, "is_executing_as_voted_for", F.SPACE, "ethereum", SAFE, D.w.now()))
         self.assertFalse(D.view(D.st, "is_executing_as_voted_for", "evil.eth", "ethereum", SAFE, D.w.now()))
 
