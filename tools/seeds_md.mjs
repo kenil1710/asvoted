@@ -59,8 +59,11 @@ for (let off = 0; off < st.checks; off += 25) {
   out.push(...page.checks);
 }
 out.sort((a, b) => a.check_id - b.check_id);
+// the seeds are the executions in test/seeds.json; anything else on the registry (the patrol's filings) is listed apart
+const seedTx = new Set(JSON.parse(readFileSync(root + "test/seeds.json", "utf8")).map((s) => s.tx.toLowerCase()));
+const others = out.filter((c) => !seedTx.has(c.tx.toLowerCase()));
 const rows = [];
-for (const c of out) {
+for (const c of out.filter((c) => seedTx.has(c.tx.toLowerCase()))) {
   const ex = await view(dep.ExecReader.address, "get_execution", [c.exec_id]);
   const vote = await view(dep.VoteReader.address, "get_proposal", [c.vote_id]);
   const dao = await view(dep.AsVotedRegistry.address, "get_dao", [c.dao_id]);
@@ -85,6 +88,8 @@ const md = [
   ...rows.filter((r) => (r.final || r.ruling) !== "AS_VOTED").map((r) => `- **#${r.check_id} ${r.space}, ${(r.final || r.ruling).replace("_", " ")}.** ${r.summary} ${NOTES[r.tx] ?? ""}`),
   "", "## Rulings, verbatim", "", "As stored on chain. The site shows a DEVIATES sentence as \"includes an action proposal <id> does not cover\": the check compares with the one proposal the filer named, and the DAO can appeal with another.", "",
   ...rows.map((r) => `- #${r.check_id}: ${r.summary}`), "",
+  ...(others.length ? ["## Other checks on the registry", "", "Not seeds: filed by the patrol bot or by anyone else, listed here so the numbering above has no gaps unexplained.", "",
+    ...others.map((c) => `- [#${c.check_id}](${SITE}/check/${c.check_id}) ${c.chain} \`${c.tx.slice(0, 10)}…\` filed by \`${c.filer}\`: ${c.final_verdict || c.ruling || c.status}`), ""] : []),
 ];
 writeFileSync(root + "docs/SEEDS.md", md.join("\n"));
 console.log(`wrote docs/SEEDS.md: ${rows.length} checks, ${n("AS_VOTED")} AS_VOTED / ${n("DEVIATES")} DEVIATES / ${n("UNCLEAR")} UNCLEAR`);
