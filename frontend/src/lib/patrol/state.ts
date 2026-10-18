@@ -76,6 +76,7 @@ export interface Cursors {
 
 export interface PatrolState {
   version: number;
+  registry: string;       // the registry this state was built against
   updated: string;
   cursors: Cursors;
   heartbeats: Record<string, number>;
@@ -88,14 +89,23 @@ export interface PatrolState {
 }
 
 export const emptyState = (): PatrolState => ({
-  version: STATE_VERSION, updated: "", cursors: { daos: 0, open_checks: 0 }, heartbeats: {}, pending: [], tx_log: [], checkpoints: {}, processed: {}, retry: [], unmatched: [],
+  version: STATE_VERSION, registry: "", updated: "", cursors: { daos: 0, open_checks: 0 }, heartbeats: {}, pending: [], tx_log: [], checkpoints: {}, processed: {}, retry: [], unmatched: [],
 });
 
-/** A state document from untrusted JSON: anything missing or malformed starts empty. */
-export function loadState(raw: unknown): PatrolState {
+/**
+ * A state document from untrusted JSON: anything missing or malformed starts
+ * empty. A state built against another registry (a redeployment) is set
+ * aside whole: its "processed" and checkpoints say what was filed THERE, and
+ * the new registry starts its own scan; the old document stays in the
+ * branch's history.
+ */
+export function loadState(raw: unknown, registry = ""): PatrolState {
   const s = emptyState();
+  s.registry = registry.toLowerCase();
   if (!raw || typeof raw !== "object") return s;
   const r = raw as Record<string, unknown>;
+  const was = typeof r.registry === "string" ? r.registry.toLowerCase() : "";
+  if (registry && was && was !== s.registry) return s;
   const obj = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, never>) : {});
   const arr = (v: unknown) => (Array.isArray(v) ? (v as never[]) : []);
   s.updated = typeof r.updated === "string" ? r.updated : "";

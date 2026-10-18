@@ -121,6 +121,8 @@ const short = (e: unknown) => String((e as Error)?.message ?? e).slice(0, 120);
 
 export async function runCore(deps: Deps, state: PatrolState, limits: Limits = LIMITS): Promise<RunReport> {
   const { addr } = deps;
+  if (state.registry && state.registry !== addr.registry.toLowerCase()) throw new Error(`state is for registry ${state.registry}, not ${addr.registry}`);
+  state.registry = addr.registry.toLowerCase();
   const rep: RunReport = {
     started: new Date(deps.now() * 1000).toISOString(), dry_run: deps.dry, patrol: deps.patrol, registry: addr.registry,
     writes: [], resumed: [], daos_watched: 0, open_pages: 0, open_seen: 0, executions_seen: 0, already_checked: 0, filed: 0, queued: 0, retried: 0, unmatched: 0, heartbeats: 0,

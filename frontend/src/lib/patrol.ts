@@ -41,7 +41,7 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
   const read = createClient({ chain });
   const wallet = account ? createClient({ chain, account }) : null;
   const dry = opts.dry || !wallet;
-  const state = loadState(opts.state);
+  const state = loadState(opts.state, ADDR.registry);
 
   async function submit(address: string, fn: string, args: CalldataEncodable[], value: bigint): Promise<string> {
     if (!wallet) throw new Error("no signer");

@@ -15,7 +15,11 @@
  *      still refuse: only the registry says whether a check exists);
  *   5. FINALIZED with an error, UNDETERMINED or CANCELED is a failure; a
  *      transaction still short of FINALIZED when the run's time is up stays
- *      in state.pending, uncertain, and the next run resumes it.
+ *      in state.pending, uncertain, and the next run resumes it;
+ *   6. reconciliation: a stored hash the node has no record of is checked
+ *      against the chain itself: the expected change there means it landed;
+ *      none after LOST_AFTER_S means it is lost (and the operation may be
+ *      sent again, after the same read-first check).
  */
 import type { CalldataEncodable } from "genlayer-js/types";
 import type { PatrolState } from "./state";
@@ -56,6 +60,8 @@ export interface ChainIO {
 
 export interface Addrs { registry: string; execReader: string; voteReader: string; judge: string }
 export const POLL_MS = 4_000;
+/** a hash the node has no record of this long after it was sent is given up */
+export const LOST_AFTER_S = 1800;
 const TX_LOG_MAX = 200;
 
 /** Whether the change a transaction was sent to make is now on chain. */
@@ -100,6 +106,21 @@ export class Lifecycle {
       let v: TxView | null = null;
       try { v = await this.io.tx(p.hash); } catch { v = null; }
       p.polls++;
+      if (!v) {
+        // the node knows no such transaction: reconcile with the chain itself
+        let landed = false;
+        try { landed = await holds(this.io, this.a, p.expect); } catch { landed = false; }
+        if (landed) {
+          this.drop(p.id);
+          this.log(p, "unknown to the node; expected change found on chain");
+          return { ok: true, hash: p.hash, note: "reconciled: the expected change is on chain" };
+        }
+        if (this.io.now() - p.submitted_at > LOST_AFTER_S) {
+          this.drop(p.id);
+          this.log(p, "lost");
+          return { ok: false, hash: p.hash, note: `no record of the transaction ${LOST_AFTER_S} s after it was sent, and no change on chain` };
+        }
+      }
       if (v) {
         if (v.status === "FINALIZED") {
           this.drop(p.id);
