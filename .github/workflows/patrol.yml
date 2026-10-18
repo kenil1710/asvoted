@@ -1,18 +1,57 @@
-# Calls the patrol bot every 15 minutes, exactly as cron-job.org would:
-# POST https://asvoted.vercel.app/api/patrol with the x-patrol-secret header.
+# One patrol run every 15 minutes. The durable state (per-Safe checkpoints,
+# processed executions, the retry queue, unmatched executions) lives in
+# patrol-state.json on the `patrol-state` branch: this job reads it, POSTs it
+# to https://asvoted.vercel.app/api/patrol with the x-patrol-secret header,
+# and commits the state the run returns. The concurrency group keeps it to
+# one run (one writer) at a time. A dry run returns no state and commits
+# nothing.
 name: patrol
 on:
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch: {}
+concurrency:
+  group: patrol
+  cancel-in-progress: false
+permissions:
+  contents: write
 jobs:
   patrol:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Check out the state branch
+        uses: actions/checkout@v4
+        with:
+          ref: patrol-state
+          path: state
       - name: Run one patrol
         env:
           PATROL_SECRET: ${{ secrets.PATROL_SECRET }}
         run: |
-          curl -sS -m 320 -X POST -H "x-patrol-secret: $PATROL_SECRET" https://asvoted.vercel.app/api/patrol \
-            | python3 -c 'import json,sys; r=json.load(sys.stdin); print(json.dumps({k: r[k] for k in ("started","dry_run","daos_watched","executions_seen","already_checked","not_final_yet","matched","closed","seconds")}, indent=1)); [print("write", w["fn"], w["ok"], w["note"], w["hash"]) for w in r["writes"]]'
+          python3 -c 'import json; print(json.dumps({"state": json.load(open("state/patrol-state.json"))}))' > body.json
+          curl -sS -m 320 --fail-with-body -X POST -H "content-type: application/json" -H "x-patrol-secret: $PATROL_SECRET" \
+            --data-binary @body.json https://asvoted.vercel.app/api/patrol > out.json
+          python3 - <<'EOF'
+          import json
+          r = json.load(open("out.json"))
+          print(json.dumps({k: r.get(k) for k in ("started", "dry_run", "daos_watched", "executions_seen", "already_checked",
+                                                 "filed", "queued", "retried", "unmatched", "closed", "seconds")}, indent=1))
+          for s in r.get("scans", []):
+              print("scan", s["dao"], s["chain"], s["from"], "->", s["to"], "checkpoint", s["checkpoint"], "events", s["events"])
+          for w in r.get("writes", []):
+              print("write", w["fn"], w["ok"], w["note"], w["hash"])
+          for n in r.get("notes", []):
+              print("note", n)
+          if r.get("state"):
+              json.dump(r["state"], open("state/patrol-state.json", "w"), indent=1, sort_keys=True)
+          EOF
+      - name: Commit the new state
+        run: |
+          cd state
+          git config user.name "asvoted-patrol"
+          git config user.email "patrol@users.noreply.github.com"
+          git add patrol-state.json
+          if git diff --cached --quiet; then echo "state unchanged"; exit 0; fi
+          git commit -q -m "patrol state $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin HEAD:patrol-state

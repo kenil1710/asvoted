@@ -17,7 +17,7 @@ export default function PatrolPage() {
     setBusy(true); setErr("");
     try {
       const r = await fetch("/api/patrol?dry=1", { cache: "no-store" });
-      setRep(await r.json());
+      setRep((await r.json()) as RunReport);
     } catch (e) { setErr(String((e as Error).message ?? e)); } finally { setBusy(false); }
   }
   return (
@@ -30,7 +30,7 @@ export default function PatrolPage() {
       </p>
       <Section title="Its filings, read from the canonical registry">
         {checks.error ? <ErrorNote error={checks.error} /> : !checks.data ? <Skeleton className="h-40 w-full" /> :
-          mine.length === 0 ? <p className="text-sm text-ink-2">No check filed by the patrol yet. It files only executions newer than its 3-hour look-back that have no check.</p> : <CheckList checks={mine} />}
+          mine.length === 0 ? <p className="text-sm text-ink-2">No check filed by the patrol yet. It scans each Safe forward from a saved checkpoint (the last block it read in full) and files executions that have no check.</p> : <CheckList checks={mine} />}
       </Section>
       <Section title="What a run would do right now">
         <p className="mb-3 text-sm text-ink-2">A dry run makes the same reads and matches as the scheduled one and sends nothing.</p>
@@ -38,7 +38,7 @@ export default function PatrolPage() {
         {err && <div className="mt-3"><ErrorNote error={err} /></div>}
         {rep && (
           <div className="mt-4 rounded-lg border border-rule bg-sheet p-4 text-sm">
-            <p>{rep.started}: {rep.daos_watched} Safes watched, {rep.executions_seen} executions in the look-back, {rep.already_checked} already checked, {rep.not_final_yet} not final yet, {rep.matched.length} new, {rep.seconds}s.</p>
+            <p>{rep.started}: {rep.daos_watched} Safes watched, {rep.executions_seen} executions in the scanned spans, {rep.already_checked} already checked, {rep.matched.length} matched, {rep.unmatched} unmatched, {rep.queued} queued for a later run, {rep.seconds}s. A dry run starts from no saved checkpoint.</p>
             {rep.matched.length > 0 && <ul className="mt-2 list-disc pl-5">{rep.matched.map((m) => <li key={m.tx}>{m.dao} <span className="font-mono text-xs">{m.tx.slice(0, 12)}…</span> matched to <span className="font-mono text-xs">{m.cid.slice(0, 14)}…</span>, {m.why}</li>)}</ul>}
             {rep.closed.length > 0 && <p className="mt-2">Would close: {rep.closed.join(", ")}</p>}
             {rep.writes.length > 0 && <ul className="mt-2 font-mono text-xs text-ink-2">{rep.writes.map((w, i) => <li key={i}>{w.fn} {w.args} ({w.note})</li>)}</ul>}
