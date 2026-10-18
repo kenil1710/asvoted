@@ -5,7 +5,8 @@
  *
  * One run, bounded by limits.maxWrites transactions and limits.timeBudgetMs:
  *   1. close its own filings: rule what is judged, judge what is not, finalize
- *      what is past its contest window, expire what is past a deadline. Every
+ *      what is past its contest window, expire what is past its active
+ *      deadline (round 2: the DAO's resp_deadline, not appeal_deadline). Every
  *      page of get_open_checks (each call scans at most the registry's
  *      SCAN_CAP records and returns at most 50), from state.cursors;
  *   2. retry the executions queued by earlier runs whose backoff has passed;
@@ -90,6 +91,20 @@ export interface RunReport {
   seconds: number;
 }
 
+/**
+ * The deadline that governs an open check now. Round 2 (the DAO's response to
+ * a DEVIATES an appeal produced) runs to resp_deadline, which is later than
+ * the round-1 appeal_deadline: expiring on appeal_deadline would be refused,
+ * and judging must continue until resp_deadline.
+ */
+export function activeDeadline(c: { status: string; round: number; judge_deadline: number; contest_deadline: number; appeal_deadline: number; resp_deadline?: number; active_deadline?: number }): number {
+  if (typeof c.active_deadline === "number" && c.active_deadline > 0) return c.active_deadline;
+  if (c.status === "PROVISIONAL") return c.judge_deadline;
+  if (c.status === "CONTESTABLE") return c.contest_deadline;
+  if (c.status === "APPEALED") return c.round === 2 ? Number(c.resp_deadline ?? 0) : c.appeal_deadline;
+  return 0;
+}
+
 const short = (e: unknown) => String((e as Error)?.message ?? e).slice(0, 120);
 
 export async function runCore(deps: Deps, state: PatrolState, limits: Limits = LIMITS): Promise<RunReport> {
@@ -111,16 +126,20 @@ export async function runCore(deps: Deps, state: PatrolState, limits: Limits = L
 
   // 1. close our own filings, every page of open checks, continuing where the last run stopped
   const PAGE = 50;
-  type Open = { check_id: number; status: string; round: number; filer: string; judge_deadline: number; contest_deadline: number; appeal_deadline: number };
+  type Open = { check_id: number; status: string; round: number; filer: string; judge_deadline: number; contest_deadline: number;
+    appeal_deadline: number; resp_deadline?: number; active_deadline?: number };
   async function close(c: Open): Promise<void> {
     const now = deps.now();
-    if (c.status === "CONTESTABLE" && now > c.contest_deadline) { rep.closed.push(`finalize #${c.check_id}`); await write(addr.registry, "finalize", [c.check_id]); return; }
-    if ((c.status === "PROVISIONAL" && now > c.judge_deadline) || (c.status === "APPEALED" && now > c.appeal_deadline)) { rep.closed.push(`expire #${c.check_id}`); await write(addr.registry, "expire", [c.check_id]); return; }
-    if (c.status === "PROVISIONAL" || c.status === "APPEALED") {
-      const j = await deps.view<{ found: boolean }>(addr.judge, "get_judgment", [addr.registry, c.check_id, c.round]);
-      if (!j.found) { rep.closed.push(`judge #${c.check_id}`); if (!(await write(addr.judge, "judge", [addr.registry, c.check_id])).ok) return; }
-      if (budgetLeft()) { rep.closed.push(`rule #${c.check_id}`); await write(addr.registry, "rule", [c.check_id]); }
+    const deadline = activeDeadline(c);
+    if (c.status === "CONTESTABLE") {
+      if (now > deadline) { rep.closed.push(`finalize #${c.check_id}`); await write(addr.registry, "finalize", [c.check_id]); }
+      return;
     }
+    if (c.status !== "PROVISIONAL" && c.status !== "APPEALED") return;
+    if (now > deadline) { rep.closed.push(`expire #${c.check_id}`); await write(addr.registry, "expire", [c.check_id]); return; }
+    const j = await deps.view<{ found: boolean }>(addr.judge, "get_judgment", [addr.registry, c.check_id, c.round]);
+    if (!j.found) { rep.closed.push(`judge #${c.check_id} round ${c.round}`); if (!(await write(addr.judge, "judge", [addr.registry, c.check_id])).ok) return; }
+    if (budgetLeft()) { rep.closed.push(`rule #${c.check_id} round ${c.round}`); await write(addr.registry, "rule", [c.check_id]); }
   }
   try {
     const start = state.cursors.open_checks;

@@ -1499,6 +1499,15 @@ class AsVotedRegistry(gl.contract.Contract):
                 "last_deviates_at": int(d.last_deviates_at), "last_deviates_check": int(d.last_deviates_check),
                 "slashed_total": str(int(d.slashed_total)), "verified": bool(d.verified)}
 
+    def _active_deadline(self, c: Check) -> int:
+        if c.status == ST_PROVISIONAL:
+            return int(c.judge_deadline)
+        if c.status == ST_CONTESTABLE:
+            return int(c.contest_deadline)
+        if c.status == ST_APPEALED:
+            return int(c.resp_deadline) if int(c.round) == 2 else int(c.appeal_deadline)
+        return 0
+
     def _check_view(self, c: Check, full: bool) -> dict:
         out = {"check_id": int(c.check_id), "dao_id": int(c.dao_id), "chain": c.chain, "safe": c.safe, "tx": c.tx,
                "block": int(c.block), "exec_time": int(c.exec_time), "exec_id": int(c.exec_id), "vote_id": int(c.vote_id), "cid": c.cid,
@@ -1519,7 +1528,7 @@ class AsVotedRegistry(gl.contract.Contract):
                "ens_unresolved": bool(c.ens_unresolved), "responder": c.responder,
                "resp_bond": str(int(c.resp_bond)), "resp_text": c.resp_text, "resp_vote_id": int(c.resp_vote_id),
                "resp_cid": c.resp_cid, "resp_deadline": int(c.resp_deadline), "resp_ruling": c.resp_ruling,
-               "resp_summary": c.resp_summary}
+               "resp_summary": c.resp_summary, "active_deadline": self._active_deadline(c)}
         if full:
             out["ruling_detail"] = json.loads(c.ruling_json) if c.ruling_json != "" else None
             out["appeal_detail"] = json.loads(c.appeal_json) if c.appeal_json != "" else None
@@ -1546,7 +1555,8 @@ class AsVotedRegistry(gl.contract.Contract):
             out[k] = int(self.counts.get(k) or 0)
         for v in (V_AS, V_DEV, V_UNCLEAR):
             out["final:" + v] = int(self.counts.get("final:" + v) or 0)
-        for h in ("NO_APPEAL", "RULED_UNCLEAR", "APPEAL_RULED", "APPEAL_EXPIRED", "EXPIRED_UNJUDGED"):
+        for h in ("NO_APPEAL", "RULED_UNCLEAR", "APPEAL_RULED", "APPEAL_EXPIRED", "EXPIRED_UNJUDGED", "RESPONSE_RULED",
+                  "RESPONSE_EXPIRED"):
             out["how:" + h] = int(self.counts.get("how:" + h) or 0)
         out["pledges_total"] = str(int(self.pledges_total))
         out["open_total"] = str(int(self.open_total))
@@ -1631,7 +1641,11 @@ class AsVotedRegistry(gl.contract.Contract):
         """Open checks (oldest first) with what each needs next, for the
         patrol bot and the site. Scans at most SCAN_CAP records from offset
         and returns at most MAX_PAGE: a page can be empty and not done.
-        Continue from next_offset until done."""
+        Continue from next_offset until done. active_deadline is the one that
+        governs the check now: the judge deadline (PROVISIONAL), the contest
+        window (CONTESTABLE), the appeal deadline (APPEALED, round 1) or the
+        DAO's response deadline (APPEALED, round 2); expire() is refused
+        until it has passed."""
         o = max(_as_int(offset, 0), 0)
         lim = min(max(_as_int(limit, 20), 0), MAX_PAGE)
         out = []
@@ -1643,7 +1657,8 @@ class AsVotedRegistry(gl.contract.Contract):
             if c is not None and c.status in OPEN:
                 out.append({"check_id": int(c.check_id), "status": c.status, "round": int(c.round),
                             "filer": c.filer, "judge_deadline": int(c.judge_deadline),
-                            "contest_deadline": int(c.contest_deadline), "appeal_deadline": int(c.appeal_deadline)})
+                            "contest_deadline": int(c.contest_deadline), "appeal_deadline": int(c.appeal_deadline),
+                            "resp_deadline": int(c.resp_deadline), "active_deadline": self._active_deadline(c)})
             i += 1
         return {"next_offset": i - 1, "done": i > int(self.n_checks), "checks": out}
 

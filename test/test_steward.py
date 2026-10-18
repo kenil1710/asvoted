@@ -6,9 +6,11 @@ import copy
 import unittest
 
 import fixtures as F
+import stub
 import world
-from fixtures import RG, SAFE, USDC, ALICE, MALLORY, CONTROLLER, FILER, DAY, STAKE, BOND
+from fixtures import RG, SAFE, USDC, ALICE, MALLORY, CONTROLLER, FILER, STRANGER, TARGET, DAY, STAKE, BOND, GEN
 from test_asvoted import Base, U, model_says
+from test_attacks_r3 import QUOTE, ROUTER_BODY, DEPOSIT, APPEAL_TEXT
 
 
 def clone_checks(D, n, open_at):
@@ -70,6 +72,76 @@ class TestPagination(Base):
             off = p["next_offset"]
         self.assertEqual(seen, ids)
         self.assertEqual(p["total"], 64)
+
+
+
+class TestRoundTwoDeadline(Base):
+    """An appeal turns AS_VOTED into DEVIATES; the DAO responds; the original
+    appeal_deadline passes while the response is still open."""
+    RESPONSE = "The deposit is the swap the proposal describes; the earlier panel misread the router call entirely."
+
+    def setUp(self):
+        super().setUp()
+        self.D.call(self.D.rg, "claim_dao", self.dao, sender=CONTROLLER)
+        self.D.call(self.D.rg, "pledge", self.dao, sender=CONTROLLER, value=10 * GEN)
+
+    def _responded(self):
+        D = self.D
+        stub.MODEL.answer = model_says("AUTHORIZED", QUOTE)
+        cid, j, c = self.judged(ROUTER_BODY, to=TARGET, data=DEPOSIT)
+        self.assertEqual(c["ruling"], "AS_VOTED")
+        a = D.call(D.rg, "appeal", cid, APPEAL_TEXT, 0, sender=STRANGER, value=BOND)
+        appeal_deadline = a["appeal_deadline"]
+        D.w.advance(10)
+        stub.MODEL.answer = model_says("NOT_AUTHORIZED", QUOTE)
+        D.judge_rule(cid)
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["status"], c["appeal_ruling"]), ("CONTESTABLE", "DEVIATES"))
+        D.w.advance(60)                                           # inside the DAO's 90 s window
+        r = D.call(D.rg, "appeal", cid, self.RESPONSE, 0, sender=CONTROLLER, value=BOND)
+        self.assertEqual(r["round"], 2)
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["status"], c["round"], c["appeal_deadline"]), ("APPEALED", 2, appeal_deadline))
+        self.assertGreater(c["resp_deadline"], appeal_deadline)
+        return cid, appeal_deadline, c["resp_deadline"]
+
+    def test_open_checks_expose_the_round_and_the_active_deadline(self):
+        D = self.D
+        cid, appeal_deadline, resp_deadline = self._responded()
+        row = [x for x in D.view(D.rg, "get_open_checks", 0, 50)["checks"] if x["check_id"] == cid][0]
+        self.assertEqual((row["round"], row["resp_deadline"], row["active_deadline"]), (2, resp_deadline, resp_deadline))
+        self.assertEqual(row["appeal_deadline"], appeal_deadline)
+        self.assertEqual(D.view(D.rg, "get_check", cid)["active_deadline"], resp_deadline)
+
+    def test_response_judged_and_settled_after_the_original_appeal_deadline_no_premature_expire(self):
+        D = self.D
+        cid, appeal_deadline, resp_deadline = self._responded()
+        D.w.set_time(appeal_deadline + 5)                         # the original appeal deadline has passed
+        self.assertLess(D.w.now(), resp_deadline)
+        with self.assertRaisesRegex(world.Reverted, "RESPONSE_JUDGEABLE_UNTIL_" + str(resp_deadline)):
+            D.call(D.rg, "expire", cid)
+        self.assertEqual(D.view(D.rg, "get_check", cid)["status"], "APPEALED")
+        stub.MODEL.answer = model_says("AUTHORIZED", QUOTE)
+        D.judge_rule(cid)
+        c = D.view(D.rg, "get_check", cid)
+        self.assertEqual((c["status"], c["final_verdict"], c["final_how"], c["resp_ruling"], c["slash"]),
+                         ("FINAL", "AS_VOTED", "RESPONSE_RULED", "AS_VOTED", "0"))
+        moves = [m[0] for m in c["settlement"]]
+        self.assertIn("response bond refunded", moves)
+        self.assertIn("appeal bond to the DAO pledge", moves)
+        self.assertEqual(D.view(D.rg, "claimable_of", CONTROLLER)["claimable"], str(BOND))
+        self.assertLedger()
+
+    def test_response_unjudged_expires_only_after_its_own_deadline(self):
+        D = self.D
+        cid, appeal_deadline, resp_deadline = self._responded()
+        D.w.set_time(resp_deadline)
+        with self.assertRaisesRegex(world.Reverted, "RESPONSE_JUDGEABLE_UNTIL"):
+            D.call(D.rg, "expire", cid)
+        D.w.set_time(resp_deadline + 1)
+        r = D.call(D.rg, "expire", cid)
+        self.assertEqual((r["how"], r["final"]), ("RESPONSE_EXPIRED", "DEVIATES"))
+        self.assertLedger()
 
 
 if __name__ == "__main__":
