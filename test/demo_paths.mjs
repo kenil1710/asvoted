@@ -187,25 +187,34 @@ if (BigInt((await v("rg", "get_dao", [treas])).pledge) === 0n) await w("dao", "r
   expect("GrantGate refuses a DAO with nothing verified: NO_COVERAGE, never a favourable default", g.carried_out === false && g.state === "NO_COVERAGE", JSON.stringify(g));
 }
 
-// the proposal the winning appeal names, read before filing so judging starts inside every 600 s judge window
+// the proposal the winning appeal names, read before filing so the appeal can go in inside its 90 s window
 const right = await freshVote(CID.cip37, COW);
 await namesAt(right, await execId("cip37"));
 
-// --- file everything
-D.asv = await file("filer", "cip30", "cip30", "demo: as voted");
-D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
-D.won = await file("filer2", "cip37", "cip30", "demo: filed against the wrong proposal");
-D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
-D.unc = await file("filer", "weth67", "cip28", "demo: unclear");
-D.exp = await file("filer", "cip24", "cip24", "demo: never judged, expires");
-D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
-D.gate = await file("filer", "bal200k", "cip69", "demo: a recent execution against a proposal that does not cover it, for GrantGate");
-D.para = await file("filer", "pip59", "pip59", "demo: as voted, for DaoStanding COMPLIANT");
-log("checks", JSON.stringify(D));
-{
-  const g = await grant(para, "release tranche 1");
-  expect("GrantGate refuses while the DAO's check is open: PENDING", g.carried_out === false && g.state === "PENDING", JSON.stringify(g));
+// --- file, then judge and rule each check at once: every filing takes several
+// FINALIZED writes, so judging only after all of them would pass the 600 s
+// judge windows. An appeal goes in right after its ruling (90 s window).
+const APPEAL = {
+  won: ["dao", "This transfer of 6,000,000 COW to the Treasury Safe implements CIP-37, COW liquidity through programmatic orders, not CIP-30, the oSnap proposal it was filed against.", right],
+  lost: ["dao", "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0],
+  aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
+};
+// the two appeals that are judged are judged at once too (600 s appeal window)
+const appealed = {};
+async function settle(k) {
+  let c = await v("rg", "get_check", [D[k]]);
+  if (c.status === "PROVISIONAL") c = await judgeRule("filer", D[k]);
+  if (APPEAL[k] && c.status === "CONTESTABLE") {
+    const [role, text, alt] = APPEAL[k];
+    const out = await w(role, "rg", "appeal", [D[k], text, alt], BOND);
+    if (out.r?.ok === false) log("  appeal refused:", out.r.reason);
+    c = await v("rg", "get_check", [D[k]]);
+    appealed[k] = c.status === "APPEALED";
+    if (appealed[k] && k !== "aexp") await judgeRule("filer", D[k]);
+  }
 }
+D.asv = await file("filer", "cip30", "cip30", "demo: as voted");
+await settle("asv");
 {
   const [tx, , safe] = TX.cip30;
   const e = Number(await v("er", "get_execution_id", ["ethereum", safe, tx]));
@@ -215,39 +224,37 @@ log("checks", JSON.stringify(D));
   const bad = await w("appellant", "rg", "file_check", [cow, e, vid, "wrong stake"], STAKE + 1n);
   expect("wrong stake is refused (credited back)", bad.r?.ok === false && /STAKE_MUST_BE/.test(bad.r?.reason ?? ""), bad.r?.reason);
 }
-
-// --- judge and rule; an appeal goes in right after its ruling (90 s window)
-const APPEAL = {
-  won: ["dao", "This transfer of 6,000,000 COW to the Treasury Safe implements CIP-37, COW liquidity through programmatic orders, not CIP-30, the oSnap proposal it was filed against.", right],
-  lost: ["dao", "The tokenswap in CIP-69 needed the Treasury Safe to sign the CoW order; the signing library is standard Safe infrastructure even if the proposal does not print its address.", 0],
-  aexp: ["appellant", "The solver rewards renewal should have required a fresh budget report before the transfer; please have a new panel read the proposal again.", 0],
-};
-// in filing order, so each check is judged before its own judge deadline
-for (const k of ["asv", "dev", "won", "lost", "unc", "aexp", "gate", "para"]) {
-  let c = await v("rg", "get_check", [D[k]]);
-  if (c.status === "PROVISIONAL") c = await judgeRule("filer", D[k]);
-  if (APPEAL[k] && c.status === "CONTESTABLE") {
-    const [role, text, alt] = APPEAL[k];
-    const out = await w(role, "rg", "appeal", [D[k], text, alt], BOND);
-    if (out.r?.ok === false) log("  appeal refused:", out.r.reason);
-  }
+D.dev = await file("filer", "cip16", "cip16", "demo: deviates");
+await settle("dev");
+D.won = await file("filer2", "cip37", "cip30", "demo: filed against the wrong proposal");
+await settle("won");
+D.lost = await file("filer2", "cip69", "cip69", "demo: appeal lost");
+await settle("lost");
+D.unc = await file("filer", "weth67", "cip28", "demo: unclear");
+await settle("unc");
+D.exp = await file("filer", "cip24", "cip24", "demo: never judged, expires");
+D.aexp = await file("filer2", "cip29", "cip29", "demo: appeal never judged");
+await settle("aexp");
+D.gate = await file("filer", "bal200k", "cip69", "demo: a recent execution against a proposal that does not cover it, for GrantGate");
+await settle("gate");
+D.para = await file("filer", "pip59", "pip59", "demo: as voted, for DaoStanding COMPLIANT");
+{
+  const g = await grant(para, "release tranche 1");
+  expect("GrantGate refuses while the DAO's check is open: PENDING", g.carried_out === false && g.state === "PENDING", JSON.stringify(g));
 }
+await settle("para");
+log("checks", JSON.stringify(D));
 const R = {};
 for (const k of Object.keys(D)) R[k] = await v("rg", "get_check", [D[k]]);
 expect("CIP-30 is AS_VOTED", R.asv.ruling === "AS_VOTED", R.asv.ruling_summary);
-expect("appeals were filed inside the window", R.won.status === "APPEALED" && R.lost.status === "APPEALED" && R.aexp.status === "APPEALED", `${R.won.status} ${R.lost.status} ${R.aexp.status}`);
+expect("appeals were filed inside the window", appealed.won && appealed.lost && appealed.aexp && R.aexp.status === "APPEALED", JSON.stringify(appealed));
 expect("CIP-16 batch is DEVIATES", R.dev.ruling === "DEVIATES", R.dev.ruling_summary);
 expect("6,000,000 COW against CIP-30 is DEVIATES (CIP-30 never names the Treasury)", R.won.ruling === "DEVIATES", R.won.ruling_summary);
 expect("CIP-69 Treasury call is DEVIATES", R.lost.ruling === "DEVIATES", R.lost.ruling_summary);
 expect("67 WETH against CIP-28 is UNCLEAR (no amount on the Treasury's own line) and FINAL at once", R.unc.ruling === "UNCLEAR" && R.unc.status === "FINAL", R.unc.ruling_summary);
 expect("CIP-29 is AS_VOTED", R.aexp.ruling === "AS_VOTED", R.aexp.ruling_summary);
-for (const k of ["won", "lost", "aexp"]) R[k] = await v("rg", "get_check", [D[k]]);
 
-// --- appeals: the fresh panel
-for (const k of ["won", "lost"]) {
-  const c = await v("rg", "get_check", [D[k]]);
-  if (c.status === "APPEALED") await judgeRule("filer", D[k]);
-}
+// --- appeals: the fresh panel judged them in settle()
 R.won = await v("rg", "get_check", [D.won]);
 R.lost = await v("rg", "get_check", [D.lost]);
 expect("appeal naming CIP-37 wins: AS_VOTED, bond refunded", R.won.final_verdict === "AS_VOTED" && R.won.final_how === "APPEAL_RULED", R.won.appeal_summary);

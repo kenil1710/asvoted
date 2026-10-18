@@ -1,0 +1,296 @@
+20:56:58 → filer read_space ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_space (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+20:57:49   OK FINALIZED 51s 0x83b042719ef4935c5849652d97a8bed3a53e2fb1d59e9e03cdfe2099130c5b3a {"bind_id":9,"listed":true}
+20:57:49 → filer list_dao ["cow.eth","ethereum","0xcA771eda0c70aA7d053aB1B25004559B918FE662"]
+20:58:32   OK FINALIZED 44s 0xacc914662c8f43b8aa07c9d033f3a09acfc0973c9096ef680fddae5ea47168b2 {"dao_id":1,"ok":true}
+20:58:35 → filer read_space ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+20:59:26   OK FINALIZED 51s 0x52c67de3becf3e8fb1f05e6f80940893dc708ebf871faa055ad8ad3b32037d25 {"bind_id":10,"listed":true}
+20:59:26 → filer list_dao ["cow.eth","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669"]
+21:00:18   OK FINALIZED 52s 0x172907c84dd071979d72bab89b75a44ba54e2d54542745192dbbafb4669e8ed7 {"dao_id":2,"ok":true}
+21:00:22 → filer list_dao ["paraswap-dao.eth","ethereum","0x619BBf92Fd6bA59893327676B2685A3762a49a33"]
+21:01:07   OK FINALIZED 45s 0x29360b5237aa32fc9037b99bce0e39911072199009f64b75cc4a1635e57abef3 {"dao_id":3,"ok":true}
+21:01:09 → filer read_space ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+21:01:56   OK FINALIZED 47s 0x91c70c0f021fa56941af42580f22f032058b61f037e42877d4bea2be85e11be6 {"bind_id":11,"listed":false}
+21:01:56 → filer list_dao ["cow.eth","ethereum","0x00000000000000000000000000000000000000a5"]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for list_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:02:50   REVERTED FINALIZED 54s 0xf6ee8f2d42245eaea8e12f1ad26d5c87f416f21a4cfbdc8f8c4077655ec0cef1 REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+21:02:50 PASS  listing a Safe the space does not list is refused  REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES
+21:02:53 → filer claim_dao [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for claim_dao (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:03:45   REVERTED FINALIZED 52s 0xa2ccde9e30c326444c4dc891852c2c5063f7bf06a918ac311e8fffdf6d2ebd5e REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+21:03:45 PASS  claim by a non-admin is refused  REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE
+21:03:46 → dao claim_dao [1]
+21:04:34   OK FINALIZED 48s 0xaf3cfc3b4560b66f2ef28d31224dc1e893d52abfd112faf8b639714aa86dc436 {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":1,"ok":true}
+21:04:36 → dao claim_dao [2]
+21:05:22   OK FINALIZED 47s 0x62114fe94f472da5edb791135749cfc5fb7b54ffbc2ef375b555d8f43cdef8b4 {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":2,"ok":true}
+21:05:24 → dao claim_dao [3]
+21:06:08   OK FINALIZED 45s 0x5a2edc54098f6190b0d6f5693d9154ad3bf47fe60cc91edd05337935d4379de2 {"controller":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","dao_id":3,"ok":true}
+21:06:10 PASS  demo controller claims both listings  
+21:06:11 → dao pledge [1] +5000000000000000000
+21:06:56   OK FINALIZED 45s 0x65f272da41823c3e753a22bc7d93a49a5171299c494bf8666ba35bc0a1f6c9d7 {"dao_id":1,"ok":true,"pledge":"5000000000000000000"}
+21:06:57 → dao pledge [2] +2000000000000000000
+21:07:38   OK FINALIZED 41s 0x00378fd284f7d386d40b6977984e695612f2f1dd04331fdd1913adff1569df00 {"dao_id":2,"ok":true,"pledge":"2000000000000000000"}
+21:07:38 → filer pledge [1] +1000000000000000000
+21:08:23   OK FINALIZED 44s 0x48ec184520faff103e952d5f03ccd22cd05157d451d7c91a9d45782fce83134c {"ok":false,"reason":"ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE","refunded_to_claimable":"1000000000000000000"}
+21:08:23 PASS  pledge by a non-controller is credited back, ok:false  ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE
+21:08:23 → demo request_grant [2,"release tranche 1"]
+21:09:18   OK FINALIZED 56s 0xe4c2bda41e4bf1826a995056f3663db0566699e6c7a8467262ae4462bc0cd38d "{\"carried_out\":false\"reasons\":[\"no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762\",\"no FINAL AS_VOTED ruling on an execution from the last 730 days\",]\"request
+21:09:19 PASS  GrantGate refuses a DAO with nothing verified: NO_COVERAGE, never a favourable default  {"at":1792357711,"carried_out":false,"dao_id":2,"purpose":"release tranche 1","reasons":["no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762","no FINAL AS_VOTED ruling on an execution from the last 730 days"],"request_id":1,"sender":"0x44afbfd456b3c75e716c42e46feaf18725d45247","state":"NO_COVERAGE"}
+21:09:22 → filer read_proposal ["bafkreif6v7upfwppmyklokvzihh67cbb7a2inprdp6t7sytgas5za5iaam","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:10:07   OK FINALIZED 45s 0xc35b047007585369bba6ac1db0d1f2dd71074d7314bc1050e5c1f211ac3952e0 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":16}
+21:10:17 → filer read_proposal ["bafkreie7k2pbalnxl6hsupdmhd4i76tuc2vm52gwijqxatyzvo6yxf2m6q","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:11:01   OK FINALIZED 44s 0x3e8e4b4b37b9dccc7504177f5a03ad028e81166ef8b6cd5e6c7c55767284debb {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":17}
+21:11:05 → filer file_check [1,6,17,"demo: as voted"] +100000000000000000
+21:11:55   OK FINALIZED 50s 0x56c74f081e3cb379441ccf17af7e1be0a0cf5b116fdc34dcd292369597a10901 {"check_id":1,"judge_deadline":1792358472,"ok":true}
+21:12:01 → filer read_proposal ["bafkreie2je5vvgzlv34gwpllxzr5pkcuzi5ujy4tujhdddpzy66ka7nuv4","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:12:52   OK FINALIZED 51s 0x18a3311e703ad923ba81310d541beef0dcc53219972f0709acadeb6def0d7052 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":18}
+21:12:56 → filer read_names_at [18,17974015]
+21:13:44   OK FINALIZED 48s 0x1f8c15731a6666bc5e023941343c350af936743f980a1becec277a0c0540d3d9 {"ens":{"cowguardian.eth":"0x4f84b52b1e9ee3e910c54af366078058e316a178","middleway.eth":"0xa11da8b2d9a7883eb636d7de426025e5fd9fda1a"},"l1_block":17974015,"moved":{},"unresolved":false,"vote_id":18}
+21:13:44 → filer file_check [1,7,18,"demo: deviates"] +100000000000000000
+21:14:39   OK FINALIZED 56s 0x19488d14ed0b2964659cb9c314bb4729ceb4280b66a5a1152d7b1cc7ab9bda47 {"check_id":2,"judge_deadline":1792358631,"ok":true}
+21:14:48 → filer2 file_check [1,2,17,"demo: filed against the wrong proposal"] +100000000000000000
+21:15:35   OK FINALIZED 47s 0x58889d9ed323d8b4ea41553b798f696a6473543a88cfe670c5504d6118bf9cc2 {"check_id":3,"judge_deadline":1792358694,"ok":true}
+21:15:39 → filer read_execution ["ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669","0x5b453427e61374b5d023a9920943fcbe05a54b7d06b9fc557d
+21:16:25   OK FINALIZED 46s 0x5214c98e5753c5d0126a5eefc15a69dad54385c1df770bd363b133d5f017c31b {"actions":1,"block":25881591,"exec_id":16,"safe_tx_hash":"0x8a620608cc456607bc1b11580646bf6f004917b3605297f5207ebaf8d30a11ec"}
+21:16:27 → filer read_proposal ["bafkreid7zgwhd7la7rxam7d4yltudm4snzbpjimzqa5n4l7bek26hll7pe","ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6F
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:17:14   OK FINALIZED 46s 0x18f895c90098a5d38a963dbf6818dd75acbd1a54c3ed1bf11e795d66d225977f {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":19}
+21:17:17 → filer2 file_check [2,16,19,"demo: appeal lost"] +100000000000000000
+21:18:04   OK FINALIZED 47s 0xd517ffaa5e5e310f63fbf38ac3b43e5d897eb82002f2f289d873fb8d23bd7c41 {"check_id":4,"judge_deadline":1792358843,"ok":true}
+21:18:10 → filer read_proposal ["bafkreie2zitrxqwtmz6ehbompehqnhy2duddhhp4z2udmw645dcbpt3i4m","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:19:13   OK FINALIZED 64s 0x432abca27c8afe9bed63e61181a6ce2c38caf6673b9606001f1e1e67b6e820e5 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":20}
+21:19:17 → filer file_check [1,4,20,"demo: unclear"] +100000000000000000
+21:20:08   OK FINALIZED 51s 0x1d04b1e9a66f836f35684f62bcca1b4e4168abf100af8fd48e9227b1c4be926c {"check_id":5,"judge_deadline":1792358962,"ok":true}
+21:20:14 → filer read_proposal ["bafkreidsqpnzeomzl5kyaashogdq3mztw7yhkoim35ndc7xysmuflq4xcm","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:20:59   OK FINALIZED 44s 0xab01eba97cac79fe1c6eb870bb0eb430d22d0db74ae399b98d32dd9e22b520c0 {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":21}
+21:21:02 → filer file_check [1,5,21,"demo: never judged, expires"] +100000000000000000
+21:21:50   OK FINALIZED 47s 0xeb5a58ac0520d8fdf7e74996dee8237a825944d088bbc4ab85cc950add002b8e {"check_id":6,"judge_deadline":1792359070,"ok":true}
+21:21:56 → filer read_proposal ["bafkreif2pkxscvnyvvnb2v2l2fftc54cysnbxdvoaousbuedsl2mgi6qqu","ethereum","0xcA771eda0c70aA7d053aB1B25004559B9
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:22:42   OK FINALIZED 45s 0x42f68bc732b08cdd483739ff3419abb3e404e08033cf49ac7c96a1bf1548f5da {"listed":true,"outcome":"PASSED","space":"cow.eth","vote_id":22}
+21:22:45 → filer2 file_check [1,3,22,"demo: appeal never judged"] +100000000000000000
+21:23:29   OK FINALIZED 44s 0x007aa691ee80e6de3b894e11a98f907c2cf982aec90bf336a5f3b8c816c8e0ce {"check_id":7,"judge_deadline":1792359171,"ok":true}
+21:23:33 → filer read_execution ["ethereum","0x616dE58c011F8736fa20c7Ae5352F7f6FB9F0669","0xa85e7333380b8d40be2fa89c24cb7183be0006d1c2e78134ad
+21:24:19   OK FINALIZED 47s 0x8c5296c6b491d56961fe2d0457249c5bad80c9c7ab4069e9b2fe7676c19f0b6e {"actions":1,"block":26197751,"exec_id":17,"safe_tx_hash":"0xf1f54158e7b0b84376d061a8f110ee4a62cefcdd6490eebfaf6936f7d210558f"}
+21:24:26 → filer file_check [2,17,19,"demo: a recent execution against a proposal that does not cover it, for GrantGate"] +100000000000000000
+21:25:12   OK FINALIZED 46s 0x8e177568901711322c5b74be1d14c767eafc5f3bf2fb0b2c71e9b5c8d8a3a341 {"check_id":8,"judge_deadline":1792359271,"ok":true}
+21:25:18 → filer read_proposal ["bafkreiand2nimf36noh3zzlsi7gw7bpijbz5g3fleqf6pty6krfyoixsum","ethereum","0x619BBf92Fd6bA59893327676B2685A376
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for read_proposal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:26:01   OK FINALIZED 43s 0x16ea437d475e870d71ffac7fcbded2c3f00aa4ec79cd397ecf6f500727afb9cb {"listed":true,"outcome":"PASSED","space":"paraswap-dao.eth","vote_id":23}
+21:26:04 → filer file_check [3,9,23,"demo: as voted, for DaoStanding COMPLIANT"] +100000000000000000
+21:26:53   OK FINALIZED 48s 0x9d83a5789384083ed3c87726cc1645b63ba6e744579c2e64e25043a21067cb87 {"check_id":9,"judge_deadline":1792359371,"ok":true}
+21:26:54 checks {"asv":1,"dev":2,"won":3,"lost":4,"unc":5,"exp":6,"aexp":7,"gate":8,"para":9}
+21:26:54 → demo request_grant [3,"release tranche 1"]
+21:27:39   OK FINALIZED 45s 0xe6a6eb1d66f7829982bfb9455510db6f717dd222ab557d99775eac2173a26449 "{\"carried_out\":false\"reasons\":[\"1 check(s) of this DAO still open\",\"no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762\",\"no FINAL AS_VOTED ruling on an executi
+21:27:40 PASS  GrantGate refuses while the DAO's check is open: PENDING  {"at":1792358819,"carried_out":false,"dao_id":3,"purpose":"release tranche 1","reasons":["1 check(s) of this DAO still open","no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762","no FINAL AS_VOTED ruling on an execution from the last 730 days"],"request_id":2,"sender":"0x44afbfd456b3c75e716c42e46feaf18725d45247","state":"PENDING"}
+21:27:42 → appellant file_check [1,6,17,"duplicate"] +100000000000000000
+21:28:26   OK FINALIZED 44s 0xd3afd6b77150ddf0b1b76514d3a971db9a2aa423cda73d491d16c45271cb9f63 {"ok":false,"reason":"DUPLICATE_OF_CHECK_1","refunded_to_claimable":"100000000000000000"}
+21:28:26 PASS  duplicate filing is refused (stake credited back)  DUPLICATE_OF_CHECK_1
+21:28:26 → appellant file_check [1,6,17,"wrong stake"] +100000000000000001
+21:29:08   OK FINALIZED 41s 0x02e36572b51e06a69d778f05ae2bcda2a170d17a50b090b1143ec59fb0201def {"ok":false,"reason":"STAKE_MUST_BE_EXACTLY_100000000000000000","refunded_to_claimable":"100000000000000001"}
+21:29:08 PASS  wrong stake is refused (credited back)  STAKE_MUST_BE_EXACTLY_100000000000000000
+21:29:11 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",1]
+21:29:59   OK FINALIZED 48s 0x073d8f468dbf84cb90dd98345a5e792f3b26579d179d1f6d26f4d2a6bf93796c {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0x6b5e48e3… on 2023-08-23 is named in the proposal of 2023-08-17."}
+21:29:59 → filer rule [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:30:45   REVERTED FINALIZED 45s 0xe3c85aac927f14d02f4259c44923418189b88dd72a2672a85ae72c1c8f75c7b1 REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:30:50 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",2]
+21:31:56   OK FINALIZED 67s 0xa62f4ca15fcb18d3d77400fc6f7fca9444c3042f137646315e7b70a5b3e63d6a {"overall":"DEVIATES","round":0,"summary":"Execution 0x408905df… on 2023-08-23 includes an action the proposal of 2022-11-09 does not mention."}
+21:31:56 → filer rule [2]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:32:42   REVERTED FINALIZED 45s 0x7631957b8ff8b3ba02e17a677bc9fb3aa86a35f4b67144fa2e15b4eb484ebbca REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:32:46 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",3]
+21:33:41   OK FINALIZED 55s 0x6d18568d33f6270a98c00e9ea39d54ed6b228313d2f6da8b5df0719990f1a291 {"overall":"DEVIATES","round":0,"summary":"Execution 0xbcdb6b99… on 2024-02-14 includes an action the proposal of 2023-08-17 does not mention."}
+21:33:41 → filer rule [3]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:34:26   REVERTED FINALIZED 45s 0x979fefc6828531b1d83e51e866e106e2bb25ab4557d509a238b1b2a026b9d737 REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:34:30 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",4]
+21:35:17   OK FINALIZED 46s 0x8782a9362c22e12682cb54d7576efa396f8aeaebda35f96deddd8ee6ca89ba8e {"overall":"DEVIATES","round":0,"summary":"Execution 0x5b453427… on 2026-09-01 includes an action the proposal of 2025-06-23 does not mention."}
+21:35:17 → filer rule [4]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:35:58   REVERTED FINALIZED 41s 0xb971c467dc38f26cdd936378fcc2f1bb922745d993216ad95ab19d084cd4b8ff REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:36:02 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",5]
+21:36:56   OK FINALIZED 54s 0x0e28c3b674eb319c9179c5f45e3ed7e4c734caf1464cfde70cb7edc1a97d9c20 {"overall":"UNCLEAR","round":0,"summary":"Execution 0x2d3d227c… on 2024-05-25 could not be fully matched to the proposal of 2023-08-02: 0 of 1 actions settled."}
+21:36:56 → filer rule [5]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:37:45   REVERTED FINALIZED 49s 0xcd3c3148457ac0f8c9acd291a5b480498f06c8e7bc2f13ff2f93e71189c71c46 REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:37:49 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",7]
+21:38:36   OK FINALIZED 46s 0x2269467c54e92489c6c04bd2e4ad14f98119f8c0641e39bd8171bebdec8e5add {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xaa412db5… on 2023-08-18 is named in the proposal of 2023-08-17."}
+21:38:36 → filer rule [7]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:39:22   REVERTED FINALIZED 46s 0x9c4f71f2537996627706c447925cef5781f96ff39a789272f8b607a153924f7b REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:39:26 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",8]
+21:40:14   OK FINALIZED 48s 0x4da0cf2ab4da765be43845fd6dbe38676846d32268ff62020799b7a7a726b2ae {"overall":"DEVIATES","round":0,"summary":"Execution 0xa85e7333… on 2026-10-15 includes an action the proposal of 2025-06-23 does not mention."}
+21:40:14 → filer rule [8]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:40:56   REVERTED FINALIZED 42s 0x8b5323f740222250d53f3129a915e5f97be0ac08947c4dd4ddad0f0e2c5f3aba REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:41:02 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",9]
+21:42:05   OK FINALIZED 62s 0xd56387120e0787460a85cf62c73a56dd3bb661d602b6f76407552bbe4f389769 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0xb35fba26… on 2025-03-22 is named in the proposal of 2025-03-20."}
+21:42:05 → filer rule [9]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for rule (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:42:58   REVERTED FINALIZED 53s 0x6e992bffa2a36e201ca7211ec583337711cd181a770f258d4f0f4044fc24ca86 REFUSED: JUDGED_AFTER_THE_DEADLINE_USE_EXPIRE
+21:43:12 FAIL  CIP-30 is AS_VOTED  
+21:43:12 FAIL  appeals were filed inside the window  PROVISIONAL PROVISIONAL PROVISIONAL
+21:43:12 FAIL  CIP-16 batch is DEVIATES  
+21:43:12 FAIL  6,000,000 COW against CIP-30 is DEVIATES (CIP-30 never names the Treasury)  
+21:43:12 FAIL  CIP-69 Treasury call is DEVIATES  
+21:43:12 FAIL  67 WETH against CIP-28 is UNCLEAR (no amount on the Treasury's own line) and FINAL at once  
+21:43:12 FAIL  CIP-29 is AS_VOTED  
+21:43:19 FAIL  appeal naming CIP-37 wins: AS_VOTED, bond refunded  
+21:43:19 FAIL  appeal with words only loses: DEVIATES stands, bond to the filer  []
+21:43:27 FAIL  AS_VOTED final: stake to the DAO pledge  []
+21:43:27 FAIL  DEVIATES final: pledge slashed, bounty to the filer  slash 0 severity 
+21:43:28 FAIL  recent 200,000 BAL transfer against CIP-69 is DEVIATES, final  
+21:43:28 → demo request_grant [2,"release tranche 2"]
+21:44:20   OK FINALIZED 52s 0x3a55a4abe2fcab4ce8e639b7326a9309bb56393ce099c0d4f9e76e945b6edb04 "{\"carried_out\":false\"reasons\":[\"2 check(s) of this DAO still open\",\"no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762\",\"no FINAL AS_VOTED ruling on an executi
+21:44:20 FAIL  GrantGate refuses after a final DEVIATES on a recent execution: DEVIATES  {"at":1792359813,"carried_out":false,"dao_id":2,"purpose":"release tranche 2","reasons":["2 check(s) of this DAO still open","no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762","no FINAL AS_VOTED ruling on an execution from the last 730 days"],"request_id":3,"sender":"0x44afbfd456b3c75e716c42e46feaf18725d45247","state":"PENDING"}
+21:44:22 FAIL  ParaSwap PIP-59 (40.203 WETH back to Bybit) is AS_VOTED, final  
+21:44:22 → patrol scans the ParaSwap Safe and records coverage on the demo registry (dao #3)
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+21:45:12   patrol: scans [{"dao":"paraswap-dao.eth","chain":"ethereum","safe":"0x619bbf92fd6ba59893327676b2685a3762a49a33","from":26214948,"to":26222147,"checkpoint":26222147,"events":0,"complete":true}] writes [["record_coverage",true,"0x203f237ecc18a4031a17512426652a3856261422587c5df4324fd7bb1a7870e2","FINALIZED, verified"]]
+21:45:12 PASS  the patrol's coverage heartbeat is on chain (FINALIZED, read back)  {"block":26222147,"block_time":1792358987,"found":true,"recorded_at":1792359874,"reporter":"0xf58f80cde7200b8cebccbe8671c40c4df4786762"}
+21:45:12 → demo request_grant [3,"release tranche 2"]
+21:46:01   OK FINALIZED 48s 0x6c002f00828496f7b6cbcd936c23b311705deed5e87649f9f57856439c8af60e "{\"carried_out\":false\"reasons\":[\"1 check(s) of this DAO still open\",\"no FINAL AS_VOTED ruling on an execution from the last 730 days\",]\"request_id\":4\"state\":\"PENDING\"}"
+21:46:02 FAIL  GrantGate carries out the request only now: COMPLIANT  {"at":1792359918,"carried_out":false,"dao_id":3,"purpose":"release tranche 2","reasons":["1 check(s) of this DAO still open","no FINAL AS_VOTED ruling on an execution from the last 730 days"],"request_id":4,"sender":"0x44afbfd456b3c75e716c42e46feaf18725d45247","state":"PENDING"}
+21:46:03 → filer expire [6]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:46:47   OK FINALIZED 44s 0x560b0e67713e4a0c07cdf341e8465a93c91f02deca465d06304e1b9dec44da6b {"check_id":6,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+21:46:50 PASS  never judged: expire -> FINAL UNCLEAR, stake refunded  
+21:46:54 → filer2 file_check [1,5,21,"demo: refiled after expiry"] +100000000000000000
+21:47:39   OK FINALIZED 45s 0x59892ea665eebd5dc7237c635b4d32e04133c4e3eb58d1aff91632a246aa2e30 {"check_id":10,"judge_deadline":1792360620,"ok":true}
+21:47:43 → filer judge ["0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",10]
+21:48:30   OK FINALIZED 47s 0x69a5beee352c2f15532d414ae105d8a3a66b54bbe17e10505788232ec96fe052 {"overall":"AS_VOTED","round":0,"summary":"Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27."}
+21:48:30 → filer rule [10]
+21:49:18   OK FINALIZED 48s 0x5ecee9d1beedc6aeb2b8151b6c8fc9f56787ae809e6b86988061271732a341f8 {"check_id":10,"ok":true,"ruling":"AS_VOTED","status":"CONTESTABLE"}
+21:49:19 … waiting 52s for check #10 contest window
+21:50:11 → filer finalize [10]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for finalize (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+21:51:00   OK FINALIZED 49s 0xfa6827a5047f5b3723f1e2e82c74949c0966b16728ab394e6a854aa7e903a207 {"check_id":10,"final":"AS_VOTED","ok":true}
+21:51:01 PASS  an expired check can be refiled and ruled  check #10 AS_VOTED Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27.
+21:51:01 FAIL  appeal never judged: expire -> ruling stands, bond refunded  
+21:51:03 … waiting 2329s for the ParaSwap heartbeat to pass 3600s
+22:29:52 → demo request_grant [3,"release tranche 3"]
+22:30:49   OK FINALIZED 58s 0x0d05207b17ff7a686992dffc09ca2bd72410923a4a93a0534ee673bdb6dad386 "{\"carried_out\":false\"reasons\":[\"1 check(s) of this DAO still open\",\"the monitor's coverage ends at block 26222147 (time 1792358987), more than 3600 s before\",\"no FINAL AS_VOTED ruling on an 
+22:30:50 FAIL  GrantGate refuses once coverage is stale: STALE_MONITORING  {"at":1792362608,"carried_out":false,"dao_id":3,"purpose":"release tranche 3","reasons":["1 check(s) of this DAO still open","the monitor's coverage ends at block 26222147 (time 1792358987), more than 3600 s before","no FINAL AS_VOTED ruling on an execution from the last 730 days"],"request_id":5,"sender":"0x44afbfd456b3c75e716c42e46feaf18725d45247","state":"PENDING"}
+22:30:51 → dao request_withdrawal [1,"5100000000000000000"]
+22:31:48   OK FINALIZED 56s 0x383eea26be9949033f5f6d84ee41ecc333aff02d01d9a4a4011caa82ce70be6a {"executable_at":1792362876,"ok":true,"unlocks_at":1792362756}
+22:31:49 → dao request_withdrawal [2,"2000000000000000000"]
+22:32:33   OK FINALIZED 44s 0x8adb7bab09e25175aa9dd9672b814e5159472f617d393fd1e045954fab5e548b {"executable_at":1792362924,"ok":true,"unlocks_at":1792362804}
+22:32:35 … waiting 126s for dao #1 withdrawal delay and late window
+22:34:41 → filer execute_withdrawal [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for execute_withdrawal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+22:35:26   REVERTED FINALIZED 45s 0xc450a36bbdf409e33ec6de39f504bdf47da0294d67b7444a9952afa9289e1a92 REFUSED: CHECKS_OPEN_5
+22:35:28 … waiting 1s for dao #2 withdrawal delay and late window
+22:35:29 → filer execute_withdrawal [2]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for execute_withdrawal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+22:36:14   REVERTED FINALIZED 45s 0xa8005639a7b85d568398ed56951addc67f25e706fbbd8fe9e5c864654d33b863 REFUSED: CHECKS_OPEN_2
+22:36:15 registry eth_getBalance before claims: 9200000000000000001
+22:36:16 → filer claim [] (owed 1100000000000000000)
+22:38:37   ARRIVED FINALIZED 0x85318719651266392fcfb826fa03f087714b2a52cf4a3dfb87b376221e5e2840 0x96bd3efa59880bd5a51e5debd817bd544f8584ae before 1979705502929449097243 after 1980805376622949096420 (+1100000000000000000 - fee 126306500000823) 
+22:38:37 PASS  payout to filer arrived on chain (1100000000000000000 wei)  tx 0x85318719651266392fcfb826fa03f087714b2a52cf4a3dfb87b376221e5e2840: 0x96bd3efa59880bd5a51e5debd817bd544f8584ae 1979705502929449097243 -> 1980805376622949096420
+22:38:40 → appellant claim [] (owed 200000000000000001)
+22:41:35   ARRIVED FINALIZED 0xe8a1271591e9ac223c03ea4f9a85e19596954dcca59723c85028b0c93b30b6c5 0x55020dff7d5fa3d4422e3bbe56d99c88763687a8 before 998196277614249965545 after 998396151307749964723 (+200000000000000001 - fee 126306500000823) 
+22:41:35 PASS  payout to appellant arrived on chain (200000000000000001 wei)  tx 0xe8a1271591e9ac223c03ea4f9a85e19596954dcca59723c85028b0c93b30b6c5: 0x55020dff7d5fa3d4422e3bbe56d99c88763687a8 998196277614249965545 -> 998396151307749964723
+22:41:39 registry eth_getBalance after claims: 7900000000000000000
+22:41:39 PASS  ledger invariant holds  {"balance_matches_held":true,"balance_minus_held":"0","claimable":"0","claimed":"1300000000000000001","held_now":"7900000000000000000","invariant_holds":true,"note":"claim() sends an external transfer that leaves this balance when the claim is executed, so on_chain_balance == held_now; final_check confirms each recipient's balance with eth_getBalance.","on_chain_balance":"7900000000000000000","open":"800000000000000000","pledges":"7100000000000000000","received":"9200000000000000001","recomputed":{"claimable":"0","claimed":"1300000000000000001","open":"800000000000000000","pledges":"7100000000000000000"},"views_match_storage":true}
+22:41:39 PASS  registry balance fell by exactly the total paid out  9200000000000000001 -> 7900000000000000000
+22:41:39 FAIL  demo drained: books hold 0 and eth_getBalance of the registry is 0  held_now 7900000000000000000, eth_getBalance 7900000000000000000
+22:41:40 
+15/33 demo expectations passed

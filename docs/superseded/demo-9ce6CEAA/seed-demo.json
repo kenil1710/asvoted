@@ -1,0 +1,365 @@
+{
+  "registry": "0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265",
+  "checks": {
+    "asv": 1,
+    "dev": 2,
+    "won": 3,
+    "lost": 4,
+    "unc": 5,
+    "exp": 6,
+    "aexp": 7,
+    "gate": 8,
+    "para": 9,
+    "coverage": {
+      "block": 26222147,
+      "block_time": 1792358987,
+      "found": true,
+      "recorded_at": 1792359874,
+      "reporter": "0xf58f80cde7200b8cebccbe8671c40c4df4786762"
+    },
+    "refile": 10
+  },
+  "results": [
+    {
+      "name": "listing a Safe the space does not list is refused",
+      "ok": true,
+      "detail": "REFUSED: SAFE_NOT_LISTED_IN_SPACE_TREASURIES"
+    },
+    {
+      "name": "claim by a non-admin is refused",
+      "ok": true,
+      "detail": "REFUSED: NOT_AN_ADMIN_OR_MODERATOR_OF_THE_SPACE"
+    },
+    {
+      "name": "demo controller claims both listings",
+      "ok": true
+    },
+    {
+      "name": "pledge by a non-controller is credited back, ok:false",
+      "ok": true,
+      "detail": "ONLY_THE_DAOS_CONTROLLER_MAY_PLEDGE"
+    },
+    {
+      "name": "GrantGate refuses a DAO with nothing verified: NO_COVERAGE, never a favourable default",
+      "ok": true,
+      "detail": "{\"at\":1792357711,\"carried_out\":false,\"dao_id\":2,\"purpose\":\"release tranche 1\",\"reasons\":[\"no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762\",\"no FINAL AS_VOTED ruling on an execution from the last 730 days\"],\"request_id\":1,\"sender\":\"0x44afbfd456b3c75e716c42e46feaf18725d45247\",\"state\":\"NO_COVERAGE\"}"
+    },
+    {
+      "name": "GrantGate refuses while the DAO's check is open: PENDING",
+      "ok": true,
+      "detail": "{\"at\":1792358819,\"carried_out\":false,\"dao_id\":3,\"purpose\":\"release tranche 1\",\"reasons\":[\"1 check(s) of this DAO still open\",\"no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762\",\"no FINAL AS_VOTED ruling on an execution from the last 730 days\"],\"request_id\":2,\"sender\":\"0x44afbfd456b3c75e716c42e46feaf18725d45247\",\"state\":\"PENDING\"}"
+    },
+    {
+      "name": "duplicate filing is refused (stake credited back)",
+      "ok": true,
+      "detail": "DUPLICATE_OF_CHECK_1"
+    },
+    {
+      "name": "wrong stake is refused (credited back)",
+      "ok": true,
+      "detail": "STAKE_MUST_BE_EXACTLY_100000000000000000"
+    },
+    {
+      "name": "CIP-30 is AS_VOTED",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "appeals were filed inside the window",
+      "ok": false,
+      "detail": "PROVISIONAL PROVISIONAL PROVISIONAL"
+    },
+    {
+      "name": "CIP-16 batch is DEVIATES",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "6,000,000 COW against CIP-30 is DEVIATES (CIP-30 never names the Treasury)",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "CIP-69 Treasury call is DEVIATES",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "67 WETH against CIP-28 is UNCLEAR (no amount on the Treasury's own line) and FINAL at once",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "CIP-29 is AS_VOTED",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "appeal naming CIP-37 wins: AS_VOTED, bond refunded",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "appeal with words only loses: DEVIATES stands, bond to the filer",
+      "ok": false,
+      "detail": "[]"
+    },
+    {
+      "name": "AS_VOTED final: stake to the DAO pledge",
+      "ok": false,
+      "detail": "[]"
+    },
+    {
+      "name": "DEVIATES final: pledge slashed, bounty to the filer",
+      "ok": false,
+      "detail": "slash 0 severity "
+    },
+    {
+      "name": "recent 200,000 BAL transfer against CIP-69 is DEVIATES, final",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "GrantGate refuses after a final DEVIATES on a recent execution: DEVIATES",
+      "ok": false,
+      "detail": "{\"at\":1792359813,\"carried_out\":false,\"dao_id\":2,\"purpose\":\"release tranche 2\",\"reasons\":[\"2 check(s) of this DAO still open\",\"no coverage heartbeat from the monitor 0xf58f80cde7200b8cebccbe8671c40c4df4786762\",\"no FINAL AS_VOTED ruling on an execution from the last 730 days\"],\"request_id\":3,\"sender\":\"0x44afbfd456b3c75e716c42e46feaf18725d45247\",\"state\":\"PENDING\"}"
+    },
+    {
+      "name": "ParaSwap PIP-59 (40.203 WETH back to Bybit) is AS_VOTED, final",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "the patrol's coverage heartbeat is on chain (FINALIZED, read back)",
+      "ok": true,
+      "detail": "{\"block\":26222147,\"block_time\":1792358987,\"found\":true,\"recorded_at\":1792359874,\"reporter\":\"0xf58f80cde7200b8cebccbe8671c40c4df4786762\"}"
+    },
+    {
+      "name": "GrantGate carries out the request only now: COMPLIANT",
+      "ok": false,
+      "detail": "{\"at\":1792359918,\"carried_out\":false,\"dao_id\":3,\"purpose\":\"release tranche 2\",\"reasons\":[\"1 check(s) of this DAO still open\",\"no FINAL AS_VOTED ruling on an execution from the last 730 days\"],\"request_id\":4,\"sender\":\"0x44afbfd456b3c75e716c42e46feaf18725d45247\",\"state\":\"PENDING\"}"
+    },
+    {
+      "name": "never judged: expire -> FINAL UNCLEAR, stake refunded",
+      "ok": true
+    },
+    {
+      "name": "an expired check can be refiled and ruled",
+      "ok": true,
+      "detail": "check #10 AS_VOTED Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27."
+    },
+    {
+      "name": "appeal never judged: expire -> ruling stands, bond refunded",
+      "ok": false
+    },
+    {
+      "name": "GrantGate refuses once coverage is stale: STALE_MONITORING",
+      "ok": false,
+      "detail": "{\"at\":1792362608,\"carried_out\":false,\"dao_id\":3,\"purpose\":\"release tranche 3\",\"reasons\":[\"1 check(s) of this DAO still open\",\"the monitor's coverage ends at block 26222147 (time 1792358987), more than 3600 s before\",\"no FINAL AS_VOTED ruling on an execution from the last 730 days\"],\"request_id\":5,\"sender\":\"0x44afbfd456b3c75e716c42e46feaf18725d45247\",\"state\":\"PENDING\"}"
+    },
+    {
+      "name": "payout to filer arrived on chain (1100000000000000000 wei)",
+      "ok": true,
+      "detail": "tx 0x85318719651266392fcfb826fa03f087714b2a52cf4a3dfb87b376221e5e2840: 0x96bd3efa59880bd5a51e5debd817bd544f8584ae 1979705502929449097243 -> 1980805376622949096420"
+    },
+    {
+      "name": "payout to appellant arrived on chain (200000000000000001 wei)",
+      "ok": true,
+      "detail": "tx 0xe8a1271591e9ac223c03ea4f9a85e19596954dcca59723c85028b0c93b30b6c5: 0x55020dff7d5fa3d4422e3bbe56d99c88763687a8 998196277614249965545 -> 998396151307749964723"
+    },
+    {
+      "name": "ledger invariant holds",
+      "ok": true,
+      "detail": "{\"balance_matches_held\":true,\"balance_minus_held\":\"0\",\"claimable\":\"0\",\"claimed\":\"1300000000000000001\",\"held_now\":\"7900000000000000000\",\"invariant_holds\":true,\"note\":\"claim() sends an external transfer that leaves this balance when the claim is executed, so on_chain_balance == held_now; final_check confirms each recipient's balance with eth_getBalance.\",\"on_chain_balance\":\"7900000000000000000\",\"open\":\"800000000000000000\",\"pledges\":\"7100000000000000000\",\"received\":\"9200000000000000001\",\"recomputed\":{\"claimable\":\"0\",\"claimed\":\"1300000000000000001\",\"open\":\"800000000000000000\",\"pledges\":\"7100000000000000000\"},\"views_match_storage\":true}"
+    },
+    {
+      "name": "registry balance fell by exactly the total paid out",
+      "ok": true,
+      "detail": "9200000000000000001 -> 7900000000000000000"
+    },
+    {
+      "name": "demo drained: books hold 0 and eth_getBalance of the registry is 0",
+      "ok": false,
+      "detail": "held_now 7900000000000000000, eth_getBalance 7900000000000000000"
+    }
+  ],
+  "ledger": {
+    "balance_matches_held": true,
+    "balance_minus_held": "0",
+    "claimable": "0",
+    "claimed": "1300000000000000001",
+    "held_now": "7900000000000000000",
+    "invariant_holds": true,
+    "note": "claim() sends an external transfer that leaves this balance when the claim is executed, so on_chain_balance == held_now; final_check confirms each recipient's balance with eth_getBalance.",
+    "on_chain_balance": "7900000000000000000",
+    "open": "800000000000000000",
+    "pledges": "7100000000000000000",
+    "received": "9200000000000000001",
+    "recomputed": {
+      "claimable": "0",
+      "claimed": "1300000000000000001",
+      "open": "800000000000000000",
+      "pledges": "7100000000000000000"
+    },
+    "views_match_storage": true
+  },
+  "registry_balance": {
+    "before_claims": "9200000000000000001",
+    "after_claims": "7900000000000000000"
+  },
+  "payouts": [
+    {
+      "role": "filer",
+      "to": "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
+      "amount": "1100000000000000000",
+      "tx": "0x85318719651266392fcfb826fa03f087714b2a52cf4a3dfb87b376221e5e2840",
+      "before": "1979705502929449097243",
+      "after": "1980805376622949096420",
+      "fee": "126306500000823",
+      "delta": "1099873693499999177",
+      "status": "FINALIZED",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "role": "appellant",
+      "to": "0x55020dff7d5fa3d4422e3bbe56d99c88763687a8",
+      "amount": "200000000000000001",
+      "tx": "0xe8a1271591e9ac223c03ea4f9a85e19596954dcca59723c85028b0c93b30b6c5",
+      "before": "998196277614249965545",
+      "after": "998396151307749964723",
+      "fee": "126306500000823",
+      "delta": "199873693499999178",
+      "status": "FINALIZED",
+      "ok": true,
+      "reasons": []
+    }
+  ],
+  "stats": {
+    "checks": 10,
+    "claimable_total": "0",
+    "claimed_total": "1300000000000000001",
+    "daos": 3,
+    "final:AS_VOTED": 1,
+    "final:DEVIATES": 0,
+    "final:UNCLEAR": 1,
+    "how:APPEAL_EXPIRED": 0,
+    "how:APPEAL_RULED": 0,
+    "how:EXPIRED_UNJUDGED": 1,
+    "how:NO_APPEAL": 1,
+    "how:RESPONSE_EXPIRED": 0,
+    "how:RESPONSE_RULED": 0,
+    "how:RULED_UNCLEAR": 0,
+    "open_total": "800000000000000000",
+    "pledges_total": "7100000000000000000",
+    "received_total": "9200000000000000001",
+    "status:APPEALED": 0,
+    "status:CONTESTABLE": 0,
+    "status:FINAL": 2,
+    "status:PROVISIONAL": 8
+  },
+  "final": {
+    "asv": {
+      "check_id": 1,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "dev": {
+      "check_id": 2,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "won": {
+      "check_id": 3,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "lost": {
+      "check_id": 4,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "unc": {
+      "check_id": 5,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "exp": {
+      "check_id": 6,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "UNCLEAR",
+      "how": "EXPIRED_UNJUDGED",
+      "summary": "",
+      "settlement": [
+        [
+          "stake refunded",
+          "0x96bd3efa59880bd5a51e5debd817bd544f8584ae",
+          "100000000000000000"
+        ]
+      ]
+    },
+    "aexp": {
+      "check_id": 7,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "gate": {
+      "check_id": 8,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "para": {
+      "check_id": 9,
+      "ruling": "",
+      "appeal_ruling": "",
+      "final": "",
+      "how": "",
+      "summary": "",
+      "settlement": []
+    },
+    "refile": {
+      "check_id": 10,
+      "ruling": "AS_VOTED",
+      "appeal_ruling": "",
+      "final": "AS_VOTED",
+      "how": "NO_APPEAL",
+      "summary": "Every action in execution 0x1af684f9… on 2023-03-29 is named in the proposal of 2023-03-27.",
+      "settlement": [
+        [
+          "stake to the DAO pledge",
+          "dao#1",
+          "100000000000000000"
+        ]
+      ]
+    }
+  }
+}
