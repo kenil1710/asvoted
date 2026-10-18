@@ -34,21 +34,36 @@ const plain = (v: unknown): unknown => {
   return v;
 };
 
-/** Log scans may use any endpoint (ExecReader re-reads every execution from its own two RPCs); these allow 9,000-block ranges. */
-const LOG_RPC: Record<string, string[]> = {
-  ethereum: ["https://ethereum-rpc.publicnode.com"], optimism: ["https://optimism-rpc.publicnode.com"],
-  base: ["https://base-rpc.publicnode.com"], polygon: ["https://polygon-bor-rpc.publicnode.com"],
+/**
+ * Log scans may use any endpoint (ExecReader re-reads every execution from its
+ * own two RPCs). Each serves ranges up to `max` blocks; a range is split to
+ * fit. publicnode keeps only recent Base blocks, so a Base backfill falls
+ * through to Tenderly's public gateway (1,000 blocks, any depth).
+ */
+const LOG_RPC: Record<string, { url: string; max: number }[]> = {
+  ethereum: [{ url: "https://ethereum-rpc.publicnode.com", max: 9000 }],
+  optimism: [{ url: "https://optimism-rpc.publicnode.com", max: 9000 }],
+  base: [{ url: "https://base-rpc.publicnode.com", max: 9000 }, { url: "https://gateway.tenderly.co/public/base", max: 1000 }],
+  polygon: [{ url: "https://polygon-bor-rpc.publicnode.com", max: 9000 }],
 };
-async function logRpc<T>(chain: string, method: string, params: unknown[]): Promise<T> {
-  for (const url of LOG_RPC[chain] ?? []) {
+type RawLog = { transactionHash: string; blockNumber: string; topics: string[]; data: string };
+async function logRpc(chain: string, filter: { address: string; topics: string[] }, from: number, to: number): Promise<RawLog[]> {
+  const hex = (n: number) => "0x" + n.toString(16);
+  for (const { url, max } of LOG_RPC[chain] ?? []) {
     try {
-      const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }), signal: AbortSignal.timeout(20_000), cache: "no-store" });
-      const j = await r.json();
-      if (!j.error) return j.result as T;
+      const out: RawLog[] = [];
+      for (let a = from; a <= to; a += max) {
+        const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [{ ...filter, fromBlock: hex(a), toBlock: hex(Math.min(to, a + max - 1)) }] }),
+          signal: AbortSignal.timeout(20_000), cache: "no-store" });
+        const j = await r.json();
+        if (j.error || !Array.isArray(j.result)) throw new Error(String(j.error?.message ?? "no result"));
+        out.push(...j.result);
+      }
+      return out;
     } catch { /* next endpoint */ }
   }
-  return rpc<T>(chain, method, params);
+  return rpc<RawLog[]>(chain, "eth_getLogs", [{ ...filter, fromBlock: hex(from), toBlock: hex(to) }]);
 }
 
 export interface PatrolOptions {
@@ -119,8 +134,7 @@ export async function runPatrol(opts: PatrolOptions): Promise<{ report: RunRepor
       return parseInt(b.timestamp, 16);
     },
     async logs(c: string, safe: string, from: number, to: number): Promise<Log[]> {
-      const got = await logRpc<{ transactionHash: string; blockNumber: string; topics: string[]; data: string }[]>(c, "eth_getLogs",
-        [{ address: safe, topics: [SUCCESS], fromBlock: "0x" + from.toString(16), toBlock: "0x" + to.toString(16) }]);
+      const got = await logRpc(c, { address: safe, topics: [SUCCESS] }, from, to);
       // Safe 1.3 puts the safeTxHash in data, 1.4 indexes it
       return got.map((l) => ({ tx: l.transactionHash.toLowerCase(), block: parseInt(l.blockNumber, 16),
         safeTxHash: (l.topics.length >= 2 ? l.topics[1] : "0x" + l.data.slice(2, 66)).toLowerCase() }));
