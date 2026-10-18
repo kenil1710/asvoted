@@ -13,7 +13,10 @@ import { createAccount, createClient } from "genlayer-js";
 import { studioDevnet } from "genlayer-js/chains";
 import type { CalldataEncodable, TransactionHash } from "genlayer-js/types";
 import { ADDR } from "./deployments";
+import { createPublicClient, fallback, http, type Hex } from "viem";
+import { mainnet } from "viem/chains";
 import { RPC, SUCCESS, findNonce, rpc } from "./safe";
+import { type Proposal, type Sources, decodeExecution, discover } from "./patrol/discover";
 import { type Dao, type Deps, type Log, type Match, type RunReport, type WriteResult, runCore } from "./patrol/core";
 import { type PatrolState, loadState } from "./patrol/state";
 
@@ -102,28 +105,48 @@ export async function runPatrol(opts: { dry: boolean; key?: string; state?: unkn
   return { report, state: dry ? null : state };
 }
 
-/** The most recent passed proposal of the space that ended before the execution, preferring one that names an address it touches. */
+const HUB_FIELDS = "ipfs title body choices scores scores_state end";
+const ens = createPublicClient({ chain: mainnet, transport: fallback(RPC.ethereum.urls.map((u) => http(u, { timeout: 15_000 }))) });
+const tokenMeta = new Map<string, { symbol: string; decimals: number } | null>();
+
+function abiString(hex: string): string {
+  const b = hex.slice(2);
+  if (b.length === 64) return Buffer.from(b, "hex").toString("utf8").replace(/\0+$/, "");
+  const len = parseInt(b.slice(64, 128), 16);
+  return Buffer.from(b.slice(128, 128 + len * 2), "hex").toString("utf8");
+}
+
+/** The passed proposal this execution implements (./patrol/discover.ts), or why there is none. */
 async function matchProposal(d: Dao, lg: Log): Promise<Match> {
-  const tx = lg.tx;
-  const n = await findNonce(d.chain, d.safe, tx);
+  const n = await findNonce(d.chain, d.safe, lg.tx);
   if ("error" in n) return { error: n.error, unmatched: n.error !== "transaction not found" };
-  const t = await rpc<{ blockNumber: string; input: string }>(d.chain, "eth_getTransactionByHash", [tx]);
+  const t = await rpc<{ blockNumber: string; input: Hex }>(d.chain, "eth_getTransactionByHash", [lg.tx]);
   const blk = await rpc<{ timestamp: string }>(d.chain, "eth_getBlockByNumber", [t.blockNumber, false]);
   const when = parseInt(blk.timestamp, 16);
-  const touched = new Set((t.input.toLowerCase().match(/[0-9a-f]{64}/g) ?? []).filter((w) => w.startsWith("000000000000000000000000") && !w.startsWith("0000000000000000000000000000")).map((w) => "0x" + w.slice(24)));
-  const q = `{proposals(first:25, where:{space:"${d.space}", state:"closed", end_lt:${when}}, orderBy:"end", orderDirection:desc){ipfs body type choices scores scores_state end}}`;
-  const r = await fetch(HUB, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query: q }), cache: "no-store" });
-  if (!r.ok) return { error: `hub answered ${r.status}`, unmatched: false };
-  const rows = ((await r.json())?.data?.proposals ?? []) as { ipfs: string; body: string; type: string; choices: string[]; scores: number[]; scores_state: string; end: number }[];
-  const passed = rows.filter((p) => p.scores_state === "final" && p.scores.length === p.choices.length && p.scores.length > 0 && (() => {
-    const best = p.scores.indexOf(Math.max(...p.scores));
-    const label = (p.choices[best] ?? "").toLowerCase().replace(/^[^a-z]+/, "");
-    return /^(for|yes|yae|yay|aye|approve|accept|in favou?r|support|agree|pass|execute|enable|fund|adopt|ratify|confirm)\b/.test(label);
-  })());
-  if (passed.length === 0) return { error: "no passed proposal of the space ended before it", unmatched: true };
-  const naming = passed.find((p) => [...touched].some((a) => p.body.toLowerCase().includes(a)));
-  if (naming) return { cid: naming.ipfs, nonce: n.nonce, why: "most recent passed proposal naming an address the execution touches" };
-  // No passed proposal names anything this execution touches: filing against
-  // the latest one would mostly measure the bot's guess, not the signers.
-  return { error: "no passed proposal of the space names an address this execution touches; not filed", unmatched: true };
+  const src: Sources = {
+    async page(space, before, skip, first) {
+      const q = `{proposals(first:${first}, skip:${skip}, where:{space:${JSON.stringify(space)}, state:"closed", end_lt:${before}}, orderBy:"end", orderDirection:desc){${HUB_FIELDS}}}`;
+      const r = await fetch(HUB, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query: q }), cache: "no-store", signal: AbortSignal.timeout(20_000) });
+      if (!r.ok) throw new Error(`hub answered ${r.status}`);
+      const j = await r.json();
+      if (j?.errors?.length) throw new Error("hub: " + String(j.errors[0]?.message).slice(0, 80));
+      return (j?.data?.proposals ?? []) as Proposal[];
+    },
+    resolveEns: (name) => ens.getEnsAddress({ name }),
+    async token(address) {
+      const k = `${d.chain}|${address}`;
+      if (!tokenMeta.has(k)) {
+        try {
+          const [sym, dec] = await Promise.all([rpc<string>(d.chain, "eth_call", [{ to: address, data: "0x95d89b41" }, "latest"]),
+            rpc<string>(d.chain, "eth_call", [{ to: address, data: "0x313ce567" }, "latest"])]);
+          tokenMeta.set(k, { symbol: abiString(sym), decimals: Number(BigInt(dec)) });
+        } catch { tokenMeta.set(k, null); }
+      }
+      return tokenMeta.get(k) ?? null;
+    },
+    native: d.chain === "polygon" ? "POL" : "ETH",
+  };
+  const r = await discover(src, d.space, when, decodeExecution(t.input));
+  if ("error" in r) return { error: r.error, unmatched: true };
+  return { cid: r.cid, nonce: n.nonce, why: `${r.why} (${r.read} closed proposals read)` };
 }
