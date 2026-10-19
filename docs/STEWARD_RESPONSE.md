@@ -320,4 +320,4 @@ The first live run showed that Base's backfill range is not served by publicnode
 
 **Final check.** [docs/FINAL_CHECK.md](FINAL_CHECK.md), 28/28, run after all 15 seeds were final.
 
-**Final commit.** The final commit is the one that adds this file's last version together with FINAL_CHECK.md: see `git log -1` on `main`.
+**Final commit.** [`ec1f5c1`](https://github.com/kenil1710/asvoted/commit/ec1f5c10d69006c6c133936b2501414751a1c459) holds all code, records and the 28/28 final check. The only commit after it adds this line.
