@@ -1,6 +1,6 @@
 # Final check
 
-Run 2026-10-19T01:06:16.281Z by `tools/final_check.mjs` against commit `ad2d8a84b5`, the live site and Studio Dev. **28/28 PASS.**
+Run 2026-10-19T04:54:42.215Z by `tools/final_check.mjs` against commit `4dd6b2387c`, the live site and Studio Dev. **28/28 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
@@ -20,7 +20,7 @@ GrantGateDemo 0xecEb8c215fe63Fe1eBeF09f4Fe236087E106C50B sha256 6ef6823340a08717
 ## PASS · Ledger invariant holds on both registries (counters and recomputation)
 
 ```
-canonical received 1500000000000000000 = pledges 0 + open 800000000000000000 + claimable 700000000000000000 + claimed 0; demo received 9500000000000000001 = 0 + 0 + 0 + 9500000000000000001
+canonical received 1500000000000000000 = pledges 600000000000000000 + open 0 + claimable 900000000000000000 + claimed 0; demo received 9500000000000000001 = 0 + 0 + 0 + 9500000000000000001
 ```
 
 ## PASS · Each registry's eth_getBalance equals what its books hold (every claimed wei has left)
@@ -79,7 +79,7 @@ VoteReader.read_names_at                 first write L1439 self.names_at[key]   
 ## PASS · Views read storage only (no writes, no web/model calls in any view); get_ledger recomputation matches counters
 
 ```
-Ran 4 tests in 0.402s  OK
+Ran 4 tests in 0.406s  OK
 ```
 
 ## PASS · Evidence bound at filing to (chain, Safe, tx, proposal CID, block) and snapshotted (reader evidence hashes match every check)
@@ -109,7 +109,7 @@ Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mev
 ## PASS · All offline tests pass (contracts: python unittest; patrol: node --test against mocked chains and registries)
 
 ```
-Ran 229 tests in 13.528s  OK | frontend: # tests 54, # pass 54, # fail 0
+Ran 229 tests in 13.644s  OK | frontend: # tests 54, # pass 54, # fail 0
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
@@ -159,22 +159,22 @@ missing sections: none; flagged words: none; Scope statements missing: none
 ```
 17 numbers compared, mismatches: []
 = checks: site "15" chain "15"
-= final:AS_VOTED: site "0" chain "0"
-= final:DEVIATES: site "0" chain "0"
+= final:AS_VOTED: site "6" chain "6"
+= final:DEVIATES: site "2" chain "2"
 = final:UNCLEAR: site "7" chain "7"
 = daos: site "8" chain "8"
-= pledges: site "0" chain "0"
+= pledges: site "0.6" chain "0.6"
 = Canonical registry:received: site "1.5 GEN" chain "1.5 GEN"
-= Canonical registry:open: site "0.8 GEN" chain "0.8 GEN"
-= Canonical registry:claimable: site "0.7 GEN" chain "0.7 GEN"
+= Canonical registry:open: site "0 GEN" chain "0 GEN"
+= Canonical registry:claimable: site "0.9 GEN" chain "0.9 GEN"
 = Canonical registry:held_now: site "1.5 GEN" chain "1.5 GEN"
 = Demo registry:received: site "9.5 GEN" chain "9.5 GEN"
 = Demo registry:held_now: site "0 GEN" chain "0 GEN"
 = Demo registry:claimed: site "9.5 GEN" chain "9.5 GEN"
-= dao:final as voted: site "0" chain "0"
-= dao:final deviates: site "0" chain "0"
+= dao:final as voted: site "3" chain "3"
+= dao:final deviates: site "1" chain "1"
 = dao:final unclear: site "4" chain "4"
-= dao:open checks: site "4" chain "4"
+= dao:open checks: site "0" chain "0"
 ```
 
 ## PASS · 375 px: no horizontal scroll on any page
@@ -186,29 +186,29 @@ missing sections: none; flagged words: none; Scope statements missing: none
 ## PASS · Patrol state is durable: patrol-state branch holds per-Safe checkpoints for the canonical registry, a retry queue and unmatched executions
 
 ```
-registry 0xc73438492c3f9604d99bff7aa268b7f77aa3a9b1; updated 2026-10-18T23:02:53.000Z; 8 checkpoints:
-  base|0x65136b3e4f012e4c13aff0926091e2eadcfedb42 through block 52579720 (from 52484321)
-  ethereum|0x619bbf92fd6ba59893327676b2685a3762a49a33 through block 26207523 (from 26171524)
-  ethereum|0x8cf60b289f8d31f737049b590b5e4285ff0bd1d1 through block 26207523 (from 26171524)
-  ethereum|0xca771eda0c70aa7d053ab1b25004559b918fe662 through block 26207523 (from 26171524)
-  ethereum|0xcba28b38103307ec8da98377fff9816c164f9afa through block 26207523 (from 26171524)
-  ethereum|0xe4762eacebdb7585d32079fdcba5bb94eb5d76f2 through block 26207523 (from 26171524)
-  ethereum|0xf26d1bb347a59f6c283c53156519cc1b1abaca51 through block 26207523 (from 26171524)
-  optimism|0xf93a7f819f83dbfdbc307d4d4f0fe5a208c50318 through block 158292139 (from 158076140)
+registry 0xc73438492c3f9604d99bff7aa268b7f77aa3a9b1; updated 2026-10-19T01:21:22.000Z; 8 checkpoints:
+  base|0x65136b3e4f012e4c13aff0926091e2eadcfedb42 through block 52622920 (from 52484321)
+  ethereum|0x619bbf92fd6ba59893327676b2685a3762a49a33 through block 26214723 (from 26171524)
+  ethereum|0x8cf60b289f8d31f737049b590b5e4285ff0bd1d1 through block 26214723 (from 26171524)
+  ethereum|0xca771eda0c70aa7d053ab1b25004559b918fe662 through block 26214723 (from 26171524)
+  ethereum|0xcba28b38103307ec8da98377fff9816c164f9afa through block 26214723 (from 26171524)
+  ethereum|0xe4762eacebdb7585d32079fdcba5bb94eb5d76f2 through block 26214723 (from 26171524)
+  ethereum|0xf26d1bb347a59f6c283c53156519cc1b1abaca51 through block 26214723 (from 26171524)
+  optimism|0xf93a7f819f83dbfdbc307d4d4f0fe5a208c50318 through block 158335339 (from 158076140)
 retry queue 0; unmatched 1; pending txs 0
 ```
 
 ## PASS · Coverage heartbeat on chain for every canonical DAO (record_coverage by the patrol), and DaoStanding answers with a structured state
 
 ```
-dao #1 cow.eth ethereum 0xca771eda0c70aa7d053ab1b25004559b918fe662: coverage block 26207523 (block time 2026-10-16T20:34:35.000Z, recorded 2026-10-18T23:02:09.000Z); standing PENDING - 4 check(s) of this DAO still open
-dao #2 paraswap-dao.eth ethereum 0x619bbf92fd6ba59893327676b2685a3762a49a33: coverage block 26207523 (block time 2026-10-16T20:34:35.000Z, recorded 2026-10-18T23:02:09.000Z); standing PENDING - 1 check(s) of this DAO still open
-dao #3 paraswap-dao.eth optimism 0xf93a7f819f83dbfdbc307d4d4f0fe5a208c50318: coverage block 158292139 (block time 2026-10-16T20:37:35.000Z, recorded 2026-10-18T23:02:09.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 158292139 (time 1792183055), more than 21600 s before
-dao #4 paraswap-dao.eth base 0x65136b3e4f012e4c13aff0926091e2eadcfedb42: coverage block 52579720 (block time 2026-10-14T03:33:07.000Z, recorded 2026-10-18T23:02:09.000Z); standing PENDING - 1 check(s) of this DAO still open
-dao #5 banklessvault.eth ethereum 0xf26d1bb347a59f6c283c53156519cc1b1abaca51: coverage block 26207523 (block time 2026-10-16T20:34:35.000Z, recorded 2026-10-18T23:02:09.000Z); standing PENDING - 1 check(s) of this DAO still open
-dao #6 morpho.eth ethereum 0xcba28b38103307ec8da98377fff9816c164f9afa: coverage block 26207523 (block time 2026-10-16T20:34:35.000Z, recorded 2026-10-18T23:02:09.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26207523 (time 1792182875), more than 21600 s before
-dao #7 safe.eth ethereum 0x8cf60b289f8d31f737049b590b5e4285ff0bd1d1: coverage block 26207523 (block time 2026-10-16T20:34:35.000Z, recorded 2026-10-18T23:02:09.000Z); standing PENDING - 1 check(s) of this DAO still open
-dao #8 krausehouse.eth ethereum 0xe4762eacebdb7585d32079fdcba5bb94eb5d76f2: coverage block 26207523 (block time 2026-10-16T20:34:35.000Z, recorded 2026-10-18T23:02:09.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26207523 (time 1792182875), more than 21600 s before
+dao #1 cow.eth ethereum 0xca771eda0c70aa7d053ab1b25004559b918fe662: coverage block 26214723 (block time 2026-10-17T20:39:59.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26214723 (time 1792269599), more than 21600 s before
+dao #2 paraswap-dao.eth ethereum 0x619bbf92fd6ba59893327676b2685a3762a49a33: coverage block 26214723 (block time 2026-10-17T20:39:59.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26214723 (time 1792269599), more than 21600 s before
+dao #3 paraswap-dao.eth optimism 0xf93a7f819f83dbfdbc307d4d4f0fe5a208c50318: coverage block 158335339 (block time 2026-10-17T20:37:35.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 158335339 (time 1792269455), more than 21600 s before
+dao #4 paraswap-dao.eth base 0x65136b3e4f012e4c13aff0926091e2eadcfedb42: coverage block 52622920 (block time 2026-10-15T03:33:07.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 52622920 (time 1792035187), more than 21600 s before
+dao #5 banklessvault.eth ethereum 0xf26d1bb347a59f6c283c53156519cc1b1abaca51: coverage block 26214723 (block time 2026-10-17T20:39:59.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26214723 (time 1792269599), more than 21600 s before
+dao #6 morpho.eth ethereum 0xcba28b38103307ec8da98377fff9816c164f9afa: coverage block 26214723 (block time 2026-10-17T20:39:59.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26214723 (time 1792269599), more than 21600 s before
+dao #7 safe.eth ethereum 0x8cf60b289f8d31f737049b590b5e4285ff0bd1d1: coverage block 26214723 (block time 2026-10-17T20:39:59.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26214723 (time 1792269599), more than 21600 s before
+dao #8 krausehouse.eth ethereum 0xe4762eacebdb7585d32079fdcba5bb94eb5d76f2: coverage block 26214723 (block time 2026-10-17T20:39:59.000Z, recorded 2026-10-19T01:20:39.000Z); standing STALE_MONITORING - the monitor's coverage ends at block 26214723 (time 1792269599), more than 21600 s before
 ```
 
 ## PASS · GrantGate acts only on COMPLIANT: every DaoStanding state shown on chain in the demo
