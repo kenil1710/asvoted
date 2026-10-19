@@ -7,7 +7,7 @@ Most DAOs vote on Snapshot, off chain, and a Safe multisig carries out the resul
 - Live site: https://asvoted.vercel.app
 - Network: GenLayer Studio Dev (chain 61997), explorer https://explorer-studio-dev.genlayer.com/
 - Contracts and addresses: [ADDRESSES.md](ADDRESSES.md) · deployed from commit `b836f418da32f8bd1b2bb0e218a6512d35275cbb`, byte-identical on chain (`node tools/verify_source.mjs`)
-- Real seeds (15 executions from 6 DAOs, ruled on chain: 6 AS_VOTED, 2 DEVIATES, 7 UNCLEAR): [docs/SEEDS.md](docs/SEEDS.md) · Final check: [docs/FINAL_CHECK.md](docs/FINAL_CHECK.md) · Attacks: [docs/ATTACK_REPORT.md](docs/ATTACK_REPORT.md)
+- Real seeds (15 executions from 6 DAOs, all 15 FINAL on chain: 6 AS_VOTED, 2 DEVIATES, 7 UNCLEAR): [docs/SEEDS.md](docs/SEEDS.md) · Final check: [docs/FINAL_CHECK.md](docs/FINAL_CHECK.md) · Attacks: [docs/ATTACK_REPORT.md](docs/ATTACK_REPORT.md)
 
 ## Scope
 

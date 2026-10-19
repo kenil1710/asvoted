@@ -283,7 +283,7 @@ The test harness for the contracts also waits for FINALIZED.
 **Redeployment.** All nine contracts were deployed from [`b836f41`](https://github.com/kenil1710/asvoted/commit/b836f418da32f8bd1b2bb0e218a6512d35275cbb):
 
 - the canonical set in [`20cae29`](https://github.com/kenil1710/asvoted/commit/20cae29094a4073c27b9813106ccbf3768852be1);
-- the demo set in [`3370ba0`](https://github.com/kenil1710/asvoted/commit/3370ba0), redeployed from the same commit after a first demo run judged past its 600 s windows (records in [docs/superseded/demo-9ce6CEAA](superseded/demo-9ce6CEAA/README.md)).
+- the demo set in [`3370ba0`](https://github.com/kenil1710/asvoted/commit/3370ba0), redeployed from the same commit after a first demo run judged past its 600 s windows (records in [docs/superseded/demo-9ce6CEAA](superseded/demo-9ce6CEAA/README.md)). That superseded demo registry was then settled through its own permissionless exits: open checks expired, pledges withdrawn, every payout claimed and arrived. Its eth_getBalance is 0 ([drain.log](superseded/demo-9ce6CEAA/drain.log), commit [`78fe44c`](https://github.com/kenil1710/asvoted/commit/78fe44c)).
 
 `node tools/verify_source.mjs` reports every address byte-identical to the file at `b836f41`.
 
@@ -299,7 +299,7 @@ The test harness for the contracts also waits for FINALIZED.
 | GrantGate | `0x638Ae4Cd8F0c62e373626E88F75490817bBD6877` |
 | GrantGateDemo | `0xecEb8c215fe63Fe1eBeF09f4Fe236087E106C50B` |
 
-**Seeds.** All 15 canonical seeds were re-filed (6 AS_VOTED, 2 DEVIATES, 7 UNCLEAR), commit [`5daec94`](https://github.com/kenil1710/asvoted/commit/5daec94d08a9c5aaca6692c78b66707f10e79ce8). Records: [docs/SEEDS.md](SEEDS.md) and [docs/seed-run.log](seed-run.log). The last 6 h contest window, check #14, ends at **2026-10-19T02:47:59Z**.
+**Seeds.** All 15 canonical seeds were re-filed, commit [`5daec94`](https://github.com/kenil1710/asvoted/commit/5daec94d08a9c5aaca6692c78b66707f10e79ce8). After the last 6 h contest window ended (check #14, 2026-10-19T02:47:59Z), the 8 CONTESTABLE checks were finalized, commit [`412297a`](https://github.com/kenil1710/asvoted/commit/412297a). **All 15 are FINAL on chain: 6 AS_VOTED, 2 DEVIATES, 7 UNCLEAR.** Records: [docs/SEEDS.md](SEEDS.md) (read back from the chain) and [docs/seed-run.log](seed-run.log).
 
 **Demo.** 35 of 35 expectations passed, commit [`d876262`](https://github.com/kenil1710/asvoted/commit/d876262), log in [docs/demo-run.log](demo-run.log). The run covered:
 
@@ -318,4 +318,6 @@ The first live run showed that Base's backfill range is not served by publicnode
 
 **Old records.** The ab42d5c records are in [docs/superseded/ab42d5c](superseded/ab42d5c/), commit [`b836f41`](https://github.com/kenil1710/asvoted/commit/b836f418da32f8bd1b2bb0e218a6512d35275cbb). Addresses were updated in deployments.json, ADDRESSES.md, the site and SUBMISSION.md.
 
-**Final check.** [docs/FINAL_CHECK.md](FINAL_CHECK.md), 28/28.
+**Final check.** [docs/FINAL_CHECK.md](FINAL_CHECK.md), 28/28, run after all 15 seeds were final.
+
+**Final commit.** The final commit is the one that adds this file's last version together with FINAL_CHECK.md: see `git log -1` on `main`.
