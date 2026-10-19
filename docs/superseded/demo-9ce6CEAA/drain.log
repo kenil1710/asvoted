@@ -1,0 +1,89 @@
+04:30:27 registry 0x9ce6CEAA2aEB76713DcE26b88b298bdAa0d4F265  eth_getBalance 7900000000000000000
+04:30:29 ledger before {"balance_matches_held":true,"balance_minus_held":"0","claimable":"0","claimed":"1300000000000000001","held_now":"7900000000000000000","invariant_holds":true,"note":"claim() sends an external transfer that leaves this balance when the claim is executed, so on_chain_balance == held_now; final_check confirms each recipient's balance with eth_getBalance.","on_chain_balance":"7900000000000000000","open":"800000000000000000","pledges":"7100000000000000000","received":"9200000000000000001","recomputed":{"claimable":"0","claimed":"1300000000000000001","open":"800000000000000000","pledges":"7100000000000000000"},"views_match_storage":true}
+04:30:31 → filer expire [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:31:15   OK FINALIZED 0x9b6669bc16cd860f145c91234a12541c23968ae56ac71c408beb88eea688febb {"check_id":1,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+GenLayer RPC error (gen_call): Rate limit exceeded: 30 requests per minute
+  … get_check attempt 1 hit the RPC rate limit, waiting 12s
+04:31:29 → filer expire [2]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:32:14   OK FINALIZED 0x49d983c0ecc6f5c2d4a0d63284936dad2ce54d62fa09db8c714e9a90ef4d6cc6 {"check_id":2,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+04:32:15 → filer expire [3]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:32:58   OK FINALIZED 0xc8dc1bb3c1d97dd9ae17dc30fc2fbdba7a4596687e448fde84eec7b5bb8893e9 {"check_id":3,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+04:32:59 → filer expire [4]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:33:43   OK FINALIZED 0xca849f0888822bc351093f99269028199a5b38db758c6f2b5786fa4629bbf133 {"check_id":4,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+04:33:44 → filer expire [5]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:34:25   OK FINALIZED 0x8bd754a6fb299bdb475e54b0186429c753fddf62b1fe1033d35a517438bbe061 {"check_id":5,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+04:34:28 → filer expire [7]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:35:06   OK FINALIZED 0xaa24e2c814d81ef01ce933cf7b67df4a575500c8e88b6dfbd5a28fc3302a00ac {"check_id":7,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+04:35:07 → filer expire [8]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:36:07   OK FINALIZED 0x76cd48d2931c9864a6f3208ca09c214dabd9744448026beb7d6923adf304aa7c {"check_id":8,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+04:36:08 → filer expire [9]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for expire (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:36:51   OK FINALIZED 0xa529de6da381ea0afe98fbd02d6318a5491b21ab69ae6542e56e4acfc6637984 {"check_id":9,"final":"UNCLEAR","how":"EXPIRED_UNJUDGED","ok":true}
+04:37:05 check #1 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:06 check #2 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:07 check #3 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:09 check #4 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:09 check #5 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:11 check #6 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:12 check #7 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:13 check #8 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:14 check #9 FINAL final=UNCLEAR how=EXPIRED_UNJUDGED
+04:37:15 check #10 FINAL final=AS_VOTED how=NO_APPEAL
+04:37:18 → filer execute_withdrawal [1]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for execute_withdrawal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:37:59   OK FINALIZED 0xae04ecfef43c3682dc122027980d7d51888f795c13a8ac2a3c0bca8a0177d21b {"ok":true,"to":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","withdrawn":"5100000000000000000"}
+04:38:01 → filer execute_withdrawal [2]
+GenLayer RPC error (sim_estimateTransactionFees): execution failed
+  … write fee simulation failed for execute_withdrawal (Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+Details: exec)
+04:38:45   OK FINALIZED 0x10afdb6bacc1ea73a243789b1c5e104bc1f054dd31283f26319e33eabcadbc62 {"ok":true,"to":"0x88fe8ab95e561a57ce2dd375355858a0893d5d2d","withdrawn":"2000000000000000000"}
+04:41:46 claim filer 500000000000000000: ARRIVED FINALIZED 0x1d7e04d77c167afcd0e3350fe0b212b7820de70a88976035390e37676906d471 0x96bd3efa59880bd5a51e5debd817bd544f8584ae 1981549040852949033637 -> 1982048914547199032814 
+04:44:08 claim filer2 300000000000000000: ARRIVED FINALIZED 0x55f0724ccb61896040b96b8d9dfb7ba15410b7dfff3d6c4f70f4d8454a2617f4 0xf9469ea4a318403492e230ff60e397aa33319bf2 1997189745009499897478 -> 1997489618702499896655 
+04:46:36 claim dao 7100000000000000000: ARRIVED FINALIZED 0xf560a2e604196d9d03bc976d6c6210459c5ef6fd44ad0205b7f2183e2c82cc52 0x88fe8ab95e561a57ce2dd375355858a0893d5d2d 938241948646249920522 -> 945341822339249919699 
+04:46:40 ledger after {"balance_matches_held":true,"balance_minus_held":"0","claimable":"0","claimed":"9200000000000000001","held_now":"0","invariant_holds":true,"note":"claim() sends an external transfer that leaves this balance when the claim is executed, so on_chain_balance == held_now; final_check confirms each recipient's balance with eth_getBalance.","on_chain_balance":"0","open":"0","pledges":"0","received":"9200000000000000001","recomputed":{"claimable":"0","claimed":"9200000000000000001","open":"0","pledges":"0"},"views_match_storage":true}
+04:46:41 registry eth_getBalance after: 0
