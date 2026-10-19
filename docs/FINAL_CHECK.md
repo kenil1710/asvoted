@@ -1,6 +1,6 @@
 # Final check
 
-Run 2026-10-19T00:58:42.004Z by `tools/final_check.mjs` against commit `251f03b4f0`, the live site and Studio Dev. **27/28 PASS.**
+Run 2026-10-19T01:06:16.281Z by `tools/final_check.mjs` against commit `ad2d8a84b5`, the live site and Studio Dev. **28/28 PASS.**
 
 ## PASS · Source match: every address byte-identical to HEAD, all from one commit, contracts/ untouched since
 
@@ -79,7 +79,7 @@ VoteReader.read_names_at                 first write L1439 self.names_at[key]   
 ## PASS · Views read storage only (no writes, no web/model calls in any view); get_ledger recomputation matches counters
 
 ```
-Ran 4 tests in 0.404s  OK
+Ran 4 tests in 0.402s  OK
 ```
 
 ## PASS · Evidence bound at filing to (chain, Safe, tx, proposal CID, block) and snapshotted (reader evidence hashes match every check)
@@ -109,7 +109,7 @@ Every URL literal in the contracts: https://eth-pokt.nodies.app, https://rpc.mev
 ## PASS · All offline tests pass (contracts: python unittest; patrol: node --test against mocked chains and registries)
 
 ```
-Ran 229 tests in 13.557s  OK | frontend: # tests 54, # pass 54, # fail 0
+Ran 229 tests in 13.528s  OK | frontend: # tests 54, # pass 54, # fail 0
 ```
 
 ## PASS · Demo: every path end to end on chain (each verdict, appeal won / lost, expiries, duplicate, unauthorized claim, consumer refusal, drain)
@@ -229,8 +229,8 @@ missing: none; other addresses: none
 GET / 200; /api/patrol dry run watched 8 Safes on 0xc73438492c3F9604D99BfF7Aa268B7F77Aa3a9b1
 ```
 
-## FAIL · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
+## PASS · Git history clean: no keys or secrets ever committed, no assistant attribution, no force pushes, tree clean
 
 ```
-commits touching key files: none; attribution in messages: none; working tree: dirty
+commits touching key files: none; attribution in messages: none; working tree: clean
 ```
