@@ -1,0 +1,32 @@
+{
+ "version": 1,
+ "registry": "0x5af1254384965e7e21ab37853ee6385448331c50",
+ "updated": "2026-10-18T23:41:57.000Z",
+ "cursors": {
+  "daos": 0,
+  "open_checks": 0
+ },
+ "heartbeats": {
+  "ethereum|0x619bbf92fd6ba59893327676b2685a3762a49a33": 26222721
+ },
+ "pending": [],
+ "tx_log": [
+  {
+   "id": "record_coverage|3:26222721",
+   "fn": "record_coverage",
+   "hash": "0x6feb9160d8a192e14bded466d0d5a405c96d53ade2ef17afc025963f4b3e3cb7",
+   "outcome": "finalized, verified",
+   "at": "2026-10-18T23:41:57.000Z"
+  }
+ ],
+ "checkpoints": {
+  "ethereum|0x619bbf92fd6ba59893327676b2685a3762a49a33": {
+   "block": 26222721,
+   "origin": 26215522,
+   "updated": "2026-10-18T23:41:11.000Z"
+  }
+ },
+ "processed": {},
+ "retry": [],
+ "unmatched": []
+}
