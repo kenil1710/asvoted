@@ -1,44 +1,44 @@
 {
  "checkpoints": {
   "base|0x65136b3e4f012e4c13aff0926091e2eadcfedb42": {
-   "block": 52984680,
+   "block": 53027880,
    "origin": 52484321,
-   "updated": "2026-10-23T12:48:22.000Z"
+   "updated": "2026-10-28T15:09:55.000Z"
   },
   "ethereum|0x619bbf92fd6ba59893327676b2685a3762a49a33": {
-   "block": 26255345,
+   "block": 26262545,
    "origin": 26171524,
-   "updated": "2026-10-23T12:48:11.000Z"
+   "updated": "2026-10-28T15:09:23.000Z"
   },
   "ethereum|0x8cf60b289f8d31f737049b590b5e4285ff0bd1d1": {
-   "block": 26255345,
+   "block": 26262545,
    "origin": 26171524,
-   "updated": "2026-10-23T12:48:22.000Z"
+   "updated": "2026-10-28T15:10:12.000Z"
   },
   "ethereum|0xca771eda0c70aa7d053ab1b25004559b918fe662": {
-   "block": 26255345,
+   "block": 26262545,
    "origin": 26171524,
-   "updated": "2026-10-23T12:48:11.000Z"
+   "updated": "2026-10-28T15:09:17.000Z"
   },
   "ethereum|0xcba28b38103307ec8da98377fff9816c164f9afa": {
-   "block": 26255345,
+   "block": 26262545,
    "origin": 26171524,
-   "updated": "2026-10-23T12:48:22.000Z"
+   "updated": "2026-10-28T15:10:07.000Z"
   },
   "ethereum|0xe4762eacebdb7585d32079fdcba5bb94eb5d76f2": {
-   "block": 26255345,
+   "block": 26262545,
    "origin": 26171524,
-   "updated": "2026-10-23T12:48:22.000Z"
+   "updated": "2026-10-28T15:10:18.000Z"
   },
   "ethereum|0xf26d1bb347a59f6c283c53156519cc1b1abaca51": {
-   "block": 26255345,
+   "block": 26262545,
    "origin": 26171524,
-   "updated": "2026-10-23T12:48:22.000Z"
+   "updated": "2026-10-28T15:10:01.000Z"
   },
   "optimism|0xf93a7f819f83dbfdbc307d4d4f0fe5a208c50318": {
-   "block": 158579923,
+   "block": 158623123,
    "origin": 158076140,
-   "updated": "2026-10-23T12:48:16.000Z"
+   "updated": "2026-10-28T15:09:50.000Z"
   }
  },
  "cursors": {
@@ -46,14 +46,14 @@
   "open_checks": 0
  },
  "heartbeats": {
-  "base|0x65136b3e4f012e4c13aff0926091e2eadcfedb42": 52984680,
-  "ethereum|0x619bbf92fd6ba59893327676b2685a3762a49a33": 26255345,
-  "ethereum|0x8cf60b289f8d31f737049b590b5e4285ff0bd1d1": 26255345,
-  "ethereum|0xca771eda0c70aa7d053ab1b25004559b918fe662": 26255345,
-  "ethereum|0xcba28b38103307ec8da98377fff9816c164f9afa": 26255345,
-  "ethereum|0xe4762eacebdb7585d32079fdcba5bb94eb5d76f2": 26255345,
-  "ethereum|0xf26d1bb347a59f6c283c53156519cc1b1abaca51": 26255345,
-  "optimism|0xf93a7f819f83dbfdbc307d4d4f0fe5a208c50318": 158579923
+  "base|0x65136b3e4f012e4c13aff0926091e2eadcfedb42": 53027880,
+  "ethereum|0x619bbf92fd6ba59893327676b2685a3762a49a33": 26262545,
+  "ethereum|0x8cf60b289f8d31f737049b590b5e4285ff0bd1d1": 26262545,
+  "ethereum|0xca771eda0c70aa7d053ab1b25004559b918fe662": 26262545,
+  "ethereum|0xcba28b38103307ec8da98377fff9816c164f9afa": 26262545,
+  "ethereum|0xe4762eacebdb7585d32079fdcba5bb94eb5d76f2": 26262545,
+  "ethereum|0xf26d1bb347a59f6c283c53156519cc1b1abaca51": 26262545,
+  "optimism|0xf93a7f819f83dbfdbc307d4d4f0fe5a208c50318": 158623123
  },
  "pending": [],
  "processed": {
@@ -277,6 +277,13 @@
    "hash": "0x01301c8ae45b9d40d7067d1e479bc8fe95debb3af415b21f139bc66ef6db5d50",
    "id": "record_coverage|1:26255345,2:26255345,3:158579923,4:52984680,5:26255345,6:26255345,7:26255345,8:26255345",
    "outcome": "finalized, verified"
+  },
+  {
+   "at": "2026-10-28T15:11:07.000Z",
+   "fn": "record_coverage",
+   "hash": "0x20bedfb7ff2e4ad7366b164dc008c0f3febab34d47e6079bf47e5408421b94aa",
+   "id": "record_coverage|1:26262545,2:26262545,3:158623123,4:53027880,5:26262545,6:26262545,7:26262545,8:26262545",
+   "outcome": "finalized, verified"
   }
  ],
  "unmatched": [
@@ -293,6 +300,6 @@
    "tx": "0xc62b4a436b3b3222065fcda275c91d5589de4b8addae106a85e70923d5e9b773"
   }
  ],
- "updated": "2026-10-28T08:09:47.000Z",
+ "updated": "2026-10-28T15:11:07.000Z",
  "version": 1
 }
